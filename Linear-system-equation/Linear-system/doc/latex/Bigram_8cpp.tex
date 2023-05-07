@@ -1,0 +1,49 @@
+\hypertarget{Bigram_8cpp}{}\doxysection{src/\+Bigram.cpp File Reference}
+\label{Bigram_8cpp}\index{src/Bigram.cpp@{src/Bigram.cpp}}
+{\ttfamily \#include $<$iostream$>$}\newline
+{\ttfamily \#include \char`\"{}Bigram.\+h\char`\"{}}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{Bigram_8cpp_a31fd1634d86594e84432dba092ed7bb1}\label{Bigram_8cpp_a31fd1634d86594e84432dba092ed7bb1}} 
+bool {\bfseries is\+Valid\+Character} (char character, const string \&valid\+Characters)
+\item 
+void \mbox{\hyperlink{Bigram_8cpp_a266a0facf51f64c3bfca9611665803af}{to\+Upper}} (\mbox{\hyperlink{classBigram}{Bigram}} \&bigram)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyAuthor}{Author}
+Miguel Ángel De La Vega Rodríguez \href{mailto:miguevrod@correo.ugr.es}{\texttt{ miguevrod@correo.\+ugr.\+es}}
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2023-\/03-\/02 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{Bigram_8cpp_a266a0facf51f64c3bfca9611665803af}\label{Bigram_8cpp_a266a0facf51f64c3bfca9611665803af}} 
+\index{Bigram.cpp@{Bigram.cpp}!toUpper@{toUpper}}
+\index{toUpper@{toUpper}!Bigram.cpp@{Bigram.cpp}}
+\doxysubsubsection{\texorpdfstring{toUpper()}{toUpper()}}
+{\footnotesize\ttfamily void to\+Upper (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classBigram}{Bigram}} \&}]{bigram }\end{DoxyParamCaption})}
+
+Converts lowercase letters in the given bigram to uppercase 
+\begin{DoxyParams}{Parameters}
+{\em bigram} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 61 of file Bigram.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{61                             \{}
+\DoxyCodeLine{62     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i=0;i<2;i++)\{}
+\DoxyCodeLine{63         bigram.\mbox{\hyperlink{classBigram_ae653a8bb70d1f0f8ddde88196ef51564}{at}}(i) = toupper(bigram.\mbox{\hyperlink{classBigram_ae653a8bb70d1f0f8ddde88196ef51564}{at}}(i));}
+\DoxyCodeLine{64     \}}
+\DoxyCodeLine{65     }
+\DoxyCodeLine{66 \}}
+
+\end{DoxyCode}

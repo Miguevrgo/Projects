@@ -1,0 +1,72 @@
+\hypertarget{Bigram_8h}{}\doxysection{include/\+Bigram.h File Reference}
+\label{Bigram_8h}\index{include/Bigram.h@{include/Bigram.h}}
+{\ttfamily \#include $<$iostream$>$}\newline
+{\ttfamily \#include $<$string$>$}\newline
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classBigram}{Bigram}}
+\begin{DoxyCompactList}\small\item\em It represents a pair of characters. It is used to store pairs of consecutive characters from a text. It uses a string to store the pair of characters. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{Bigram_8h_afe6e716ad7a25257188a41370600dfad}{is\+Valid\+Character}} (char character, const std\+::string \&valid\+Characters)
+\item 
+void \mbox{\hyperlink{Bigram_8h_a266a0facf51f64c3bfca9611665803af}{to\+Upper}} (\mbox{\hyperlink{classBigram}{Bigram}} \&bigram)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyAuthor}{Author}
+Silvia Acid Carrillo \href{mailto:acid@decsai.ugr.es}{\texttt{ acid@decsai.\+ugr.\+es}} 
+
+Andrés Cano Utrera \href{mailto:acu@decsai.ugr.es}{\texttt{ acu@decsai.\+ugr.\+es}} 
+
+Luis Castillo Vidal \href{mailto:L.Castillo@decsai.ugr.es}{\texttt{ L.\+Castillo@decsai.\+ugr.\+es}} 
+
+Miguel Ángel De La Vega Rodríguez \href{mailto:miguevrod@correo.ugr.es}{\texttt{ miguevrod@correo.\+ugr.\+es}}
+\end{DoxyAuthor}
+Created on 2 February 2023, 11\+:00 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{Bigram_8h_afe6e716ad7a25257188a41370600dfad}\label{Bigram_8h_afe6e716ad7a25257188a41370600dfad}} 
+\index{Bigram.h@{Bigram.h}!isValidCharacter@{isValidCharacter}}
+\index{isValidCharacter@{isValidCharacter}!Bigram.h@{Bigram.h}}
+\doxysubsubsection{\texorpdfstring{isValidCharacter()}{isValidCharacter()}}
+{\footnotesize\ttfamily bool is\+Valid\+Character (\begin{DoxyParamCaption}\item[{char}]{character,  }\item[{const std\+::string \&}]{valid\+Characters }\end{DoxyParamCaption})}
+
+Checks if the given character is contained in {\ttfamily valid\+Characters}. That is, if the given character can be consireded as part of a word. 
+\begin{DoxyParams}{Parameters}
+{\em character} & The character to check \\
+\hline
+{\em valid\+Characters} & The set of characters that we consider as possible characters in a word. Any other character is considered as a separator. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the given character is contained in {\ttfamily valid\+Characters}; false otherwise 
+\end{DoxyReturn}
+\mbox{\Hypertarget{Bigram_8h_a266a0facf51f64c3bfca9611665803af}\label{Bigram_8h_a266a0facf51f64c3bfca9611665803af}} 
+\index{Bigram.h@{Bigram.h}!toUpper@{toUpper}}
+\index{toUpper@{toUpper}!Bigram.h@{Bigram.h}}
+\doxysubsubsection{\texorpdfstring{toUpper()}{toUpper()}}
+{\footnotesize\ttfamily void to\+Upper (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classBigram}{Bigram}} \&}]{bigram }\end{DoxyParamCaption})}
+
+Converts lowercase letters in the given bigram to uppercase 
+\begin{DoxyParams}{Parameters}
+{\em bigram} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 61 of file Bigram.\+cpp.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{61                             \{}
+\DoxyCodeLine{62     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i=0;i<2;i++)\{}
+\DoxyCodeLine{63         bigram.\mbox{\hyperlink{classBigram_ae653a8bb70d1f0f8ddde88196ef51564}{at}}(i) = toupper(bigram.\mbox{\hyperlink{classBigram_ae653a8bb70d1f0f8ddde88196ef51564}{at}}(i));}
+\DoxyCodeLine{64     \}}
+\DoxyCodeLine{65     }
+\DoxyCodeLine{66 \}}
+
+\end{DoxyCode}
