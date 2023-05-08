@@ -50,8 +50,23 @@ double* Solver::operator()(int row, int col){
 }
 
 void Solver::setMatrixCoef(double matrix_coef[], int size){
+    if(size!=rows*cols){
+        throw std::out_of_range(std::string("void Solver::setMatrixCoef(double matrix_coef[], int size)")
+            + " invalid size");
+    }
+
     for (int i=0;i<size;i++){
         this->matrix_coef[i] = matrix_coef[i];
+    }
+}
+
+void Solver::setMatrixInd(double ind[], int size){
+    if(size!=rows){
+        throw std::out_of_range(std::string("void Solver::setMatrixInd(double ind[], int size)")
+            + " invalid size");
+    }
+    for (int i=0;i<size;i++){
+        matrix_ind[i]=ind[i];
     }
 }
 

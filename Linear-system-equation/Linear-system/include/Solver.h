@@ -50,11 +50,59 @@ public:
      * @param size 
      */
     void setMatrixCoef(double matrix_coef[], int size);
-    void setMatrixInd(double ind[]);
+    
+    /**
+     * @brief Set the Matrix Ind object
+     * 
+     * @param ind 
+     * @param size 
+     */
+    void setMatrixInd(double ind[],int size);
+    
+    /**
+     * @brief Solves given linear equation system with the use of iterative
+     * Gauss-Seidel Method,
+     * 
+     * @param max_iterations 
+     * @param tolerance 
+     */
     void gaussSeidel(int max_iterations, double tolerance);
-    void solveSystem(void (*method));
-    int tolerance(double tolerance);
-    int inverseMatrix();
+    
+    /**
+     * @brief Solves given linear equation system with the use of iterative
+     * Jacobi Method,
+     * 
+     * @param max_iterations 
+     * @param tolerance 
+     */
+    void jacobi(int max_iterations, double tolerance);
+
+    /**
+     * @brief Solves given linear equation system with the use of iterative
+     * relaxation Method,
+     * 
+     * @param max_iterations 
+     * @param tolerance 
+     * @param w w used by the method
+     */
+    void relaxation(int max_iterations,double tolerance, double w);
+    /**
+     * @brief Solves the system by the given method
+     * 
+     * @param method gaussSeidel | Jacobi | Relaxation
+     * @param max_iter 
+     * @param tolerance 
+     * @param w (optional)
+     */
+    void solveSystem(void (*method)(int,double), int max_iter, double tolerance);
+    void solveSystem(void (*method)(int,double,double), int max_iter, double tolerance,double w);
+    /**
+     * @brief Calculates the inverse of the given matrix
+     * 
+     * @param matrix
+     * @param size 
+     */
+    void inverseMatrix(double matrix[], int size);
     std::string toString() const;
 private:
     int rows;
