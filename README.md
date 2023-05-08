@@ -5,9 +5,9 @@
 
 ## General info
 Personal Repository to train and learn C++/C by designing and implementing projects
-	* :heavy_check_mark: - Finished Project
-	* :heavy_minus_sign: - In progress
-	* :x: - Planning to start
+	* [:heavy_check_mark:] - Finished Project
+	* [:heavy_minus_sign:] - In progress
+	* [:x:] - Planning to start
 ## Technologies
 Projects are created with:
 * Visual Studio Code
