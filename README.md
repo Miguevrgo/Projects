@@ -13,7 +13,7 @@ Projects are created with:
 * C++11
 	
 ## Projects
-* [Dijkstra-Algorithm](#Dijkstra-Algorithm)
+* [Dijkstra-Algorithm](Dijkstra-Algorithm)
 * [Linear-system-equation](#Linear-system-equation)
 * [Z[i] Ring](#Z[i])
 * [Shutdown Linux](#Apagar-Linux)
