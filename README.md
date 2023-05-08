@@ -14,6 +14,6 @@ Projects are created with:
 	
 ## Projects
 * [Dijkstra-Algorithm](Dijkstra-Algorithm)
-* [Linear-system-equation](#Linear-system-equation)
-* [Z[i] Ring](#Z[i])
-* [Shutdown Linux](#Apagar-Linux)
+* [Linear-system-equation](Linear-system-equation)
+* [Z[i] Ring](Z[i])
+* [Shutdown Linux](Apagar-Linux)
