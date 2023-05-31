@@ -105,11 +105,14 @@ public:
     void inverseMatrix(double matrix[], int size);
     std::string toString() const;
 private:
-    int rows;
-    int cols;
+    unsigned int rows;
+    unsigned int cols;
     double* matrix_coef; // Matrix coefficients
     double* matrix_sol; // Solution vector
     double* matrix_ind; // Independent vector
+
+    void deallocate();
+
 };
 
 

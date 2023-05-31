@@ -43,6 +43,9 @@ Solver::~Solver()
     delete[] matrix_coef;
     delete[] matrix_sol;
     delete[] matrix_ind;
+    matrix_coef = nullptr;
+    matrix_coef = nullptr;
+    matrix_coef = nullptr;
 }
 
 double* Solver::operator()(int row, int col){
