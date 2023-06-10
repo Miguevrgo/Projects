@@ -1,5 +1,7 @@
 #pragma once
-class Player
+#include "Pieces.h"
+class Player :
+    public Pieces
 {
 };
 

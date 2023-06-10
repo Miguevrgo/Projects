@@ -11,6 +11,7 @@ Personal Repository to train and learn C++/C by designing and implementing proje
 ## Technologies
 Projects are created with:
 * Visual Studio Code
+* Visual Studio IDE 2022
 * Apache NetBeans 17
 * C++11
 	
