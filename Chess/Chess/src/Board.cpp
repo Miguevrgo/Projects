@@ -26,12 +26,18 @@ void Board::initializeBoard() {
 				_board[i][j].sprite.setTexture(whiteSquareTexture);
 			}
 
-			// Pawns
-			if (i == 1 || i==6) {
-				_board[i][j].piece = new Pawn(PieceColor::WHITE);
+			/*_________________________White Pieces___________________________*/
+			std::string color = "WHITE";
+			
+			if (i == 1) {
+				_board[i][j].piece = new Pawn(color);
 			}
 
 
 		}
 	}
+}
+
+Pieces* Board::getPiece(unsigned int x, unsigned int y){
+	return _board[x][y].piece;
 }
