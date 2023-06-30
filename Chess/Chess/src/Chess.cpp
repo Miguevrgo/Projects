@@ -1,14 +1,9 @@
-/**
-* Author: Miguel Angel De la Vega Rodriguez
-* Version: 0.1
-**/
+// Chess.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
 
 #include <iostream>
-#include <SFML/Graphics.hpp>
 
-int main()
-{
+int main(){
     std::cout << "Hello World!\n";
-    return 0;
 }
 

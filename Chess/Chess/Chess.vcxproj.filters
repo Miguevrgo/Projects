@@ -18,19 +18,13 @@
     <ClCompile Include="src\Chess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Pieces\Pieces.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Pieces\Bishop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Board.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Pieces\King.cpp">
+    <ClCompile Include="src\Pieces\Piece.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Pieces\Knight.cpp">
+    <ClCompile Include="src\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Pieces\Pawn.cpp">
@@ -39,39 +33,21 @@
     <ClCompile Include="src\Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Pieces\Queen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Pieces\Rook.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Pieces\Pieces.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Pieces\Bishop.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Board.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Pieces\King.h">
+    <ClInclude Include="include\Pieces\Piece.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Pieces\Knight.h">
+    <ClInclude Include="include\Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Pieces\Pawn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Pieces\Queen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Pieces\Rook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

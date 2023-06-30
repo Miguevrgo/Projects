@@ -1,9 +1,7 @@
 #pragma once
-#include "Pieces/Pieces.h"
+#include "Piece.h"
 class Pawn :
-    public Pieces{
-public:
-
-private:
+    public Piece
+{
 };
 

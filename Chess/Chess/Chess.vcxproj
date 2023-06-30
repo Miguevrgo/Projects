@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{16247caf-1706-4916-af4e-dc18b4453659}</ProjectGuid>
+    <ProjectGuid>{d6c33655-1dbe-440e-bd28-b673527e4b2c}</ProjectGuid>
     <RootNamespace>Chess</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -70,22 +70,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -147,27 +131,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Pieces\Bishop.cpp" />
-    <ClCompile Include="src\Board.cpp" />
-    <ClCompile Include="src\Pieces\King.cpp" />
-    <ClCompile Include="src\Pieces\Knight.cpp" />
-    <ClCompile Include="src\Pieces\Pawn.cpp" />
-    <ClCompile Include="src\Pieces\Pieces.cpp" />
     <ClCompile Include="src\Player.cpp" />
-    <ClCompile Include="src\Pieces\Queen.cpp" />
-    <ClCompile Include="src\Pieces\Rook.cpp" />
+    <ClCompile Include="src\Pieces\Pawn.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Pieces\Piece.cpp" />
+    <ClCompile Include="src\Board.cpp" />
     <ClCompile Include="src\Chess.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Pieces\Bishop.h" />
+    <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\Board.h" />
-    <ClInclude Include="include\Pieces\King.h" />
-    <ClInclude Include="include\Pieces\Knight.h" />
+    <ClInclude Include="include\Pieces\Piece.h" />
     <ClInclude Include="include\Pieces\Pawn.h" />
-    <ClInclude Include="include\Pieces\Pieces.h" />
     <ClInclude Include="include\Player.h" />
-    <ClInclude Include="include\Pieces\Queen.h" />
-    <ClInclude Include="include\Pieces\Rook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
