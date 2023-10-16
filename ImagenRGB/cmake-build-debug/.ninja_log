@@ -1,0 +1,5 @@
+# ninja log v5
+248	340	1697477630320002632	ImagenRGB	cc44f7d8a224af50
+0	23	1697477637343932614	build.ninja	798e1ef3e152f77d
+0	247	1697477630228003548	CMakeFiles/ImagenRGB.dir/src/main.cpp.o	5c8720a9dded748f
+1	17	1697477630000005820	CMakeFiles/ImagenRGB.dir/src/image.cpp.o	f6004393164ed9c7
