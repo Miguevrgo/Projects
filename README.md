@@ -21,3 +21,4 @@ Projects are created with:
 * [Z[i] Ring](Z[i]) :x:
 * [Shutdown Linux](Apagar-Linux) :heavy_check_mark:
 * [Chess](Chess) : :heavy_minus_sign:
+* [ImagenRGB](ImagenRGB) : heavy_minus_sign:
