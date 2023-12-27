@@ -20,4 +20,4 @@ Projects are created with:
 * [Dijkstra-Algorithm](Dijkstra-Algorithm)  ❌
 * [Linear-system-equation](Linear-system-equation) ➖
 * [Shutdown Linux](Apagar-Linux) ✅
-* [Spell-Cheker](Spell-Checker) : ➖
+* [Spell-Checker](Spell-Checker) : ➖
