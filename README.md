@@ -13,7 +13,8 @@ Projects are created with:
 * Visual Studio Code
 * Visual Studio IDE 2022
 * Apache NetBeans 17
-* C++11
+* Jetbrains Clion
+* C++17/C++20
 	
 ## Projects
 * [Dijkstra-Algorithm](Dijkstra-Algorithm)  ❌
