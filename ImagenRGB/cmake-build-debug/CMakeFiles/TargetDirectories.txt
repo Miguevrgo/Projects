@@ -1,3 +1,0 @@
-/home/miguevr/Github/C-Projects/ImagenRGB/cmake-build-debug/CMakeFiles/ImagenRGB.dir
-/home/miguevr/Github/C-Projects/ImagenRGB/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/miguevr/Github/C-Projects/ImagenRGB/cmake-build-debug/CMakeFiles/rebuild_cache.dir
