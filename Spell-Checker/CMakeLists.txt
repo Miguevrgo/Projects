@@ -9,5 +9,7 @@ include_directories(${BASE_FOLDER}/include)
 add_executable(Spell-Checker src/main.cpp src/Corrector.cpp
         src/Dictionary.cpp
         src/Learner.cpp
-        src/Utils.cpp)
+        src/Utils.cpp
+        src/Trie.cpp
+        include/Trie.h)
 
