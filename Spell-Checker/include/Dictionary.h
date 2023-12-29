@@ -12,17 +12,21 @@
 class Dictionary {
 private:
     Trie trie; // Structure that holds the dictionary words
+    std::string language; // Language for the Dictionary
 public:
-    Dictionary();
-    Dictionary(const std::string &filename);
-    ~Dictionary();
-
+    Dictionary() = default;
+    ~Dictionary() = default;
+    Dictionary(const std::string &filename, const std::string &language);
+    void SetLanguage(const std::string &newLang);
     bool LoadFromFile(const std::string &filename);
-    bool AddWord(const std::string &word);
+    void AddWord(const std::string &word);
     bool RemoveWord(const std::string &word);
     bool CheckWord(const std::string &word);
     std::vector<std::string> SuggestCorrections(const std::string &word, int maxDistance) const;
     bool SaveToFile(const std::string &filename) const;
+    Dictionary operator+(const std::string &word);
+    Dictionary operator-(const std::string &word);
+    Dictionary operator+(const Dictionary &other);
 };
 
 

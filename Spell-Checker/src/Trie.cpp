@@ -81,3 +81,29 @@ bool Trie::StartsWith(const std::string &prefix) const {
     }
     return true;
 }
+
+std::vector<std::string> Trie::AutoComplete(const std::string &prefix) const {
+    std::vector<std::string> completions;
+    if (!StartsWith(prefix)){
+        return completions;
+    }
+
+    const TrieNode* node = root;
+    for (auto& c : prefix){
+        node = node->children.at(c);
+    }
+    std::string current = prefix;
+    FindAllWords(node, current, completions);
+    return completions;
+}
+
+void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<std::string> words) const {
+    if (node->IsEndOfWord){
+        words.emplace_back(current);
+    }
+    for (const auto& child : node->children){
+        current.push_back(child.first);
+        FindAllWords(child.second,current,words);
+        current.pop_back();
+    }
+}
