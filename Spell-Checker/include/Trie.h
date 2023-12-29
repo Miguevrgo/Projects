@@ -32,14 +32,12 @@ private:
 public:
     Trie() : root(new TrieNode()) {}
     ~Trie();
-
     void Insert(const std::string &word);
     bool Remove(const std::string &word);
     [[nodiscard]] bool Search(const std::string &word) const;
     [[nodiscard]] bool StartsWith(const std::string &prefix) const;
-    std::vector<std::string> AutoComplete (const std::string &prefix) const;
-    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::string> words);
-
+    [[nodiscard]] std::vector<std::string> AutoComplete (const std::string &prefix) const;
+    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::string> words) const;
 };
 
 

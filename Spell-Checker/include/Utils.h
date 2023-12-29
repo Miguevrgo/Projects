@@ -1,14 +1,19 @@
-//
-// Created by miguevr on 27/12/23.
-//
+/**
+ * @file Utils.h
+ * @author Miguel Ángel De la Vega Rodríguez
+ * @brief Utility functions for the project
+ */
 
 #ifndef SPELL_CHECKER_UTILS_H
 #define SPELL_CHECKER_UTILS_H
 
+#include <vector>
+#include <fstream>
+#include <string>
 
-class Utils {
-
-};
+namespace Utils{
+    bool ParseInput(const std::string& filename, std::vector<std::string> words);
+}
 
 
 #endif //SPELL_CHECKER_UTILS_H
