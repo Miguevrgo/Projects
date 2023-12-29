@@ -27,15 +27,18 @@ class Trie {
 private:
     TrieNode* root;
     void clear(TrieNode* node);
+    bool removeHelper(TrieNode* node, const std::string& word, int depth);
+
 public:
     Trie() : root(new TrieNode()) {}
     ~Trie();
 
     void Insert(const std::string &word);
     bool Remove(const std::string &word);
-    bool Search(const std::string &word) const;
-    bool StartsWith(const std::string &prefix) const;
+    [[nodiscard]] bool Search(const std::string &word) const;
+    [[nodiscard]] bool StartsWith(const std::string &prefix) const;
     std::vector<std::string> AutoComplete (const std::string &prefix) const;
+    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::string> words);
 
 };
 
