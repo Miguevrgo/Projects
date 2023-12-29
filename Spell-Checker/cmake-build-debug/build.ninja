@@ -84,12 +84,12 @@ build CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o: CXX_COMPILER__Spell-Checker_
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
   OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir/src
 
-build CMakeFiles/Spell-Checker.dir/Trie.cpp.o: CXX_COMPILER__Spell-Checker_unscanned_Debug /home/miguevr/GitHub/C-Projects/Spell-Checker/Trie.cpp || cmake_object_order_depends_target_Spell-Checker
-  DEP_FILE = CMakeFiles/Spell-Checker.dir/Trie.cpp.o.d
+build CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o: CXX_COMPILER__Spell-Checker_unscanned_Debug /home/miguevr/GitHub/C-Projects/Spell-Checker/src/Trie.cpp || cmake_object_order_depends_target_Spell-Checker
+  DEP_FILE = CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
   INCLUDES = -I/home/miguevr/GitHub/C-Projects/Spell-Checker/include
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
-  OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir
+  OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir/src
 
 
 # =============================================================================
@@ -99,7 +99,7 @@ build CMakeFiles/Spell-Checker.dir/Trie.cpp.o: CXX_COMPILER__Spell-Checker_unsca
 #############################################
 # Link the executable Spell-Checker
 
-build Spell-Checker: CXX_EXECUTABLE_LINKER__Spell-Checker_Debug CMakeFiles/Spell-Checker.dir/src/main.cpp.o CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o CMakeFiles/Spell-Checker.dir/Trie.cpp.o
+build Spell-Checker: CXX_EXECUTABLE_LINKER__Spell-Checker_Debug CMakeFiles/Spell-Checker.dir/src/main.cpp.o CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
   POST_BUILD = :
