@@ -6,7 +6,6 @@
 
 #include "Dictionary.h"
 #include "Utils.h"
-#include <fstream>
 
 
 Dictionary::Dictionary(const std::string &filename, const std::string &language) {
@@ -32,9 +31,11 @@ void Dictionary::SetLanguage(const std::string &newLang) {
 }
 
 void Dictionary::AddWord(const std::string &word) {
+    std::string normalizedWord = Utils::NormalizeWord(word);
     this->trie.Insert(word);
 }
 
 bool Dictionary::RemoveWord(const std::string &word) {
+    std::string normalizedWord = Utils::NormalizeWord(word);
     return (this->trie.Remove(word));
 }
