@@ -22,11 +22,10 @@ public:
     void AddWord(const std::string &word);
     bool RemoveWord(const std::string &word);
     bool CheckWord(const std::string &word);
-    std::vector<std::string> SuggestCorrections(const std::string &word, int maxDistance) const;
-    bool SaveToFile(const std::string &filename) const;
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);
     Dictionary operator+(const Dictionary &other);
+    friend std::istream &operator>>(std::istream &is, Dictionary &dictionary);
 };
 
 

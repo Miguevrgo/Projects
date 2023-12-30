@@ -8,9 +8,18 @@
 #ifndef SPELL_CHECKER_CORRECTOR_H
 #define SPELL_CHECKER_CORRECTOR_H
 
+#include "Dictionary.h"
+#include <map>
 
 class Corrector {
-
+private:
+    const Dictionary& dictionary;
+public:
+    Corrector() = default;
+    ~Corrector() = default;
+    explicit Corrector(const Dictionary& dictionary);
+    std::map<double, std::string> SuggestCorrections(const std::string& word);
+    std::vector<std::string> GetTopSuggestions(const std::map<double, std::string>& corrections, int topN);
 };
 
 

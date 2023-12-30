@@ -13,6 +13,7 @@
 
 namespace Utils{
     bool ParseInput(const std::string& filename, std::vector<std::string> words);
+    std::string NormalizeWord(const std::string& word);
 }
 
 
