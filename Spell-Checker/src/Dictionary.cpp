@@ -35,7 +35,32 @@ void Dictionary::AddWord(const std::string &word) {
     this->trie.Insert(word);
 }
 
+bool Dictionary::CheckWord(const std::string &word) {
+    std::string normalizedWord = Utils::NormalizeWord(word);
+    return (this->trie.Search(word));
+}
+
 bool Dictionary::RemoveWord(const std::string &word) {
     std::string normalizedWord = Utils::NormalizeWord(word);
     return (this->trie.Remove(word));
+}
+
+Dictionary Dictionary::operator+(const std::string &word) {
+    Dictionary newDictionary = *this;
+    newDictionary.AddWord(word);
+    return newDictionary;
+}
+
+Dictionary Dictionary::operator-(const std::string &word) {
+    Dictionary newDictionary = *this;
+    newDictionary.RemoveWord(word);
+    return newDictionary;
+}
+
+Dictionary Dictionary::operator+(const Dictionary &other) {
+    Dictionary newDictionary = *this;
+    for (const auto& word : other.trie.AutoComplete("")){
+        newDictionary.AddWord(word);
+    }
+    return newDictionary;
 }
