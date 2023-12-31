@@ -14,8 +14,13 @@ Dictionary::Dictionary(const std::string &filename, const std::string &language)
 }
 
 bool Dictionary::LoadFromFile(const std::string &filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()){
+        return false;
+    }
+
     std::vector<std::string> words;
-    if (!Utils::ParseInput(filename, words)){
+    if (!Utils::ParseInput(file, words)){
         return false;
     }
 
@@ -63,4 +68,20 @@ Dictionary Dictionary::operator+(const Dictionary &other) {
         newDictionary.AddWord(word);
     }
     return newDictionary;
+}
+
+std::istream &operator>>(std::istream &is, Dictionary &dictionary) {
+    std::vector<std::string> words;
+    Utils::ParseInput(is, words);
+
+    for (const auto& word : words){
+        dictionary.trie.Insert(word);
+    }
+    return is;
+}
+
+Dictionary &Dictionary::operator=(const Dictionary &rhs) {
+    this->language = rhs.language;
+    this->trie = rhs.trie;
+    return *this;
 }

@@ -15,9 +15,9 @@ class Corrector {
 private:
     const Dictionary& dictionary;
 public:
-    Corrector() = default;
+    Corrector() = delete;
     ~Corrector() = default;
-    explicit Corrector(const Dictionary& dictionary);
+    explicit Corrector(const Dictionary& dictionary) : dictionary(dictionary) {};
     std::map<double, std::string> SuggestCorrections(const std::string& word);
     std::vector<std::string> GetTopSuggestions(const std::map<double, std::string>& corrections, int topN);
 };

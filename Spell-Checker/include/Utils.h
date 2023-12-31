@@ -12,7 +12,7 @@
 #include <string>
 
 namespace Utils{
-    bool ParseInput(const std::string& filename, std::vector<std::string> words);
+    bool ParseInput(std::istream& input, std::vector<std::string> words);
     std::string NormalizeWord(const std::string& word);
 }
 

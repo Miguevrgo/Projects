@@ -22,9 +22,10 @@ public:
     void AddWord(const std::string &word);
     bool RemoveWord(const std::string &word);
     bool CheckWord(const std::string &word);
+    Dictionary &operator=(const Dictionary &rhs);
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);
-    Dictionary operator+(const Dictionary &other);
+    Dictionary operator+(const Dictionary &rhs);
     friend std::istream &operator>>(std::istream &is, Dictionary &dictionary);
 };
 
