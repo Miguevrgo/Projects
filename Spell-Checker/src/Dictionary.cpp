@@ -70,7 +70,7 @@ Dictionary Dictionary::operator+(const Dictionary &other) {
     return newDictionary;
 }
 
-std::istream &operator>>(std::istream &is, Dictionary &dictionary) {
+std::istream &operator>>(std::ifstream &is, Dictionary &dictionary) {
     std::vector<std::string> words;
     Utils::ParseInput(is, words);
 
