@@ -6,12 +6,7 @@
 
 #include "Utils.h"
 
-bool Utils::ParseInput(const std::string &filename, std::vector<std::string> words) {
-    std::ifstream input(filename);
-    if (!input.is_open()){
-        return false;
-    }
-
+bool Utils::ParseInput(std::ifstream &input, std::vector<std::string> words) {
     std::string word;
 
     //TODO: Parse input words,
