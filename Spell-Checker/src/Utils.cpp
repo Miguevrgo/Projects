@@ -5,15 +5,24 @@
  */
 
 #include "Utils.h"
+#include <sstream>
 
-bool Utils::ParseInput(std::ifstream &input, std::vector<std::string> words) {
+bool Utils::ParseInput(std::ifstream &input, std::vector<std::string> &words) {
     std::string word;
+    std::istringstream iss;
 
-    //TODO: Parse input words,
-
+    while (std::getline(input, word)) {
+        iss.str(word);
+        while (iss >> word) {
+            Utils::NormalizeWord(word);
+            if (!word.empty()){
+                words.emplace_back(word);
+            }
+        }
+        iss.clear();
+    }
 
     return true;
-
 }
 
 std::string Utils::NormalizeWord(const std::string &word) {

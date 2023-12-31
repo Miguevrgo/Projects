@@ -26,7 +26,7 @@ public:
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);
     Dictionary operator+(const Dictionary &rhs);
-    friend std::istream &operator>>(std::istream &is, Dictionary &dictionary);
+    friend std::istream &operator>>(std::ifstream &is, Dictionary &dictionary);
 };
 
 

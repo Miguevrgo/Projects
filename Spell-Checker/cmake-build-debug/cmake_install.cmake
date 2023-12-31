@@ -1,4 +1,4 @@
-# Install script for directory: /home/miguevr/GitHub/C-Projects/Spell-Checker
+# Install script for directory: /home/miguevr/Github/C-Projects/Spell-Checker
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/miguevr/GitHub/C-Projects/Spell-Checker/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/miguevr/Github/C-Projects/Spell-Checker/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
