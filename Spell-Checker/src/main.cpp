@@ -9,6 +9,15 @@ int main(int argc, char* argv[]) {
 
     std::string resourcedir = argv[1];
     Dictionary spanishTest(resourcedir + "/spanish.txt", "es");
-    Corrector corrector(spanishTest);
+    Dictionary englishTest(resourcedir + "/english.txt", "en");
+    Corrector correctores(spanishTest);
+    Corrector correctoren(englishTest);
+
+    std::string word = "hellp";
+    std::cout << "Suggesting corrections for " << word << " in English:" << std::endl;
+    std::vector<std::string> topSuggestions = correctoren.GetTopSuggestions(correctoren.SuggestCorrections(word), 5);
+    for (const auto& suggestion : topSuggestions){
+        std::cout << suggestion << std::endl;
+    }
     return 0;
 }

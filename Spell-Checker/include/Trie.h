@@ -16,11 +16,6 @@ public:
     bool IsEndOfWord;
     std::unordered_map<char, TrieNode*> children;
     TrieNode() : IsEndOfWord(false) {};
-    ~TrieNode() {
-        for (auto& child : children) {
-            delete child.second;
-        }
-    }
 };
 
 class Trie {
@@ -31,9 +26,10 @@ private:
 
 public:
     Trie() : root(new TrieNode()) {}
-    ~Trie();
+    ~Trie() { clear(root);}
     void Insert(const std::string &word);
     bool Remove(const std::string &word);
+    TrieNode* GetRoot() const;
     [[nodiscard]] bool Search(const std::string &word) const;
     [[nodiscard]] bool StartsWith(const std::string &prefix) const;
     [[nodiscard]] std::vector<std::string> AutoComplete (const std::string &prefix) const;

@@ -16,10 +16,6 @@ void Trie::clear(TrieNode *node) {
     delete node;
 }
 
-Trie::~Trie() {
-    clear(root);
-}
-
 void Trie::Insert(const std::string &word) {
     TrieNode* node = root;
     for (char c : word) {
@@ -106,4 +102,8 @@ void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<
         FindAllWords(child.second,current,words);
         current.pop_back();
     }
+}
+
+TrieNode *Trie::GetRoot() const {
+    return root;
 }
