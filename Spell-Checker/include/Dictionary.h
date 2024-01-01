@@ -22,6 +22,7 @@ public:
     void AddWord(const std::string &word);
     bool RemoveWord(const std::string &word);
     bool CheckWord(const std::string &word);
+    std::vector<std::string> GetWordsOfLengthRange(int minLength, int maxLength) const;
     Dictionary &operator=(const Dictionary &rhs);
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);

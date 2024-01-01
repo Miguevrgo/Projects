@@ -1,1 +1,27 @@
 # ninja log v5
+1	19	1704145537131801816	CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o	1ef7517e67aa1fc2
+2	532	1704145537639791282	CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o	39c3df420319197
+1	559	1704145537667790701	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+1	566	1704145537675790535	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+2	609	1704145537719789623	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+2	639	1704145537747789042	CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o	929f83e5b133d22f
+639	735	1704145537843787050	Spell-Checker	479838cbc3ff430
+2	556	1704145781698731547	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+556	654	1704145781794729558	Spell-Checker	479838cbc3ff430
+2	605	1704148025405683302	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+3	661	1704148025461682272	CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o	929f83e5b133d22f
+3	773	1704148025573680212	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+3	778	1704148025577680140	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+779	889	1704148025685678152	Spell-Checker	479838cbc3ff430
+2	606	1704148078024702222	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+606	720	1704148078136700108	Spell-Checker	479838cbc3ff430
+2	666	1704148775344162468	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+3	710	1704148775388161505	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+3	846	1704148775524158528	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+2	615	1704148800287617441	CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o	929f83e5b133d22f
+615	698	1704148800367615698	Spell-Checker	479838cbc3ff430
+2	612	1704148870074102804	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+3	651	1704148870114101940	CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o	929f83e5b133d22f
+3	670	1704148870130101594	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+3	696	1704148870158100989	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+696	810	1704148870270098569	Spell-Checker	479838cbc3ff430

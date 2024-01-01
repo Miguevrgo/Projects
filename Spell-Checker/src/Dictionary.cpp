@@ -6,6 +6,8 @@
 
 #include "Dictionary.h"
 #include "Utils.h"
+#include <functional>
+
 
 
 Dictionary::Dictionary(const std::string &filename, const std::string &language) {
@@ -84,4 +86,28 @@ Dictionary &Dictionary::operator=(const Dictionary &rhs) {
     this->language = rhs.language;
     this->trie = rhs.trie;
     return *this;
+}
+
+std::vector<std::string> Dictionary::GetWordsOfLengthRange(int minLength, int maxLength) const {
+    std::vector<std::string> wordsInRange;
+    std::string currentWord;
+    TrieNode* rootNode = trie.GetRoot();
+
+    std::function<void(TrieNode*, const std::string&)> traverse = [&](TrieNode* node, const std::string& word){
+        if (!node) {
+            return;
+        }
+
+        if (node->IsEndOfWord && word.length() >= minLength && word.length() <= maxLength) {
+            wordsInRange.push_back(word);
+        }
+
+        for (const auto& child : node->children) {
+            traverse(child.second, word + child.first);
+        }
+    };
+
+    traverse(rootNode, currentWord);
+
+    return wordsInRange;
 }
