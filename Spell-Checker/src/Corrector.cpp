@@ -6,7 +6,7 @@
 
 #include "Corrector.h"
 
-std::vector<std::string> Corrector::GetTopSuggestions(const std::map<double, std::string> &corrections, int topN) {
+std::vector<std::string> Corrector::GetTopSuggestions(const std::multimap<double, std::string> &corrections, int topN) {
     std::vector<std::string> topSuggestions;
     int i = 0;
     for (const auto& correction : corrections){
@@ -19,24 +19,20 @@ std::vector<std::string> Corrector::GetTopSuggestions(const std::map<double, std
     return topSuggestions;
 }
 
-std::map<double, std::string> Corrector::SuggestCorrections(const std::string &word) {
-    std::map<double, std::string> corrections;
-    double adjustment_factor = 0.0001;
+std::multimap<double, std::string> Corrector::SuggestCorrections(const std::string &word) {
+    std::multimap<double, std::string> corrections;
 
     // Limit the search space to words of similar length, in this case, words that are 2 characters longer or shorter
     int minLength = std::max(0, static_cast<int>(word.length()) - 2);
     int maxLength = word.length() + 2;
 
-    for (const auto& dictWord : dictionary.GetWordsOfLengthRange(minLength, maxLength)) {
+    std::vector<std::string> wordsOfLengthRange = dictionary.GetWordsOfLengthRange(minLength, maxLength);
+
+    for (const auto& dictWord : wordsOfLengthRange) {
         double distance = static_cast<double>(CalculateLevenshteinDistance(word, dictWord));
 
-        while (corrections.find(distance) != corrections.end()) {
-            distance += adjustment_factor;
-        }
-        corrections[distance] = dictWord;
-
-        if (distance <= 1) {
-            break;
+        if (distance < minLength){ // Performance optimization
+            corrections.insert({distance, dictWord});
         }
     }
 
