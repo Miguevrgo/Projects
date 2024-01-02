@@ -19,8 +19,8 @@ public:
     Corrector() = delete;
     ~Corrector() = default;
     explicit Corrector(const Dictionary& dictionary) : dictionary(dictionary) {};
-    std::map<double, std::string> SuggestCorrections(const std::string& word);
-    std::vector<std::string> GetTopSuggestions(const std::map<double, std::string>& corrections, int topN);
+    std::multimap<double, std::string> SuggestCorrections(const std::string& word);
+    std::vector<std::string> GetTopSuggestions(const std::multimap<double, std::string>& corrections, int topN);
 };
 
 
