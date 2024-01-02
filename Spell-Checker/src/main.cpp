@@ -2,12 +2,8 @@
 #include "Corrector.h"
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cout << "Usage: " << argv[0] << " <resource>" << std::endl;
-        return 1;
-    }
 
-    std::string resourcedir = argv[1];
+    std::string resourcedir = "./resources";
 
     // Loading word from input
     int option;
@@ -28,6 +24,8 @@ int main(int argc, char* argv[]) {
     do{
         std::cout << "Enter a word, or type 'exit' to exit: ";
         std::cin >> word;
+
+        if (word == "exit"){break;}
 
         std::vector<std::string> suggestions = corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 5);
         for (const auto& suggestion : suggestions){
