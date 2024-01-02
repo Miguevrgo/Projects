@@ -9,6 +9,7 @@
 #define SPELL_CHECKER_CORRECTOR_H
 
 #include "Dictionary.h"
+#include "Utils.h"
 #include <map>
 
 class Corrector {

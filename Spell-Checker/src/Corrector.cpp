@@ -21,7 +21,7 @@ std::vector<std::string> Corrector::GetTopSuggestions(const std::multimap<double
 
 std::multimap<double, std::string> Corrector::SuggestCorrections(const std::string &word) {
     std::multimap<double, std::string> corrections;
-
+    std::string wordToCorrect = Utils::NormalizeWord(word);
     // Limit the search space to words of similar length, in this case, words that are 2 characters longer or shorter
     int minLength = std::max(0, static_cast<int>(word.length()) - 2);
     int maxLength = word.length() + 2;
@@ -29,7 +29,7 @@ std::multimap<double, std::string> Corrector::SuggestCorrections(const std::stri
     std::vector<std::string> wordsOfLengthRange = dictionary.GetWordsOfLengthRange(minLength, maxLength);
 
     for (const auto& dictWord : wordsOfLengthRange) {
-        double distance = static_cast<double>(CalculateLevenshteinDistance(word, dictWord));
+        double distance = static_cast<double>(CalculateLevenshteinDistance(wordToCorrect, dictWord));
 
         if (distance < minLength){ // Performance optimization
             corrections.insert({distance, dictWord});
