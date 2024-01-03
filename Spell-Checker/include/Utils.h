@@ -10,10 +10,14 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <map>
+#include <utility>
+#include <cmath>
 
 namespace Utils{
     bool ParseInput(std::ifstream& input, std::vector<std::string> &words);
     std::string NormalizeWord(const std::string& word);
+    std::map<char, std::pair<int, int>> GetANSILayout();
 }
 
 

@@ -16,6 +16,7 @@ class Corrector {
 private:
     const Dictionary& dictionary;
     int CalculateLevenshteinDistance(const std::string& s1, const std::string& s2);
+    double GetDistanceFromKeyboard(const std::string& s1, const std::string& s2);
 public:
     Corrector() = delete;
     ~Corrector() = default;

@@ -5,6 +5,7 @@
  */
 
 #include "Corrector.h"
+#include "Utils.h"
 
 std::vector<std::string> Corrector::GetTopSuggestions(const std::multimap<double, std::string> &corrections, int topN) {
     std::vector<std::string> topSuggestions;
@@ -23,15 +24,22 @@ std::multimap<double, std::string> Corrector::SuggestCorrections(const std::stri
     std::multimap<double, std::string> corrections;
     std::string wordToCorrect = Utils::NormalizeWord(word);
     // Limit the search space to words of similar length, in this case, words that are 2 characters longer or shorter
-    int minLength = std::max(0, static_cast<int>(word.length()) - 2);
+    int minLength = std::max(1, static_cast<int>(word.length()) - 2);
     int maxLength = word.length() + 2;
+    bool oneinserted = false;
 
     std::vector<std::string> wordsOfLengthRange = dictionary.GetWordsOfLengthRange(minLength, maxLength);
 
     for (const auto& dictWord : wordsOfLengthRange) {
         double distance = static_cast<double>(CalculateLevenshteinDistance(wordToCorrect, dictWord));
 
-        if (distance < minLength){ // Performance optimization
+        distance += GetDistanceFromKeyboard(wordToCorrect, dictWord);
+
+        if (distance <= minLength){ // Performance optimization
+            corrections.insert({distance, dictWord});
+        }
+        else if (!oneinserted){
+            oneinserted = true;
             corrections.insert({distance, dictWord});
         }
     }
@@ -66,4 +74,28 @@ int Corrector::CalculateLevenshteinDistance(const std::string &s1, const std::st
     }
 
     return dp[len_s1][len_s2];
+}
+
+double Corrector::GetDistanceFromKeyboard(const std::string &s1, const std::string &s2) {
+    std::map<char, std::pair<int, int>> layout = Utils::GetANSILayout();
+
+    // Compare chars from both strings and calculate the distance between them
+    const auto length = std::min(s1.length(), s2.length());
+    double distance = 0;
+
+    for (auto i = 0; i < length; ++i) {
+        std::pair<int, int> pos1 = layout[s1[i]];
+        std::pair<int, int> pos2 = layout[s2[i]];
+
+        if (pos1.first == pos2.first && pos1.second == pos2.second){
+            continue;
+        }
+        // Calculate the distance between the two characters
+        distance += std::sqrt(std::pow(pos1.first - pos2.first, 2)
+                        + std::pow(pos1.second - pos2.second, 2));
+    }
+
+    distance /= length;
+
+    return distance;
 }
