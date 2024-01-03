@@ -21,13 +21,13 @@ int main(int argc, char* argv[]) {
     Corrector corrector(dictionary);
 
     std::string word;
+    std::cout << "Enter a word or a phrase, or type 'exit' to exit: ";
     do{
-        std::cout << "Enter a word, or type 'exit' to exit: ";
         std::cin >> word;
 
         if (word == "exit"){break;}
 
-        std::vector<std::string> suggestions = corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 5);
+        std::vector<std::string> suggestions = corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 1);
         for (const auto& suggestion : suggestions){
             std::cout << suggestion << std::endl;
         }
