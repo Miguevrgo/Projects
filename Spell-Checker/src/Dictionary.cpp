@@ -21,13 +21,13 @@ bool Dictionary::LoadFromFile(const std::string &filename) {
         return false;
     }
 
-    std::vector<std::string> words;
+    std::vector<std::pair<std::string,int>> words;
     if (!Utils::ParseInput(file, words)){
         return false;
     }
 
     for (const auto& word : words){
-        trie.Insert(word);
+        trie.Insert(word.first, word.second);
     }
 
     return true;
@@ -37,9 +37,9 @@ void Dictionary::SetLanguage(const std::string &newLang) {
     this->language = newLang;
 }
 
-void Dictionary::AddWord(const std::string &word) {
+void Dictionary::AddWord(const std::string &word, unsigned int frequency) {
     std::string normalizedWord = Utils::NormalizeWord(word);
-    this->trie.Insert(word);
+    this->trie.Insert(word, frequency);
 }
 
 bool Dictionary::CheckWord(const std::string &word) {
@@ -73,7 +73,7 @@ Dictionary Dictionary::operator+(const Dictionary &other) {
 }
 
 std::istream &operator>>(std::ifstream &is, Dictionary &dictionary) {
-    std::vector<std::string> words;
+    std::vector<std::pair<std::string,unsigned int>> words;
     Utils::ParseInput(is, words);
 
     for (const auto& word : words){
@@ -98,7 +98,7 @@ std::vector<std::string> Dictionary::GetWordsOfLengthRange(int minLength, int ma
             return;
         }
 
-        if (node->IsEndOfWord && word.length() >= minLength && word.length() <= maxLength) {
+        if (node->frequency && word.length() >= minLength && word.length() <= maxLength) {
             wordsInRange.push_back(word);
         }
 
@@ -110,4 +110,8 @@ std::vector<std::string> Dictionary::GetWordsOfLengthRange(int minLength, int ma
     traverse(rootNode, currentWord);
 
     return wordsInRange;
+}
+
+int Dictionary::GetFrequency(const std::string &word) const {
+    return trie.GetFrequency(word);
 }

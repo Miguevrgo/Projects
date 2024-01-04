@@ -19,10 +19,11 @@ public:
     Dictionary(const std::string &filename, const std::string &language);
     void SetLanguage(const std::string &newLang);
     bool LoadFromFile(const std::string &filename);
-    void AddWord(const std::string &word);
+    void AddWord(const std::string &word, unsigned int frequency);
     bool RemoveWord(const std::string &word);
     bool CheckWord(const std::string &word);
-    std::vector<std::string> GetWordsOfLengthRange(int minLength, int maxLength) const;
+    int GetFrequency(const std::string &word) const;
+    [[nodiscard]] std::vector<std::string> GetWordsOfLengthRange(int minLength, int maxLength) const;
     Dictionary &operator=(const Dictionary &rhs);
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);
