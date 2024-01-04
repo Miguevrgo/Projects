@@ -60742,7 +60742,6 @@ futuros 5
 fututa 1
 fututo 1
 fyi 1
-g 1
 gabacha 1
 gabachada 1
 gabacho 1
@@ -61840,7 +61839,6 @@ gazpachero 1
 gazpacho 1
 gazpachuelo 1
 gazuza 1
-ge 1
 gea 1
 geconido 1
 gedreau 1
@@ -63648,7 +63646,6 @@ gruta 1
 grutesca 1
 grutesco 1
 gruyer 1
-gu 1
 gua 1
 guaba 2
 guabairo 1
@@ -64586,7 +64583,6 @@ guzla 1
 guzman 1
 guzpataro 1
 gypsum 1
-h 2
 ha 774
 haba 1
 habada 1
