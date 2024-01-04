@@ -8,25 +8,31 @@
 #include "Utils.h"
 
 std::vector<std::string> Corrector::GetTopSuggestions(const std::multimap<double, std::string> &corrections, int topN) {
-    std::vector<std::pair<std::string,unsigned int>> Suggestions;
+    std::vector<std::pair<std::pair<double, unsigned int>, std::string>> Suggestions;
     std::vector<std::string> topSuggestions;
-    int i = 0;
+
+
     for (const auto& correction : corrections){
-        if (i >= topN){
-            break;
-        }
-        Suggestions.emplace_back(correction.second, dictionary.GetFrequency(correction.second));
-        i++;
+        Suggestions.emplace_back(std::make_pair(correction.first, dictionary.GetFrequency(correction.second)), correction.second);
     }
 
-    // Sort the suggestions by frequency
+    // Order corrections by distance and if they have the same distance, order them by frequency
     std::sort(Suggestions.begin(), Suggestions.end(), [](const auto& lhs, const auto& rhs){
-        return lhs.second > rhs.second;
+        if (lhs.first.first == rhs.first.first){
+            return lhs.first.second > rhs.first.second;
+        }
+        return lhs.first.first < rhs.first.first;
     });
 
     topSuggestions.reserve(Suggestions.size());
+
+    int i = 0;
     for (const auto& suggestion : Suggestions){
-        topSuggestions.emplace_back(suggestion.first);
+        if (i >= topN){
+            break;
+        }
+        topSuggestions.emplace_back(suggestion.second);
+        i++;
     }
 
     return topSuggestions;
@@ -48,7 +54,7 @@ std::multimap<double, std::string> Corrector::SuggestCorrections(const std::stri
 
         distance += GetDistanceFromKeyboard(wordToCorrect, dictWord);
 
-        if (distance <= minLength){ // Performance optimization
+        if (distance <= minLength+1){ // Performance optimization
             corrections.insert({distance, dictWord});
         }
         else if (!oneinserted){
@@ -96,6 +102,8 @@ double Corrector::GetDistanceFromKeyboard(const std::string &s1, const std::stri
     const auto length = std::min(s1.length(), s2.length());
     double distance = 0;
 
+    double maxDistance = 9.22; // Maximum distance between two characters in the keyboard (p and z)
+
     for (auto i = 0; i < length; ++i) {
         std::pair<int, int> pos1 = layout[s1[i]];
         std::pair<int, int> pos2 = layout[s2[i]];
@@ -108,7 +116,5 @@ double Corrector::GetDistanceFromKeyboard(const std::string &s1, const std::stri
                         + std::pow(pos1.second - pos2.second, 2));
     }
 
-    distance /= length;
-
-    return distance;
+    return distance/maxDistance;
 }
