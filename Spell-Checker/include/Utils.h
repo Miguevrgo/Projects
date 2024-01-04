@@ -15,7 +15,7 @@
 #include <cmath>
 
 namespace Utils{
-    bool ParseInput(std::ifstream& input, std::vector<std::string> &words);
+    bool ParseInput(std::ifstream& input, std::vector<std::pair<std::string,unsigned int>> &words);
     std::string NormalizeWord(const std::string& word);
     std::map<char, std::pair<int, int>> GetANSILayout();
 }

@@ -7,16 +7,17 @@
 #include "Utils.h"
 #include <sstream>
 
-bool Utils::ParseInput(std::ifstream &input, std::vector<std::string> &words) {
+bool Utils::ParseInput(std::ifstream &input, std::vector<std::pair<std::string, unsigned int>> &words) {
     std::string word;
+    unsigned int freq;
     std::istringstream iss;
 
     while (std::getline(input, word)) {
         iss.str(word);
-        while (iss >> word) {
+        while (iss >> word >> freq) {
             Utils::NormalizeWord(word);
             if (!word.empty()){
-                words.emplace_back(word);
+                words.emplace_back(word,freq);
             }
         }
         iss.clear();

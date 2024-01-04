@@ -16,7 +16,7 @@ void Trie::clear(TrieNode *node) {
     delete node;
 }
 
-void Trie::Insert(const std::string &word) {
+void Trie::Insert(const std::string &word, unsigned int frequency) {
     TrieNode* node = root;
     for (char c : word) {
         if (!node->children.count(c)) {
@@ -24,7 +24,7 @@ void Trie::Insert(const std::string &word) {
         }
         node = node->children[c];
     }
-    node->IsEndOfWord = true;
+    node->frequency = frequency;
 }
 
 bool Trie::Remove(const std::string &word) {
@@ -36,8 +36,8 @@ bool Trie::removeHelper(TrieNode *node, const std::string &word, int depth) {
         return false;
     }
     if (depth == word.size()) {
-        if (node->IsEndOfWord) {
-            node->IsEndOfWord = false;
+        if (node->frequency) {
+            node->frequency = 0;
             return node->children.empty();
         }
 
@@ -64,7 +64,7 @@ bool Trie::Search(const std::string &word) const {
         }
         node = node->children.at(c);
     }
-    return (node && node->IsEndOfWord);
+    return (node && node->frequency);
 }
 
 bool Trie::StartsWith(const std::string &prefix) const {
@@ -94,7 +94,7 @@ std::vector<std::string> Trie::AutoComplete(const std::string &prefix) const {
 }
 
 void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<std::string> words) const {
-    if (node->IsEndOfWord){
+    if (node->frequency){
         words.emplace_back(current);
     }
     for (const auto& child : node->children){
@@ -106,4 +106,15 @@ void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<
 
 TrieNode *Trie::GetRoot() const {
     return root;
+}
+
+int Trie::GetFrequency(const std::string &word) const {
+    const TrieNode* node = root;
+    for (auto& c : word){
+        if (!node->children.count(c)){
+            return 0;
+        }
+        node = node->children.at(c);
+    }
+    return node->frequency;
 }

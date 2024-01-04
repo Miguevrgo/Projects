@@ -16,3 +16,10 @@
 911	1020	1704295751857734143	Spell-Checker	479838cbc3ff430
 2	885	1704295942391490208	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
 885	996	1704295942503488839	Spell-Checker	479838cbc3ff430
+2	915	1704310748769400218	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+915	1026	1704310748881399362	Spell-Checker	479838cbc3ff430
+2	626	1704312288036198689	CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o	929f83e5b133d22f
+1	730	1704312288140197759	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+1	934	1704312288344195937	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+3	781	1704312685072641125	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+3	945	1704312685236639655	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f

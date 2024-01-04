@@ -27,6 +27,7 @@ std::multimap<double, std::string> Corrector::SuggestCorrections(const std::stri
     int minLength = std::max(1, static_cast<int>(word.length()) - 2);
     int maxLength = word.length() + 2;
     bool oneinserted = false;
+    bool oneinserted = false;
 
     std::vector<std::string> wordsOfLengthRange = dictionary.GetWordsOfLengthRange(minLength, maxLength);
 
