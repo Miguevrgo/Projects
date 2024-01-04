@@ -78,8 +78,8 @@ bool Trie::StartsWith(const std::string &prefix) const {
     return true;
 }
 
-std::vector<std::string> Trie::AutoComplete(const std::string &prefix) const {
-    std::vector<std::string> completions;
+std::vector<std::pair<std::string,unsigned int>> Trie::AutoComplete(const std::string &prefix) const {
+    std::vector<std::pair<std::string, unsigned int>> completions;
     if (!StartsWith(prefix)){
         return completions;
     }
@@ -93,9 +93,9 @@ std::vector<std::string> Trie::AutoComplete(const std::string &prefix) const {
     return completions;
 }
 
-void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<std::string> words) const {
+void Trie::FindAllWords(const TrieNode *node, std::string &current, std::vector<std::pair<std::string, unsigned int>> words) const {
     if (node->frequency){
-        words.emplace_back(current);
+        words.emplace_back(current, node->frequency);
     }
     for (const auto& child : node->children){
         current.push_back(child.first);

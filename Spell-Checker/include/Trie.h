@@ -33,8 +33,8 @@ public:
     TrieNode* GetRoot() const;
     [[nodiscard]] bool Search(const std::string &word) const;
     [[nodiscard]] bool StartsWith(const std::string &prefix) const;
-    [[nodiscard]] std::vector<std::string> AutoComplete (const std::string &prefix) const;
-    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::string> words) const;
+    [[nodiscard]] std::vector<std::pair<std::string,unsigned int>> AutoComplete (const std::string &prefix) const;
+    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::pair<std::string, unsigned int>> words) const;
 };
 
 
