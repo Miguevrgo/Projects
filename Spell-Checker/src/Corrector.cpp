@@ -8,25 +8,37 @@
 #include "Utils.h"
 
 std::vector<std::string> Corrector::GetTopSuggestions(const std::multimap<double, std::string> &corrections, int topN) {
+    std::vector<std::pair<std::string,unsigned int>> Suggestions;
     std::vector<std::string> topSuggestions;
     int i = 0;
     for (const auto& correction : corrections){
         if (i >= topN){
             break;
         }
-        topSuggestions.emplace_back(correction.second);
+        Suggestions.emplace_back(correction.second, dictionary.GetFrequency(correction.second));
         i++;
     }
+
+    // Sort the suggestions by frequency
+    std::sort(Suggestions.begin(), Suggestions.end(), [](const auto& lhs, const auto& rhs){
+        return lhs.second > rhs.second;
+    });
+
+    topSuggestions.reserve(Suggestions.size());
+    for (const auto& suggestion : Suggestions){
+        topSuggestions.emplace_back(suggestion.first);
+    }
+
     return topSuggestions;
 }
 
 std::multimap<double, std::string> Corrector::SuggestCorrections(const std::string &word) {
     std::multimap<double, std::string> corrections;
     std::string wordToCorrect = Utils::NormalizeWord(word);
+
     // Limit the search space to words of similar length, in this case, words that are 2 characters longer or shorter
     int minLength = std::max(1, static_cast<int>(word.length()) - 2);
     int maxLength = word.length() + 2;
-    bool oneinserted = false;
     bool oneinserted = false;
 
     std::vector<std::string> wordsOfLengthRange = dictionary.GetWordsOfLengthRange(minLength, maxLength);

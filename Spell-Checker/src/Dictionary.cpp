@@ -21,7 +21,7 @@ bool Dictionary::LoadFromFile(const std::string &filename) {
         return false;
     }
 
-    std::vector<std::pair<std::string,int>> words;
+    std::vector<std::pair<std::string,unsigned int>> words;
     if (!Utils::ParseInput(file, words)){
         return false;
     }
@@ -54,7 +54,7 @@ bool Dictionary::RemoveWord(const std::string &word) {
 
 Dictionary Dictionary::operator+(const std::string &word) {
     Dictionary newDictionary = *this;
-    newDictionary.AddWord(word);
+    newDictionary.AddWord(word,1);
     return newDictionary;
 }
 
@@ -67,7 +67,7 @@ Dictionary Dictionary::operator-(const std::string &word) {
 Dictionary Dictionary::operator+(const Dictionary &other) {
     Dictionary newDictionary = *this;
     for (const auto& word : other.trie.AutoComplete("")){
-        newDictionary.AddWord(word);
+        newDictionary.AddWord(word.first,word.second);
     }
     return newDictionary;
 }
@@ -77,7 +77,7 @@ std::istream &operator>>(std::ifstream &is, Dictionary &dictionary) {
     Utils::ParseInput(is, words);
 
     for (const auto& word : words){
-        dictionary.trie.Insert(word);
+        dictionary.trie.Insert(word.first, word.second);
     }
     return is;
 }

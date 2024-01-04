@@ -15701,7 +15701,6 @@ azuzando 1
 azuzar 1
 azuzarle 1
 azuzo 1
-b 4
 ba 1
 baalita 1
 baasismo 1
@@ -20682,7 +20681,6 @@ byrds 1
 byroniana 1
 byroniano 1
 byte 1
-c 1
 ca 1
 caacupena 1
 caacupeno 1
@@ -37630,7 +37628,6 @@ cuzquena 1
 cuzqueno 1
 cuzul 1
 czarda 1
-d 4
 da 44
 daba 129
 dabais 2
@@ -56654,7 +56651,7 @@ eyectar 1
 eyector 1
 ezquerdear 1
 ezquite 1
-f 2
+
 fa 2
 faba 1
 fabada 1
@@ -107647,7 +107644,6 @@ rutinera 1
 rutinero 1
 ryan 2
 rye 1
-s 3
 sa 1
 saba 1
 sabacuante 1
