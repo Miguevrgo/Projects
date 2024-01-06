@@ -51,3 +51,6 @@
 1003	1126	1704383872086083882	Spell-Checker	479838cbc3ff430
 1	1077	1704385337736405967	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
 1077	1177	1704385337836405296	Spell-Checker	479838cbc3ff430
+1	790	1704530924469238847	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+1	1133	1704530924813297580	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+1133	1255	1704530924933318067	Spell-Checker	479838cbc3ff430
