@@ -1,6 +1,6 @@
 /**
  * @file Corrector.h
- * @author Miguel Angel De la Vegar Rodríguez
+ * @author Miguel Angel De la Vega Rodríguez
  * @brief Class to check the spelling of a word and suggest corrections
  * for each possible language (Spanish and English).
  */

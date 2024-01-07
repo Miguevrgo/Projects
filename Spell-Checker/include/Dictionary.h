@@ -53,6 +53,13 @@ public:
     Dictionary operator+(const std::string &word);
     Dictionary operator-(const std::string &word);
     Dictionary operator+(const Dictionary &rhs);
+
+    /**
+     * @brief Overloads the operator >> to read a dictionary from a stream.
+     * @param is The stream to read from.
+     * @param dictionary The dictionary to be read.
+     * @return The stream and the dictionary.
+     */
     friend std::istream &operator>>(std::ifstream &is, Dictionary &dictionary);
 };
 

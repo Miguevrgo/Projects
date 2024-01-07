@@ -11,5 +11,6 @@ add_executable(Spell-Checker src/main.cpp src/Corrector.cpp
         src/Learner.cpp
         src/Utils.cpp
         src/Trie.cpp
-        include/Trie.h)
+        src/NeuralNetwork.cpp)
+
 
