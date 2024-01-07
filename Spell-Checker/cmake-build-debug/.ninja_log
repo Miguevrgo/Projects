@@ -6,3 +6,10 @@
 1	24	1704381006146244426	CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o	1ef7517e67aa1fc2
 2	883	1704381007006238824	CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o	39c3df420319197
 1	934	1704381007054238512	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+0	32	1704615199448053268	build.ninja	ad726dfb744f19d6
+2	33	1704615199492053006	CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o	1ef7517e67aa1fc2
+3	33	1704615199492053006	CMakeFiles/Spell-Checker.dir/src/NeuralNetwork.cpp.o	68c009cce41f2e0d
+3	782	1704615200240048557	CMakeFiles/Spell-Checker.dir/src/main.cpp.o	c596e19a99bd01a9
+2	877	1704615200332048010	CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o	9fe24dac4bc2f06e
+2	1039	1704615200496047037	CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o	3f7ca69fb37f5d7f
+1039	1156	1704615200612046348	Spell-Checker	6db69850ee3cd4f4

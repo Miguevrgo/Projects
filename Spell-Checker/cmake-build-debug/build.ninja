@@ -91,12 +91,12 @@ build CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o: CXX_COMPILER__Spell-Checker_u
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
   OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir/src
 
-build CMakeFiles/Spell-Checker.dir/NeuralNetwork.cpp.o: CXX_COMPILER__Spell-Checker_unscanned_Debug /home/miguevr/GitHub/C-Projects/Spell-Checker/NeuralNetwork.cpp || cmake_object_order_depends_target_Spell-Checker
-  DEP_FILE = CMakeFiles/Spell-Checker.dir/NeuralNetwork.cpp.o.d
+build CMakeFiles/Spell-Checker.dir/src/NeuralNetwork.cpp.o: CXX_COMPILER__Spell-Checker_unscanned_Debug /home/miguevr/GitHub/C-Projects/Spell-Checker/src/NeuralNetwork.cpp || cmake_object_order_depends_target_Spell-Checker
+  DEP_FILE = CMakeFiles/Spell-Checker.dir/src/NeuralNetwork.cpp.o.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
   INCLUDES = -I/home/miguevr/GitHub/C-Projects/Spell-Checker/include
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
-  OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir
+  OBJECT_FILE_DIR = CMakeFiles/Spell-Checker.dir/src
 
 
 # =============================================================================
@@ -106,7 +106,7 @@ build CMakeFiles/Spell-Checker.dir/NeuralNetwork.cpp.o: CXX_COMPILER__Spell-Chec
 #############################################
 # Link the executable Spell-Checker
 
-build Spell-Checker: CXX_EXECUTABLE_LINKER__Spell-Checker_Debug CMakeFiles/Spell-Checker.dir/src/main.cpp.o CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o CMakeFiles/Spell-Checker.dir/NeuralNetwork.cpp.o
+build Spell-Checker: CXX_EXECUTABLE_LINKER__Spell-Checker_Debug CMakeFiles/Spell-Checker.dir/src/main.cpp.o CMakeFiles/Spell-Checker.dir/src/Corrector.cpp.o CMakeFiles/Spell-Checker.dir/src/Dictionary.cpp.o CMakeFiles/Spell-Checker.dir/src/Learner.cpp.o CMakeFiles/Spell-Checker.dir/src/Utils.cpp.o CMakeFiles/Spell-Checker.dir/src/Trie.cpp.o CMakeFiles/Spell-Checker.dir/src/NeuralNetwork.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/Spell-Checker.dir
   POST_BUILD = :
