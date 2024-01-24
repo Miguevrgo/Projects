@@ -11,7 +11,7 @@ public:
         wxPanel *panel = new wxPanel(this, -1);
         wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
-        wxStaticText *st1 = new wxStaticText(panel, wxID_ANY, wxT("Elige un idioma:"));
+        wxStaticText *st1 = new wxStaticText(panel, wxID_ANY, wxT("Elige un idioma:")); // Spanish or English
         vbox->Add(st1, 0, wxLEFT | wxTOP, 10);
 
         wxArrayString choices;
@@ -43,12 +43,12 @@ public:
             std::istringstream iss(inputText);
             std::string word;
             wxString result;
-            wxTextAttr redAttr(*wxRED);
-            wxTextAttr greenAttr(*wxGREEN);
+            wxTextAttr redAttr(*wxRED); // Red text for misspelled words
+            wxTextAttr greenAttr(*wxGREEN); // Green text for unchanged words
 
             tc->Clear();
 
-            while (iss >> word) {
+            while (iss >> word) { // Read word or sentence
                 std::vector<std::string> suggestions = corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 1);
                 wxString correctedWord = (!suggestions.empty()) ? wxString(suggestions[0]) : wxString(word);
 
