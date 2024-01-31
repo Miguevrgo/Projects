@@ -4,8 +4,7 @@
 * [Projects](#projects)
 
 ## General info
-Personal Repository to train and learn C++/C by designing and implementing projects, the goal is to create a different project every month with the goal of learning from different programming fields. Other languages could be present such as 
-Python to improve some of the projects. 
+Personal Repository to train and learn Programming by designing and implementing projects, the goal is to create a different project every month with the goal of learning from different programming fields, Mainly in C++/Python/Rust. Other languages could be present to improve some of the projects. 
 
 This repository started as a place where I uploaded very small files containing code for an easy task. Now as i have mentioned before, I am trying to work on a new project every month so you will find different kinds of projects which will be focused on different topics. Some will be more sofisticated while other will just be a first approach to some field where I will maybe focus some projects later on.
 
@@ -14,12 +13,15 @@ I hope this repository provides inspiration for anyone who wants to learn and re
 * ➖ - In progress
 * ❌ - Planning to start
 ## Technologies
-Projects are created with:
+Projects are mainly created with some of the following editors and IDE:
 * Visual Studio Code
-* Visual Studio IDE 2022
-* Apache NetBeans 17
+* Neovim
 * Jetbrains Clion
-* C++17/C++20
+## Languages
+These are the main languages I use or I want to use:
+* C++20
+* Rust
+* Python
 	
 ## Projects
 * [Dijkstra-Algorithm](Dijkstra-Algorithm)  ❌
