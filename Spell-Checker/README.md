@@ -1,17 +1,30 @@
-## Spell Checker
-# Objetivo
-El objetivo es crear un programa en C++ Moderno y eficiente que sirva como un clásico corrector
-de palabras al estilo del teclado del movil.
+# Spell Checker
 
-Sugerirá las palabras más probables así como corregirá las palabras mal escritas.
+## Objective
 
-Se basa en una ejecución en la que se selecciona el idioma y se cargan los datos del idioma 
-en un TDA Dictionary, el TDA Corrector entonces se ocupa de sugerir las mejores posibles 
-correciones para la palabra dada.
+The aim of this project is to develop a modern C++ program capable of correcting and suggesting the most probable words for given inputs. It's designed to enhance text accuracy and readability by providing intelligent spelling corrections.
 
-Para realizar esta tarea, se calcula la distancia entre la palabra a corregir y sugerencias
-mediante una mezcla entre el algoritmo de Levenshtein y mi propio algoritmo que calcula
-la distancia de las teclas cambiadas respecto de la palabra por su distancia en un 
-teclado QWERTY con distribución ANSI. Esto no deberia afectar mucho ya que QWERTY es ampliamente
-utilizado y ANSI no tiene discrencias respecto de ISO en palabras sin caracteres especiales o
-numeros.
+## Features
+
+- **Language Selection**: Users can choose the language for spell checking, allowing for a more customized and relevant correction experience based on the linguistic context.
+- **Dictionary Data Structure**: The program employs a specialized Dictionary data structure to load and manage language data efficiently.
+- **Advanced Correction Algorithm**: Utilizes a blend of the Levenshtein algorithm and a custom algorithm that measures the distance between mistyped keys based on a QWERTY ANSI keyboard layout. This approach ensures high accuracy in suggesting corrections by considering the physical layout of widely used keyboards.
+- **Word Frequency Analysis**: Incorporates a learning component that assigns frequencies to words based on their occurrence in extensive language corpora, enabling the program to suggest more likely corrections based on word usage patterns.
+
+## Implementation Details
+
+The spell checker is built with a focus on performance and accuracy. By taking into account the nuances of keyboard layouts and language-specific word frequencies, it offers a sophisticated solution to common spelling errors. This project is ideal for anyone looking to enhance text quality in applications ranging from text editors to user input validation systems.
+
+## Usage
+
+Just clone the repository and compile with the given CmakeList file, you can easily explore the different files as there are not many and the name is quite descriptive. For the language files, just consider that it'll work as long as
+you provide a valid file with a word per column with its frequency associated.
+
+## Contributing
+
+I welcome contributions from the community. Whether it's improving the algorithm, adding support for new languages, or fixing bugs, your input is valuable.
+
+## License
+
+This project is licensed under the same license as the repository: GNU AFFERO GENERAL PUBLIC LICENSE v3.0
+
