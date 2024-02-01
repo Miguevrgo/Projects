@@ -27,4 +27,5 @@ These are the main languages I use or I want to use:
 * [Dijkstra-Algorithm](Dijkstra-Algorithm)  ❌
 * [Linear-system-equation](Linear-system-equation) ➖
 * [Shutdown Linux](Apagar-Linux) ✅
-* [Spell-Checker](Spell-Checker) : ✅
+* [Spell-Checker](Spell-Checker) ✅
+* [Graph-Algo-Visual](Graph-Algo-Visual) ➖
