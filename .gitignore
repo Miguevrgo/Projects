@@ -19,6 +19,8 @@
 *.app
 *.idea
 .idea
+*.xml
+*.iml
 cmake-build-debug/
 .vs/
 .vscode/
