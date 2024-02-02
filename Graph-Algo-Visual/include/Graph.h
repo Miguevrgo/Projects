@@ -7,9 +7,25 @@
 #ifndef GRAPH_ALGO_VISUAL_GRAPH_H
 #define GRAPH_ALGO_VISUAL_GRAPH_H
 
+#include <list>
+#include <vector>
+
+struct Edge {
+    int dest;
+    int weight;
+};
+
+struct AdjList {
+    std::list<Edge> edges;
+};
 
 class Graph {
+public:
+    Graph(int V);
 
+private:
+    int nVerts;
+    std::vector<AdjList> adjList;
 };
 
 
