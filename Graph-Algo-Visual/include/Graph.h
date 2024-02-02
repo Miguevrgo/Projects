@@ -22,7 +22,9 @@ struct AdjList {
 class Graph {
 public:
     Graph(int V);
-
+    Graph(const Graph &rhs);
+    ~Graph();
+    void AddGraph(const AdjList& newGraph); // TODO: Revise
 private:
     int nVerts;
     std::vector<AdjList> adjList;
