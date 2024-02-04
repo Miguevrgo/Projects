@@ -5,3 +5,7 @@
  */
 
 #include "Algorithms.h"
+
+std::vector<int> Algorithms::Dijkstra(int startVertex) {
+
+}

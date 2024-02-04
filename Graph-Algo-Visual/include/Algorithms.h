@@ -28,7 +28,7 @@ public:
     static std::vector<Edge> Prim();
 
 private:
-
+    Graph graph;
 };
 
 
