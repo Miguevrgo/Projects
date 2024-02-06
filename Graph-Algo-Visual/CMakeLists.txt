@@ -10,4 +10,6 @@ add_executable(Graph_Algo_Visual src/main.cpp
         src/Graph.cpp
         include/Graph.h
         src/Algorithms.cpp
-        include/Algorithms.h)
+        include/Algorithms.h
+        src/Algorithms/DFS.cpp
+        include/Algorithms/DFS.h)
