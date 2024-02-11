@@ -22,7 +22,10 @@ public:
     void MoveEnd();
     void MoveStart();
 
+    int GetLineNumber() const;
+    int GetCharNumber() const;
 
+    void SetPosition(int verticalPos, int horizontalPos);
 
 private:
     int lineNumber;
