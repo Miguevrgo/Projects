@@ -34,3 +34,17 @@ int Cursor::GetCharNumber() const {
     return charNumber;
 }
 
+void Cursor::SetPosition(int verticalPos, int horizontalPos) {
+    this->lineNumber = verticalPos;
+    this->charNumber = horizontalPos;
+}
+
+void Cursor::UpdatePos(int verticalPos, int horizontalPos) {
+    this->lineNumber = verticalPos;
+    this->charNumber = horizontalPos;
+}
+
+void Cursor::MoveStart() {
+    this->charNumber = 0;
+}
+
