@@ -22,8 +22,8 @@ public:
     void MoveEnd();
     void MoveStart();
 
-    int GetLineNumber() const;
-    int GetCharNumber() const;
+    [[nodiscard]] int GetLineNumber() const;
+    [[nodiscard]] int GetCharNumber() const;
 
     void SetPosition(int verticalPos, int horizontalPos);
 

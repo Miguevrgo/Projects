@@ -11,5 +11,5 @@ add_executable(Code_Editor main.cpp
         include/Buffer.h
         src/Editor.cpp
         include/Editor.h
-        Cursor.cpp
-        Cursor.h)
+        src/Cursor.cpp
+        include/Cursor.h)
