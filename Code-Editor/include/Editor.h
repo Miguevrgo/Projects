@@ -16,10 +16,13 @@ class Editor {
 public:
     bool SaveFile(const std::string& fileName);
     bool HasChanged();
+
+    int GetNumLines();
     int GetCharContained(int startLine, int startChar, int endLine, int endChar);
 
     void SwapLines(int lineA, int LineB);
 private:
+    std::vector<int> lineBuffer;
     bool documentChanged;
 };
 
