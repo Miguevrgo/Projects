@@ -32,3 +32,19 @@ bool Editor::HasChanged() const {
 int Editor::GetNumLines() {
     return this->lineBuffer.size();
 }
+
+void Editor::SwapLines(int lineA, int lineB) {
+    if (lineA == lineB){
+        return;
+    }
+    //TODO: Finish this part
+}
+
+sf::String Editor::GetLine(int lineNumber) {
+    int bufferStart = this->lineBuffer[lineNumber];
+    int nextBufferStart = this->lineBuffer[lineNumber-1];
+    int numChars = nextBufferStart - bufferStart -1;
+    return this->buffer.substring(bufferStart,numChars);
+}
+
+
