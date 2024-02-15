@@ -21,8 +21,9 @@ public:
 
     int GetNumLines();
     int GetCharContained(int startLine, int startChar, int endLine, int endChar);
+    sf::String GetLine(int lineNumber);
 
-    void SwapLines(int lineA, int LineB);
+    void SwapLines(int lineA, int lineB);
 private:
     std::vector<int> lineBuffer;
     sf::String buffer;
