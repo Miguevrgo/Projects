@@ -12,4 +12,6 @@ add_executable(Code_Editor main.cpp
         src/Editor.cpp
         include/Editor.h
         src/Cursor.cpp
-        include/Cursor.h)
+        include/Cursor.h
+        src/Render.cpp
+        include/Render.h)
