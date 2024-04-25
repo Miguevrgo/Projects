@@ -24,7 +24,7 @@ private:
 
         inline explicit Node (const T& value) noexcept : data(value), 
             leftChild(nullptr), rightChild(nullptr) {}
-    }
+    };
 
     std::unique_ptr<Node> root;
 
@@ -37,6 +37,15 @@ public:
     inline void insert(const T& node);
 
     constexpr bool empty() const noexcept;
+
+    T leftChild(const Node& node) const noexcept;
+    T rightChild(const Node& node) const noexcept;
+
+    inline void remove(const T& node);
+    bool find(const T& value) const;
+
+    
+
 
 
 };
