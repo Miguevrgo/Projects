@@ -9,4 +9,6 @@ add_executable(Ridmaze
         Dice.cpp
         Dice.h
         Player.cpp
-        Player.h)
+        Player.h
+        Chest.cpp
+        Chest.h)

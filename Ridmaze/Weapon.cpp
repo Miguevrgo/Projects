@@ -31,3 +31,8 @@ bool Weapon::discard() const {
     }
 }
 
+std::string Weapon::toString() const {
+    return "[" + name + "]" + " (" + std::to_string(uses) + "⁍)\n";
+}
+
+

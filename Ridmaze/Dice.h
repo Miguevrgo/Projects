@@ -10,13 +10,10 @@
 class Dice {
 private:
     constexpr static const double BREAK_PROB = 0.2; // Probability for a weapon of breaking
+    constexpr static const double MAX_ATTACK = 5;
 public:
-    static bool breakWeapon() {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<double> dis(0, 1);
-        return dis(gen) < BREAK_PROB;
-    }
+    static bool breakWeapon();
+    static double randomAttack();
 };
 
 
