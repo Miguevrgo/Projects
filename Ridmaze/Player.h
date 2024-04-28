@@ -8,17 +8,23 @@
 
 #include <vector>
 #include <algorithm>
+#include <string>
 #include "Weapon.h"
 
 class Player {
 private:
-    int health;
+    const static int INITIAL_HEALTH = 5;
+    std::string name;
     std::vector<Weapon> weapons;
+    int health;
     double strength;
 public:
+    Player(const std::string& name);
     double attack();
     double useWeapon();
     void discardWeapon(const Weapon &weapon);
+    void addWeapon(const Weapon& weapon);
+    std::string toString() const;
 };
 
 

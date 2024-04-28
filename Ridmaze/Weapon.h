@@ -20,6 +20,7 @@ public:
     double getDamage() const;
     double attack();
     bool discard() const;
+    std::string toString() const;
     bool operator==(const Weapon &rhs) const {
         return name == rhs.name && uses == rhs.uses && damage == rhs.damage;
     }

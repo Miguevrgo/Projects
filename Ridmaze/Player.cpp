@@ -1,8 +1,22 @@
-//
-// Created by miguevr on 4/27/24.
-//
+/**
+ * @file Player.cpp
+ * @author Miguel Angel De la Vega Rodríguez
+ * @brief Class implementation for Player class
+ */
 
 #include "Player.h"
+
+Player::Player(const std::string& name) {
+    this->name = name;
+    this->health = INITIAL_HEALTH;
+    this->strength = Dice::randomAttack();
+}
+
+void Player::addWeapon(const Weapon &weapon) {
+    if (std::find(weapons.begin(), weapons.end(), weapon) == weapons.end()) {
+        weapons.emplace_back(weapon);
+    }
+}
 
 double Player::attack() {
     double totalDamage = 0;
@@ -18,3 +32,14 @@ void Player::discardWeapon(const Weapon &weapon) {
         weapons.erase(std::find(weapons.begin(), weapons.end(), weapon));
     }
 }
+
+std::string Player::toString() const {
+    std::string toReturn = name + ": ";
+    for (auto &weapon : weapons) {
+        toReturn += "\t" + weapon.toString();
+    }
+    toReturn += std::to_string(health) + "♥" + std::to_string(strength) + "⚔";
+    return toReturn;
+}
+
+
