@@ -13,18 +13,20 @@
 
 class Player {
 private:
-    const static int INITIAL_HEALTH = 5;
+    const static int INITIAL_HEALTH = 100;
     std::string name;
     std::vector<Weapon> weapons;
     int health;
     double strength;
 public:
-    Player(const std::string& name);
+    explicit Player(const std::string& name);
     double attack();
-    double useWeapon();
+    [[nodiscard]] int getHealth() const;
+    void setHealth(int health);
+    void incStrength(int amount);
     void discardWeapon(const Weapon &weapon);
     void addWeapon(const Weapon& weapon);
-    std::string toString() const;
+    [[nodiscard]] std::string toString() const;
 };
 
 
