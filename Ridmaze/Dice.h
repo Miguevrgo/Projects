@@ -10,10 +10,11 @@
 class Dice {
 private:
     constexpr static const double BREAK_PROB = 0.2; // Probability for a weapon of breaking
-    constexpr static const double MAX_ATTACK = 5;
+    constexpr static const double MAX_STRENGTH = 5;
 public:
     static bool breakWeapon();
-    static double randomAttack();
+    static double randomStrength();
+    static int randomRarity();
 };
 
 

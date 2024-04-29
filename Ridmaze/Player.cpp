@@ -9,7 +9,7 @@
 Player::Player(const std::string& name) {
     this->name = name;
     this->health = INITIAL_HEALTH;
-    this->strength = Dice::randomAttack();
+    this->strength = Dice::randomStrength();
 }
 
 void Player::addWeapon(const Weapon &weapon) {
@@ -40,6 +40,18 @@ std::string Player::toString() const {
     }
     toReturn += std::to_string(health) + "♥" + std::to_string(strength) + "⚔";
     return toReturn;
+}
+
+void Player::setHealth(int health) {
+    this->health = health;
+}
+
+int Player::getHealth() const {
+    return health;
+}
+
+void Player::incStrength(double amount) {
+    this->strength += amount;
 }
 
 

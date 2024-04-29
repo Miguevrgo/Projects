@@ -11,9 +11,16 @@ bool Dice::breakWeapon() {
     return dis(gen) < BREAK_PROB;
 }
 
-double Dice::randomAttack() {
+double Dice::randomStrength() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(0, MAX_ATTACK);
+    std::uniform_real_distribution<double> dis(0, MAX_STRENGTH);
+    return dis(gen);
+}
+
+int Dice::randomRarity() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, 3);
     return dis(gen);
 }
