@@ -34,6 +34,9 @@ public:
     inline explicit Tree(const T& value) noexcept : 
         root(std::make_unique<Node>(value)) {}
     
+    void operator=(const Tree& tree) noexcept;
+    void clear() noexcept;
+    
     inline void insert(const T& node);
 
     constexpr bool empty() const noexcept;
