@@ -4,7 +4,6 @@
 
 #include "Chest.h"
 
-
 bool Chest::isOpened() const {
     return opened;
 }
