@@ -9,19 +9,22 @@ using namespace ftxui;
 int main() {
     auto screen = ScreenInteractive::Fullscreen();
 
-    // Repository list and selected index
-    std::vector<std::string> repoList = {"ALGO", "Projects", "FP"};
+    GitManager manager("/home/miguevr/GitHub/"); // Read this from a config? Alias and argv[1]?
+    std::vector<std::string> repoList = manager.listRepositories();
     int selected = 0;
 
-    // Menu component
     auto menu = Menu(&repoList, &selected);
 
-    // Using a Renderer to customize the display of the menu and paragraphs
     auto renderer = Renderer(menu, [&] {
         return hbox({
             vbox({
-                 paragraph("Lista Githubs") | border | color(Color::Blue),
-                 menu->Render() | border | color(Color::Blue) | flex,
+                hbox({
+                    filler(),
+                    text("Lista Githubs") | hcenter,
+                    filler(),
+                }) | border | color(Color::Blue),
+
+                menu->Render() | border | color(Color::Blue) | flex,
             }),
 
             vbox({
@@ -31,7 +34,7 @@ int main() {
                     filler(),
                 }) | border | color(Color::Blue),
 
-                paragraph("Esto representa los cambios") | border | color(Color::Green) | flex,
+                paragraph("Git status information") | border | color(Color::Green) | flex,
 
             }) | flex_grow,
         }) | flex;
