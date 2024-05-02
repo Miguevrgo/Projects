@@ -37,8 +37,9 @@ std::string GitManager::gitShortcut(const std::string& shortcut) const {
 }
 
 void GitManager::gitCommand(const std::string &command, const std::string &repository) const {
-    std::string cmd = "cd " + baseDirectory + "/" + repository + "&& git" + command;
-    std::system(cmd.c_str());
+    std::string cmd = "cd " + baseDirectory + "/" + repository + "&& git " + command;
+    std::string outputRedirect = cmd + " &> /dev/null";
+    std::system(outputRedirect.c_str());
 }
 
 void GitManager::executeCommand(const std::string &command, const std::string& repository,
