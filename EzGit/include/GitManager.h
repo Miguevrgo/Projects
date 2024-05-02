@@ -18,31 +18,39 @@
 class GitManager {
 public:
     explicit GitManager(std::string  baseDir) : baseDirectory(std::move(baseDir)){}
-    //TODO: ELiminar también 
+    
+
+
     std::string exec(const char* cmd) {
-        std::array<char, 128> buffer;
         std::string result;
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-        if (!pipe) {
-            throw std::runtime_error("popen() failed!");
+        std::array<char, 256> buffer;
+        FILE* pipe = popen(cmd, "r");
+        if (!pipe) throw std::runtime_error("popen() failed!");
+
+        try {
+            while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+                result += buffer.data();
+            }
+        } catch (...) {
+            pclose(pipe);
+            throw;
         }
-        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-            result += buffer.data();
+
+        int status = pclose(pipe);
+        if (status == -1) {
+            throw std::runtime_error("pclose() failed!");
+        } else if (status != 0) {
+            throw std::runtime_error("Command exited with non-zero status");
         }
+
         return result;
     }
 
-    /**
-     * @brief TEST FUNCTION FOR GIT LOG //TODO
-     * 
-     *
-     */
     std::string getDetails(const std::string& repo) {
-        // Construct the command to change to the repository's directory and execute git status
         std::string cmd = "cd '" + baseDirectory + "/" + repo + "' && git status";
-        // Use exec to run the command and return the output
         return exec(cmd.c_str());
     }
+
 
 
 

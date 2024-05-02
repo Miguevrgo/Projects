@@ -34,7 +34,7 @@ int main() {
                     filler(),
                 }) | border | color(Color::Blue),
 
-                paragraph("Fill with info from git status " + repoList[selected]) | border | color(Color::Green) | flex,
+                paragraph(manager.getDetails(repoList[selected])) | border | color(Color::Green) | flex,
 
             }) | flex_grow,
         }) | flex;
