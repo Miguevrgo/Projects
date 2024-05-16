@@ -23,7 +23,7 @@ public:
     double attack();
     [[nodiscard]] int getHealth() const;
     void setHealth(int health);
-    void incStrength(int amount);
+    void incStrength(double amount);
     void discardWeapon(const Weapon &weapon);
     void addWeapon(const Weapon& weapon);
     [[nodiscard]] std::string toString() const;
