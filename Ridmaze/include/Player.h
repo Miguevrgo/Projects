@@ -1,32 +1,51 @@
-/**
- * @file Player.h
- * @brief Class definition for Player
- */
+//
+// Created by miguevr on 5/17/24.
+//
 
 #ifndef RIDMAZE_PLAYER_H
 #define RIDMAZE_PLAYER_H
 
 #include <vector>
 #include <algorithm>
-#include <string>
+#include <sstream>
+#include "Dice.h"
 #include "Weapon.h"
+#include "Shield.h"
+#include "LabyrinthCharacter.h"
+#include "Directions.h"
 
-class Player {
-private:
-    const static int INITIAL_HEALTH = 100;
-    std::string name;
-    std::vector<Weapon> weapons;
-    int health;
-    double strength;
+class Player : public LabyrinthCharacter {
 public:
-    explicit Player(const std::string& name);
-    double attack();
-    [[nodiscard]] int getHealth() const;
-    void setHealth(int health);
-    void incStrength(double amount);
-    void discardWeapon(const Weapon &weapon);
-    void addWeapon(const Weapon& weapon);
-    [[nodiscard]] std::string toString() const;
+    Player(char number, double intelligence, double strength);
+    Player(const Player& rhs);
+
+    void resurrect();
+    [[nodiscard]] auto getNumber() const -> char;
+    static auto move(Directions direction, const std::vector<Directions>& validMoves) -> Directions;
+
+    auto attack() -> double override;
+    auto defend(double receivedAttack) -> bool override;
+
+    void receiveReward();
+    [[nodiscard]] auto toString() const -> std::string override;
+
+private:
+    char number;
+    int consecutiveHits;
+    std::vector<Weapon> weapons;
+    std::vector<Shield> shields;
+    static constexpr int INITIAL_HEALTH = 10;
+
+    void receiveWeapon(const Weapon& weapon);
+    void receiveShield(const Shield& shield);
+    static auto newWeapon() -> Weapon;
+    static auto newShield() -> Shield;
+    [[nodiscard]] auto sumWeapons() const -> double;
+    [[nodiscard]] auto sumShields() const -> double;
+    [[nodiscard]] auto defensiveEnergy() const -> double;
+    auto manageHit(double receivedAttack) -> bool;
+    void resetHits();
+    void incConsecutiveHits();
 };
 
 

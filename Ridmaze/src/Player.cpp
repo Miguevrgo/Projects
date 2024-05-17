@@ -1,57 +1,124 @@
-/**
- * @file Player.cpp
- * @author Miguel Angel De la Vega Rodríguez
- * @brief Class implementation for Player class
- */
+//
+// Created by miguevr on 5/17/24.
+//
 
 #include "Player.h"
 
-Player::Player(const std::string& name) {
-    this->name = name;
-    this->health = INITIAL_HEALTH;
-    this->strength = Dice::randomStrength();
+Player::Player(char number, double intelligence, double strength) :
+    LabyrinthCharacter("Player #" + std::to_string(number), intelligence, strength, INITIAL_HEALTH), consecutiveHits(0), number(number) {};
+
+Player::Player(const Player &rhs) :
+    LabyrinthCharacter(rhs), number(rhs.number), consecutiveHits(0) {}
+
+void Player::resurrect() {
+    setHealth(10);
+    weapons.clear();
+    shields.clear();
+    resetHits();
 }
 
-void Player::addWeapon(const Weapon &weapon) {
-    if (std::find(weapons.begin(), weapons.end(), weapon) == weapons.end()) {
-        weapons.emplace_back(weapon);
+auto Player::getNumber() const -> char {
+    return '0' + number;
+}
+
+auto Player::move(Directions direction, const std::vector<Directions> &validMoves) -> Directions {
+    if (!validMoves.empty() && std::find(validMoves.begin(), validMoves.end(), direction) == validMoves.end()) {
+        return validMoves[0];
+    }
+
+    return direction;
+}
+
+auto Player::attack() -> double {
+    return sumWeapons() + this->getStrength();
+}
+
+auto Player::defend(double receivedAttack) -> bool {
+    return manageHit(receivedAttack);
+}
+
+void Player::receiveReward() {
+    int wReward = Dice::weaponsReward();
+    int sReward = Dice::shieldsReward();
+
+    for (int i = 0; i < wReward; ++i) {
+        receiveWeapon(newWeapon());
+    }
+    for (int i = 0; i < sReward; ++i) {
+        receiveShield(newShield());
+    }
+    setHealth(getHealth() + Dice::healthReward());
+}
+
+auto Player::toString() const -> std::string {
+    std::ostringstream oss;
+    oss << "P" << LabyrinthCharacter::toString();
+    oss << "\tWeapons: ";
+    for (const auto& weapon : weapons) {
+        oss << weapon.toString() << "\t";
+    }
+    oss << "\n\tShields: ";
+    for (const auto& shield : shields) {
+        oss << shield.toString() << "\t";
+    }
+    return oss.str();
+}
+
+void Player::receiveWeapon(const Weapon& weapon) {
+    weapons.erase(std::remove_if(weapons.begin(), weapons.end(), [](const Weapon& w) { return w.discard(); }), weapons.end());
+    if (weapons.size() < 2) {
+        weapons.push_back(weapon);
     }
 }
 
-double Player::attack() {
-    double totalDamage = 0;
-
-    for (auto &weapon : weapons) {
-        totalDamage += weapon.attack();
-        discardWeapon(weapon);
+void Player::receiveShield(const Shield& shield) {
+    shields.erase(std::remove_if(shields.begin(), shields.end(), [](const Shield& s) { return s.discard(); }), shields.end());
+    if (shields.size() < 3) {
+        shields.push_back(shield);
     }
 }
 
-void Player::discardWeapon(const Weapon &weapon) {
-    if (weapon.discard()) {
-        weapons.erase(std::find(weapons.begin(), weapons.end(), weapon));
+auto Player::newWeapon() -> Weapon {
+    return {Dice::weaponPower(), Dice::usesLeft()};
+}
+
+auto Player::newShield() -> Shield {
+    return {Dice::shieldPower(), Dice::usesLeft()};
+}
+
+auto Player::sumWeapons() const -> double {
+    return std::accumulate(weapons.begin(), weapons.end(), 0.0f, [](double sum, Weapon w) { return sum + w.attack(); });
+}
+
+auto Player::sumShields() const -> double {
+    return std::accumulate(shields.begin(), shields.end(), 0.0f, [](double sum, Shield s) { return sum + s.protect(); });
+}
+
+auto Player::defensiveEnergy() const -> double {
+    return sumShields() + getIntelligence();
+}
+
+auto Player::manageHit(double receivedAttack) -> bool {
+    if (defensiveEnergy() < receivedAttack) {
+        gotWounded();
+        incConsecutiveHits();
+    } else {
+        resetHits();
     }
-}
 
-std::string Player::toString() const {
-    std::string toReturn = name + ": ";
-    for (auto &weapon : weapons) {
-        toReturn += "\t" + weapon.toString();
+    bool lose = (consecutiveHits == 3) || dead();
+    if (lose) {
+        resetHits();
     }
-    toReturn += std::to_string(health) + "♥" + std::to_string(strength) + "⚔";
-    return toReturn;
+    return lose;
 }
 
-void Player::setHealth(int health) {
-    this->health = health;
+void Player::resetHits() {
+    consecutiveHits = 0;
 }
 
-int Player::getHealth() const {
-    return health;
-}
-
-void Player::incStrength(double amount) {
-    this->strength += amount;
+void Player::incConsecutiveHits() {
+    ++consecutiveHits;
 }
 
 
