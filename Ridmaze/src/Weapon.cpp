@@ -1,38 +1,18 @@
 //
-// Created by miguevr on 4/25/24.
+// Created by miguevr on 5/17/24.
 //
 
 #include "Weapon.h"
 
-int Weapon::getUses() const {
-    return uses;
+Weapon::Weapon(double power, int uses)
+        : CombatElement(power, uses) {}
+
+auto Weapon::attack() -> double {
+    return produceEffect();
 }
 
-double Weapon::getDamage() const {
-    return damage;
+auto Weapon::toString() const -> std::string {
+    std::ostringstream oss;
+    oss << "W" << CombatElement::toString();
+    return oss.str();
 }
-
-double Weapon::attack() {
-    if (uses == 0) {
-        return 0;
-    }
-    else{
-        --uses;
-        return getDamage();
-    }
-}
-
-bool Weapon::discard() const {
-    if (getUses() == 0) {
-        return true;
-    }
-    else {
-        return Dice::breakWeapon();
-    }
-}
-
-std::string Weapon::toString() const {
-    return "[" + name + "]" + " (" + std::to_string(uses) + "⁍)\n";
-}
-
-

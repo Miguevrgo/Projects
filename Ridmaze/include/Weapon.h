@@ -1,30 +1,17 @@
-/**
- * @file Weapon.h
- * @author Miguel Angel De la Vega Rodríguez
- */
+//
+// Created by miguevr on 5/17/24.
+//
 
 #ifndef RIDMAZE_WEAPON_H
 #define RIDMAZE_WEAPON_H
 
-#include <string>
-#include "Dice.h"
+#include "CombatElement.h"
 
-class Weapon {
-private:
-    int uses;
-    double damage;
-    std::string name;
+class Weapon : public CombatElement {
 public:
-    Weapon(int uses, double damage) : uses(uses), damage(damage){};
-    int getUses() const;
-    double getDamage() const;
-    double attack();
-    bool discard() const;
-    std::string toString() const;
-    bool operator==(const Weapon &rhs) const {
-        return name == rhs.name && uses == rhs.uses && damage == rhs.damage;
-    }
+    Weapon(double power, int uses);
+    auto attack() -> double;
+    [[nodiscard]] auto toString() const -> std::string override;
 };
-
 
 #endif //RIDMAZE_WEAPON_H
