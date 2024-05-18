@@ -29,5 +29,5 @@ These are the main languages I use or I want to use:
 * [Tree](Tree) ✅
 * [RidMaze](RidMaze) ➖
 * [Code Editor](Code-Editor) ➖
-* [Linear-system-equation](Linear-system-equation) ➖
-* [EzGit](EzGit) ❌
+* [Linear-system-equation](Linear-system-equation) ❌
+* [EzGit](EzGit) ➖
