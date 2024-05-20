@@ -27,25 +27,11 @@ auto Labyrinth::haveAWinner() const -> bool {
 
 auto Labyrinth::toString() const -> std::string {
     std::ostringstream oss;
-    oss << "╔";
-    for (int i = 0; i < nCols * 2; ++i) {
-        oss << "═";
-    }
-    oss << "╗\n";
-
     for (int i = 0; i < nRows; ++i) {
-        oss << "║";
         for (int j = 0; j < nCols; ++j) {
-            oss << labyrinth[i][j] << " ";
+            oss << labyrinth[i][j];
         }
-        oss << "║\n";
     }
-
-    oss << "╚";
-    for (int i = 0; i < nCols * 2; ++i) {
-        oss << "═";
-    }
-    oss << "╝";
     return oss.str();
 }
 

@@ -27,7 +27,7 @@ public:
 
 private:
     static const int MAX_ROUNDS = 10;
-    static const int ROWS = 11;
+    static const int ROWS = 10;
     static const int COLS = 10;
     static const int NMONSTERS = 5;
     static const int MONSTERS_POS[NMONSTERS][2];

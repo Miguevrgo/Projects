@@ -11,7 +11,7 @@ class Shield : public CombatElement {
 public:
     Shield(double protection, int uses);
     auto protect() -> double;
-    auto toString() const -> std::string override;
+    [[nodiscard]] auto toString() const -> std::string override;
 };
 
 
