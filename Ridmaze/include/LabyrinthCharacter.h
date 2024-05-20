@@ -25,7 +25,7 @@ public:
     virtual auto attack() -> double = 0;
     virtual auto defend(double attack) -> bool = 0;
 
-    virtual auto toString() const -> std::string;
+    [[nodiscard]] virtual auto toString() const -> std::string;
 
 protected:
     void gotWounded();
