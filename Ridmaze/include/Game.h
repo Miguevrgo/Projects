@@ -29,9 +29,9 @@ private:
     static const int MAX_ROUNDS = 10;
     static const int ROWS = 10;
     static const int COLS = 10;
-    static const int NMONSTERS = 5;
+    static const int NMONSTERS = 10;
     static const int MONSTERS_POS[NMONSTERS][2];
-    static const int NBLOCKS = 4;
+    static const int NBLOCKS = 20;
     static const std::tuple<Orientation, int, int, int> BLOCKS_POS[NBLOCKS];
 
     int currentPlayerIndex;
