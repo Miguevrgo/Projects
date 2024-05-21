@@ -19,7 +19,7 @@
 
 class Game {
 public:
-    Game(int nPlayers);
+    Game(int nPlayers, int rows, int cols);
 
     [[nodiscard]] auto finished() const -> bool;
     auto nextStep(Directions preferredDirection) -> bool;
@@ -44,7 +44,7 @@ private:
     void configureLabyrinth();
     void nextPlayer();
     auto actualDirection(Directions preferredDirection) -> Directions;
-    auto combat(std::shared_ptr<Monster> monster) -> GameCharacter;
+    auto combat(const std::shared_ptr<Monster>& monster) -> GameCharacter;
     void manageReward(GameCharacter winner);
     void manageResurrection();
 

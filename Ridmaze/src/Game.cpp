@@ -14,8 +14,8 @@ const std::tuple<Orientation, int, int, int> Game::BLOCKS_POS[NBLOCKS] = {
         {Orientation::VERTICAL, 3, 3, 4}
 };
 
-Game::Game(int nPlayers)
-        : labyrinth(ROWS, COLS, Dice::randomPos(ROWS), Dice::randomPos(COLS)),
+Game::Game(int nPlayers, int rows, int cols)
+        : labyrinth(rows, cols, Dice::randomPos(ROWS), Dice::randomPos(COLS)),
           currentPlayerIndex(Dice::whoStarts(nPlayers)),
           currentPlayer(nullptr) {
 
@@ -102,7 +102,7 @@ auto Game::actualDirection(Directions preferredDirection) -> Directions {
     return currentPlayer->move(preferredDirection, validMoves);
 }
 
-auto Game::combat(std::shared_ptr<Monster> monster) -> GameCharacter {
+auto Game::combat(const std::shared_ptr<Monster>& monster) -> GameCharacter {
     int rounds = 0;
     GameCharacter winner = GameCharacter::PLAYER;
     bool lose = monster->defend(currentPlayer->attack());

@@ -21,6 +21,9 @@ private:
     void showMainMenu();
     void gameLoop();
 
+    static constexpr int ROWS = 10;
+    static constexpr int COLS = 18;
+
     Game game;
     sf::RenderWindow window;
     sf::Font font;
