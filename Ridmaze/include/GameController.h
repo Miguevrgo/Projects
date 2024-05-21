@@ -21,8 +21,8 @@ private:
     void showMainMenu();
     void gameLoop();
 
-    static constexpr int ROWS = 10;
-    static constexpr int COLS = 18;
+    static constexpr int ROWS = 18;
+    static constexpr int COLS = 32;
 
     Game game;
     sf::RenderWindow window;
