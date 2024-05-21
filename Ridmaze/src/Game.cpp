@@ -6,12 +6,32 @@
 #include "Dice.h"
 #include <sstream>
 
-const int Game::MONSTERS_POS[NMONSTERS][2] = {{0,0},{1,6},{2,2},{5,5},{7,1}};
+const int Game::MONSTERS_POS[NMONSTERS][2] = {
+        {1, 1}, {3, 5}, {5, 2}, {6, 7}, {8, 1},
+        {10, 12}, {12, 5}, {14, 14}, {16, 3}, {17, 9}
+};
+
 const std::tuple<Orientation, int, int, int> Game::BLOCKS_POS[NBLOCKS] = {
         {Orientation::HORIZONTAL, 0, 1, 4},
-        {Orientation::HORIZONTAL, 9, 0, 2},
+        {Orientation::HORIZONTAL, 9, 0, 5},
         {Orientation::VERTICAL, 2, 8, 7},
-        {Orientation::VERTICAL, 3, 3, 4}
+        {Orientation::VERTICAL, 3, 3, 4},
+        {Orientation::HORIZONTAL, 5, 10, 8},
+        {Orientation::VERTICAL, 12, 5, 6},
+        {Orientation::HORIZONTAL, 14, 14, 3},
+        {Orientation::VERTICAL, 15, 0, 5},
+        {Orientation::HORIZONTAL, 7, 20, 10},
+        {Orientation::VERTICAL, 8, 18, 7},
+        {Orientation::HORIZONTAL, 11, 6, 8},
+        {Orientation::VERTICAL, 13, 4, 6},
+        {Orientation::HORIZONTAL, 3, 15, 7},
+        {Orientation::VERTICAL, 17, 2, 8},
+        {Orientation::HORIZONTAL, 16, 8, 5},
+        {Orientation::VERTICAL, 1, 12, 4},
+        {Orientation::HORIZONTAL, 4, 18, 6},
+        {Orientation::VERTICAL, 9, 7, 5},
+        {Orientation::HORIZONTAL, 15, 10, 7},
+        {Orientation::VERTICAL, 10, 14, 6}
 };
 
 Game::Game(int nPlayers, int rows, int cols)
