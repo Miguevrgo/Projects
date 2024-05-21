@@ -1,11 +1,9 @@
 #include "GameController.h"
 #include <iostream>
-#include <sstream>
-#include <locale>
 #include <codecvt>
 
 GameController::GameController(int nPlayers)
-        : game(nPlayers), window(sf::VideoMode(1920, 1080), "Ridmaze"), ui(std::make_unique<TextUI>()) {
+        : game(nPlayers, ROWS, COLS), window(sf::VideoMode(1920, 1080), "Ridmaze"), ui(std::make_unique<TextUI>()) {
     if (!font.loadFromFile("../assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf")) {
         std::cerr << "Error loading font\n";
         exit(1);
@@ -138,10 +136,14 @@ void GameController::handlePlayerInput(sf::Keyboard::Key key) {
     }
 }
 
+/**
+ * Draws game in screen, first it draws the labyrinth using toString method from labyrinth, then it draws players
+ * and monsters in the screen over the labyrinth
+ * @todo: For combat (C) cells, make another logic in game
+ * @param state current GameState
+ */
 void GameController::drawGameState(const GameState& state) {
     std::string labyrinth = state.getLabyrinth();
-    int width = 10;
-    int height = 10;
     float cellSize = 107.9f;
 
     blockSprite.setScale(cellSize / blockTexture.getSize().x, cellSize / blockTexture.getSize().y);
@@ -150,9 +152,9 @@ void GameController::drawGameState(const GameState& state) {
     monsterSprite.setScale(cellSize / monsterTexture.getSize().x, cellSize / monsterTexture.getSize().y);
     exitSprite.setScale(cellSize / exitTexture.getSize().x, cellSize / exitTexture.getSize().y);
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            char cell = labyrinth[y * width + x];
+    for (int y = 0; y < ROWS; ++y) {
+        for (int x = 0; x < COLS; ++x) {
+            char cell = labyrinth[y * COLS + x];
             sf::Sprite* sprite = nullptr;
 
             if (cell == 'X') {
@@ -162,13 +164,30 @@ void GameController::drawGameState(const GameState& state) {
                 sprite = &emptySprite;
             }
             else if (isdigit(cell)) {
-                sprite = &playerSprite;
+                sprite = &emptySprite;
             }
             else if (cell == 'M') {
-                sprite = &monsterSprite;
+                sprite = &emptySprite;
             }
             else if (cell == 'E') {
                 sprite = &exitSprite;
+            }
+
+            if (sprite) {
+                sprite->setPosition(x * cellSize, y * cellSize);
+                window.draw(*sprite);
+            }
+        }
+    }
+
+    for (int y = 0; y < ROWS; ++y) {
+        for (int x = 0; x < COLS; ++x) {
+            char cell = labyrinth[y * COLS + x];
+            sf::Sprite* sprite = nullptr;
+            if (isdigit(cell)) {
+                sprite = &playerSprite;
+            } else if (cell == 'M') {
+                sprite = &monsterSprite;
             }
 
             if (sprite) {
