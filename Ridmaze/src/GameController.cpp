@@ -144,7 +144,7 @@ void GameController::handlePlayerInput(sf::Keyboard::Key key) {
  */
 void GameController::drawGameState(const GameState& state) {
     std::string labyrinth = state.getLabyrinth();
-    float cellSize = 107.9f;
+    float cellSize = 60.0f;
 
     blockSprite.setScale(cellSize / blockTexture.getSize().x, cellSize / blockTexture.getSize().y);
     emptySprite.setScale(cellSize / emptyTexture.getSize().x, cellSize / emptyTexture.getSize().y);
