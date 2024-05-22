@@ -32,9 +32,7 @@ add_executable(Ridmaze src/main.cpp
         include/GameState.h
         src/GameController.cpp
         include/GameController.h
-        include/UI.h
-        src/TextUI.cpp
-        include/TextUI.h
+        src/GUI.cpp
 )
 
 target_link_libraries(Ridmaze sfml-graphics sfml-window sfml-system)

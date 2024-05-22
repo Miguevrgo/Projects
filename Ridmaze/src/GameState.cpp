@@ -30,3 +30,4 @@ auto GameState::isWinner() const -> bool {
 auto GameState::getLog() const -> std::string {
     return log;
 }
+
