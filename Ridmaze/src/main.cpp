@@ -1,8 +1,8 @@
-#include "GameController.h"
+#include "GUI.h"
 
 int main() {
-    GameController controller(1); // Inicializar el controlador con 2 jugadores
-    controller.run();
+    GUI gui(1,  1920 , 1080);
+    gui.run();
 
     return 0;
 }

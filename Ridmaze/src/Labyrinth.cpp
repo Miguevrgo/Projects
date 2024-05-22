@@ -154,3 +154,12 @@ auto Labyrinth::putPlayer2D(int oldRow, int oldCol, int row, int col, std::share
 
     return output;
 }
+
+auto Labyrinth::getRows() const -> int {
+    return nRows;
+}
+
+auto Labyrinth::getCols() const -> int {
+    return nCols;
+}
+

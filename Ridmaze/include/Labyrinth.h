@@ -26,6 +26,8 @@ public:
     void addBlock(Orientation orientation, int startRow, int startCol, int length);
     [[nodiscard]] auto validMoves(int row, int col) const -> std::vector<Directions>;
     void updatePos(const std::shared_ptr<Player>& player);
+    [[nodiscard]] auto getRows() const -> int;
+    [[nodiscard]] auto getCols() const -> int;
 
 private:
     static constexpr char BLOCK_CHAR = 'X';
