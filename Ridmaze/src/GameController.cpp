@@ -1,9 +1,8 @@
 #include "GameController.h"
 #include <iostream>
-#include <codecvt>
 
-GameController::GameController(int nPlayers, int rows, int cols)
-        : game(nPlayers, rows, cols) {}
+GameController::GameController(int rows, int cols)
+        : game(rows, cols) {}
 
 void GameController::handlePlayerInput(sf::Keyboard::Key key, sf::Window& window) {
     Directions direction;

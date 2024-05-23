@@ -16,11 +16,10 @@
 
 class Player : public LabyrinthCharacter {
 public:
-    Player(char number, double intelligence, double strength);
+    Player(double intelligence, double strength);
     Player(const Player& rhs);
 
     void resurrect();
-    [[nodiscard]] auto getNumber() const -> char;
     static auto move(Directions direction, const std::vector<Directions>& validMoves) -> Directions;
 
     auto attack() -> double override;
@@ -30,7 +29,6 @@ public:
     [[nodiscard]] auto toString() const -> std::string override;
 
 private:
-    char number;
     int consecutiveHits;
     std::vector<Weapon> weapons;
     std::vector<Shield> shields;

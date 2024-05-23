@@ -1,48 +1,38 @@
-//
-// Created by miguevr on 5/17/24.
-//
-
 #ifndef RIDMAZE_GAME_H
 #define RIDMAZE_GAME_H
 
-#include <vector>
-#include <string>
-#include <string_view>
 #include <memory>
+#include <string>
+#include <vector>
 #include "Labyrinth.h"
 #include "Player.h"
 #include "Monster.h"
+#include "Directions.h"
 #include "GameCharacter.h"
 #include "GameState.h"
-#include "Directions.h"
-#include "Orientation.h"
+
 
 class Game {
 public:
-    Game(int nPlayers, int rows, int cols);
+    Game(int rows, int cols);
 
-    [[nodiscard]] auto finished() const -> bool;
-    auto nextStep(Directions preferredDirection) -> bool;
-    [[nodiscard]] auto getGameState() const -> GameState;
+    [[nodiscard]] bool finished() const;
+    bool nextStep(Directions preferredDirection);
+    [[nodiscard]] GameState getGameState() const;
 
 private:
     static const int MAX_ROUNDS = 10;
-    static const int ROWS = 10;
-    static const int COLS = 10;
     static const int NMONSTERS = 10;
     static const int MONSTERS_POS[NMONSTERS][2];
     static const int NBLOCKS = 20;
     static const std::tuple<Orientation, int, int, int> BLOCKS_POS[NBLOCKS];
 
-    int currentPlayerIndex;
-    std::shared_ptr<Player> currentPlayer;
-    std::string log;
-    Labyrinth labyrinth;
-    std::vector<std::shared_ptr<Player>> players;
+    std::shared_ptr<Player> player;
     std::vector<std::shared_ptr<Monster>> monsters;
+    Labyrinth labyrinth;
+    std::string log;
 
     void configureLabyrinth();
-    void nextPlayer();
     auto actualDirection(Directions preferredDirection) -> Directions;
     auto combat(const std::shared_ptr<Monster>& monster) -> GameCharacter;
     void manageReward(GameCharacter winner);
@@ -57,5 +47,4 @@ private:
     void logRounds(int rounds, int max);
 };
 
-
-#endif //RIDMAZE_GAME_H
+#endif // RIDMAZE_GAME_H

@@ -10,10 +10,6 @@ auto Dice::randomPos(int max) -> int {
     return std::uniform_int_distribution<int>{0, max}(randomGenerator);
 }
 
-auto Dice::whoStarts(int nPlayers) -> int {
-    return std::uniform_int_distribution<int>{0, nPlayers - 1}(randomGenerator);
-}
-
 auto Dice::randomIntelligence() -> double {
     return std::uniform_real_distribution<double>{0.0, MAX_INTELLIGENCE}(randomGenerator);
 }

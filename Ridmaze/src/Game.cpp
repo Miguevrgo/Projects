@@ -1,7 +1,3 @@
-//
-// Created by miguevr on 5/17/24.
-//
-
 #include "Game.h"
 #include "Dice.h"
 #include <sstream>
@@ -34,18 +30,12 @@ const std::tuple<Orientation, int, int, int> Game::BLOCKS_POS[NBLOCKS] = {
         {Orientation::VERTICAL, 10, 14, 6}
 };
 
-Game::Game(int nPlayers, int rows, int cols)
-        : labyrinth(rows, cols, Dice::randomPos(ROWS), Dice::randomPos(COLS)),
-          currentPlayerIndex(Dice::whoStarts(nPlayers)),
-          currentPlayer(nullptr) {
+Game::Game(int rows, int cols)
+        : labyrinth(rows, cols, Dice::randomPos(rows), Dice::randomPos(cols)) {
 
-    for (int playerNum = 0; playerNum < nPlayers; ++playerNum) {
-        players.emplace_back(std::make_shared<Player>(playerNum, Dice::randomIntelligence(), Dice::randomStrength()));
-    }
-
-    currentPlayer = players[currentPlayerIndex];
+    player = std::make_shared<Player>(Dice::randomIntelligence(), Dice::randomStrength());
     configureLabyrinth();
-    labyrinth.spreadPlayers(players);
+    labyrinth.placePlayer(player);
 
     std::ostringstream oss;
     oss << "╔════════════════════════════╗\n"
@@ -54,20 +44,20 @@ Game::Game(int nPlayers, int rows, int cols)
     log = oss.str();
 }
 
-auto Game::finished() const -> bool {
+bool Game::finished() const {
     return labyrinth.haveAWinner();
 }
 
-auto Game::nextStep(Directions preferredDirection) -> bool {
-    log = "";
-    if (currentPlayer->dead()) {
+bool Game::nextStep(Directions preferredDirection) {
+    log.clear();
+    if (player->dead()) {
         manageResurrection();
     } else {
-        auto direction = actualDirection(preferredDirection);
+        Directions direction = actualDirection(preferredDirection);
         if (direction != preferredDirection) {
             logPlayerNoOrders();
         }
-        auto monster = labyrinth.putPlayer(direction, currentPlayer);
+        auto monster = labyrinth.movePlayer(direction);
         if (monster == nullptr) {
             logNoMonster();
         } else {
@@ -76,25 +66,18 @@ auto Game::nextStep(Directions preferredDirection) -> bool {
         }
     }
 
-    auto endGame = finished();
-    if (!endGame) {
-        nextPlayer();
-    }
-    return endGame;
+    return finished();
 }
 
-auto Game::getGameState() const -> GameState {
-    std::string player;
-    std::string monster;
+GameState Game::getGameState() const {
+    std::string playerInfo = player->toString() + "\n";
+    std::string monstersInfo;
 
-    for (const auto& p : players) {
-        player += p->toString() + "\n";
-    }
     for (const auto& m : monsters) {
-        monster += m->toString() + "\n";
+        monstersInfo += m->toString() + "\n";
     }
 
-    return {labyrinth.toString(), player, monster, currentPlayerIndex, finished(), log};
+    return {labyrinth.toString(), playerInfo, monstersInfo, finished(), log};
 }
 
 void Game::configureLabyrinth() {
@@ -109,31 +92,26 @@ void Game::configureLabyrinth() {
     }
 }
 
-void Game::nextPlayer() {
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-    currentPlayer = players[currentPlayerIndex];
-}
-
-auto Game::actualDirection(Directions preferredDirection) -> Directions {
-    int currentRow = currentPlayer->getRow();
-    int currentCol = currentPlayer->getCol();
+Directions Game::actualDirection(Directions preferredDirection) {
+    int currentRow = player->getRow();
+    int currentCol = player->getCol();
 
     auto validMoves = labyrinth.validMoves(currentRow, currentCol);
-    return currentPlayer->move(preferredDirection, validMoves);
+    return player->move(preferredDirection, validMoves);
 }
 
-auto Game::combat(const std::shared_ptr<Monster>& monster) -> GameCharacter {
+GameCharacter Game::combat(const std::shared_ptr<Monster>& monster) {
     int rounds = 0;
     GameCharacter winner = GameCharacter::PLAYER;
-    bool lose = monster->defend(currentPlayer->attack());
+    bool lose = monster->defend(player->attack());
 
     while (!lose && rounds < MAX_ROUNDS) {
         winner = GameCharacter::MONSTER;
         rounds++;
-        lose = currentPlayer->defend(monster->attack());
+        lose = player->defend(monster->attack());
         if (!lose) {
             winner = GameCharacter::PLAYER;
-            lose = monster->defend(currentPlayer->attack());
+            lose = monster->defend(player->attack());
         }
     }
     logRounds(rounds, MAX_ROUNDS);
@@ -142,7 +120,7 @@ auto Game::combat(const std::shared_ptr<Monster>& monster) -> GameCharacter {
 
 void Game::manageReward(GameCharacter winner) {
     if (winner == GameCharacter::PLAYER) {
-        currentPlayer->receiveReward();
+        player->receiveReward();
         logPlayerWon();
     } else {
         logMonsterWon();
@@ -151,11 +129,8 @@ void Game::manageReward(GameCharacter winner) {
 
 void Game::manageResurrection() {
     if (Dice::resurrectPlayer()) {
-        currentPlayer->resurrect();
+        player->resurrect();
         logResurrected();
-        auto fuzzyPlayer = std::make_shared<Player>(*currentPlayer);
-        players[currentPlayerIndex] = fuzzyPlayer;
-        labyrinth.updatePos(fuzzyPlayer);
     } else {
         logPlayerSkipTurn();
     }
@@ -174,7 +149,7 @@ void Game::logResurrected() {
 }
 
 void Game::logPlayerSkipTurn() {
-    log += "The player has skipped his turn for being dead\n";
+    log += "The player has skipped their turn for being dead\n";
 }
 
 void Game::logPlayerNoOrders() {

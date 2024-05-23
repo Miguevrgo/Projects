@@ -4,8 +4,8 @@
 
 #include "GUI.h"
 
-GUI::GUI(int nPlayers, int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"),
-    controller(nPlayers, rows, cols){
+GUI::GUI(int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"),
+    controller(rows, cols){
         loadResources();
 }
 
@@ -79,7 +79,7 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
             if (cell == 'X') {
                 sprite = &blockSprite;
             }
-            else if (cell == '-' || isdigit(cell) || cell == 'M') {
+            else if (cell == '-' || cell == 'P' || cell == 'M') {
                 sprite = &emptySprite;
             }
             else if (cell == 'E') {
@@ -97,7 +97,7 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
         for (int x = 0; x < cols; ++x) {
             char cell = labyrinth[y * cols + x];
             sf::Sprite* sprite = nullptr;
-            if (isdigit(cell)) {
+            if (cell == 'P') {
                 sprite = &playerSprite;
             } else if (cell == 'M') {
                 sprite = &monsterSprite;

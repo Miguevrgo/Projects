@@ -1,7 +1,3 @@
-//
-// Created by miguevr on 5/17/24.
-//
-
 #include "Labyrinth.h"
 #include "Dice.h"
 #include <sstream>
@@ -10,19 +6,18 @@ Labyrinth::Labyrinth(int nRows, int nCols, int exitRow, int exitCol)
         : nRows(nRows), nCols(nCols), exitRow(exitRow), exitCol(exitCol),
           labyrinth(nRows, std::vector<char>(nCols, EMPTY_CHAR)),
           monsters(nRows, std::vector<std::shared_ptr<Monster>>(nCols, nullptr)),
-          players(nRows, std::vector<std::shared_ptr<Player>>(nCols, nullptr)) {
+          player(nullptr) {
     labyrinth[exitRow][exitCol] = EXIT_CHAR;
 }
 
-void Labyrinth::spreadPlayers(const std::vector<std::shared_ptr<Player>>& players) {
-    for (auto& player : players) {
-        auto [row, col] = randomEmptyPos();
-        putPlayer2D(INVALID_POS, INVALID_POS, row, col, player);
-    }
+void Labyrinth::placePlayer(const std::shared_ptr<Player>& player) {
+    auto [row, col] = randomEmptyPos();
+    this->player = player;
+    movePlayer2D(INVALID_POS, INVALID_POS, row, col);
 }
 
 auto Labyrinth::haveAWinner() const -> bool {
-    return players[exitRow][exitCol] != nullptr;
+    return player && player->getRow() == exitRow && player->getCol() == exitCol;
 }
 
 auto Labyrinth::toString() const -> std::string {
@@ -43,10 +38,10 @@ void Labyrinth::addMonster(int row, int col, std::shared_ptr<Monster> monster) {
     }
 }
 
-auto Labyrinth::putPlayer(Directions direction, std::shared_ptr<Player> player) -> std::shared_ptr<Monster> {
+auto Labyrinth::movePlayer(Directions direction) -> std::shared_ptr<Monster> {
     auto [oldRow, oldCol] = std::make_tuple(player->getRow(), player->getCol());
     auto [newRow, newCol] = dir2Pos(oldRow, oldCol, direction);
-    return putPlayer2D(oldRow, oldCol, newRow, newCol, player);
+    return movePlayer2D(oldRow, oldCol, newRow, newCol);
 }
 
 void Labyrinth::addBlock(Orientation orientation, int startRow, int startCol, int length) {
@@ -58,6 +53,18 @@ void Labyrinth::addBlock(Orientation orientation, int startRow, int startCol, in
     }
 }
 
+void Labyrinth::addStaircase(int row, int col) {
+    if (posOK(row, col) && emptyPos(row, col)) {
+        labyrinth[row][col] = STAIRCASE_CHAR;
+    }
+}
+
+auto Labyrinth::isOnStaircase() const -> bool {
+    int row = player->getRow();
+    int col = player->getCol();
+    return posOK(row, col) && labyrinth[row][col] == STAIRCASE_CHAR;
+}
+
 auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
     std::vector<Directions> moves;
     if (canStepOn(row - 1, col)) moves.push_back(Directions::UP);
@@ -65,10 +72,6 @@ auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
     if (canStepOn(row, col - 1)) moves.push_back(Directions::LEFT);
     if (canStepOn(row, col + 1)) moves.push_back(Directions::RIGHT);
     return moves;
-}
-
-void Labyrinth::updatePos(const std::shared_ptr<Player>& player) {
-    players[player->getRow()][player->getCol()] = player;
 }
 
 auto Labyrinth::posOK(int row, int col) const -> bool {
@@ -132,23 +135,21 @@ auto Labyrinth::randomEmptyPos() const -> std::tuple<int, int> {
     return std::make_tuple(row, col);
 }
 
-auto Labyrinth::putPlayer2D(int oldRow, int oldCol, int row, int col, std::shared_ptr<Player> player) -> std::shared_ptr<Monster> {
+auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::shared_ptr<Monster> {
     std::shared_ptr<Monster> output = nullptr;
 
     if (canStepOn(row, col)) {
-        if (posOK(oldRow, oldCol) && players[oldRow][oldCol] == player) {
+        if (posOK(oldRow, oldCol)) {
             updateOldPos(oldRow, oldCol);
-            players[oldRow][oldCol] = nullptr;
         }
 
         if (monsterPos(row, col)) {
             labyrinth[row][col] = COMBAT_CHAR;
             output = monsters[row][col];
         } else {
-            labyrinth[row][col] = player->getNumber();
+            labyrinth[row][col] = PLAYER_CHAR;
         }
 
-        players[row][col] = player;
         player->setPos(row, col);
     }
 
@@ -162,4 +163,3 @@ auto Labyrinth::getRows() const -> int {
 auto Labyrinth::getCols() const -> int {
     return nCols;
 }
-

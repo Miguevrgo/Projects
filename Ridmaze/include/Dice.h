@@ -12,7 +12,6 @@
 class Dice {
 public:
     [[nodiscard]] static auto randomPos(int max) -> int;
-    [[nodiscard]] static auto whoStarts(int nPlayers) -> int;
     [[nodiscard]] static auto randomIntelligence() -> double;
     [[nodiscard]] static auto randomStrength() -> double;
     [[nodiscard]] static auto resurrectPlayer() -> bool;

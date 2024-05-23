@@ -8,7 +8,7 @@
 
 class GameController {
 public:
-    GameController(int nPlayers, int rows, int cols);
+    GameController(int rows, int cols);
     void handlePlayerInput(sf::Keyboard::Key key, sf::Window& window);
     [[nodiscard]] Game getGame() const;
 
