@@ -4,21 +4,17 @@
 
 #include "Player.h"
 
-Player::Player(char number, double intelligence, double strength) :
-    LabyrinthCharacter("Player #" + std::to_string(number), intelligence, strength, INITIAL_HEALTH), consecutiveHits(0), number(number) {};
+Player::Player(double intelligence, double strength) :
+    LabyrinthCharacter("Player ", intelligence, strength, INITIAL_HEALTH), consecutiveHits(0) {};
 
 Player::Player(const Player &rhs) :
-    LabyrinthCharacter(rhs), number(rhs.number), consecutiveHits(0) {}
+    LabyrinthCharacter(rhs), consecutiveHits(0) {}
 
 void Player::resurrect() {
     setHealth(10);
     weapons.clear();
     shields.clear();
     resetHits();
-}
-
-auto Player::getNumber() const -> char {
-    return '0' + number;
 }
 
 auto Player::move(Directions direction, const std::vector<Directions> &validMoves) -> Directions {

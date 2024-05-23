@@ -12,7 +12,7 @@
 
 class GUI {
 public:
-    GUI(int nPlayers, int width, int height);
+    GUI(int width, int height);
     void loadResources();
     void render(const GameState& state, int rows, int cols);
     void drawGameState(const GameState& state, int rows, int cols);
@@ -43,7 +43,6 @@ private:
     sf::Sprite emptySprite;
     sf::Texture exitTexture;
     sf::Sprite exitSprite;
-\
 
 };
 

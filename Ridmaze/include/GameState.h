@@ -10,10 +10,10 @@
 
 class GameState {
 public:
-    GameState(std::string_view labyrinth, std::string_view players, std::string_view monsters, int currentPlayer, bool winner, std::string_view log);
+    GameState(std::string_view labyrinth, std::string_view player, std::string_view monsters, bool winner, std::string_view log);
 
     [[nodiscard]] auto getLabyrinth() const -> std::string;
-    [[nodiscard]] auto getPlayers() const -> std::string;
+    [[nodiscard]] auto getPlayer() const -> std::string;
     [[nodiscard]] auto getMonsters() const -> std::string;
     [[nodiscard]] auto getCurrentPlayer() const -> int;
     [[nodiscard]] auto isWinner() const -> bool;
@@ -21,7 +21,7 @@ public:
 
 private:
     std::string labyrinth;
-    std::string players;
+    std::string player;
     std::string monsters;
     int currentPlayer;
     bool winner;

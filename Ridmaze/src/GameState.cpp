@@ -4,15 +4,15 @@
 
 #include "GameState.h"
 
-GameState::GameState(std::string_view labyrinth, std::string_view players, std::string_view monsters, int currentPlayer, bool winner, std::string_view log)
-        : labyrinth(labyrinth), players(players), monsters(monsters), currentPlayer(currentPlayer), winner(winner), log(log) {}
+GameState::GameState(std::string_view labyrinth, std::string_view player, std::string_view monsters, bool winner, std::string_view log)
+        : labyrinth(labyrinth), player(player), monsters(monsters), winner(winner), log(log) {}
 
 auto GameState::getLabyrinth() const -> std::string {
     return labyrinth;
 }
 
-auto GameState::getPlayers() const -> std::string {
-    return players;
+auto GameState::getPlayer() const -> std::string {
+    return player;
 }
 
 auto GameState::getMonsters() const -> std::string {
