@@ -2,40 +2,32 @@
 #include "Dice.h"
 #include <sstream>
 
-Labyrinth::Labyrinth(int nRows, int nCols, int exitRow, int exitCol)
-        : nRows(nRows), nCols(nCols), exitRow(exitRow), exitCol(exitCol),
-          labyrinth(nRows, std::vector<char>(nCols, EMPTY_CHAR)),
-          monsters(nRows, std::vector<std::shared_ptr<Monster>>(nCols, nullptr)),
-          player(nullptr) {
-    labyrinth[exitRow][exitCol] = EXIT_CHAR;
+Labyrinth::Labyrinth(const std::vector<std::string_view>& levelConfigFiles) {
+    labyrinth.reserve(levelConfigFiles.size());
+    for (auto configFile : levelConfigFiles) {
+        labyrinth.emplace_back(configFile);
+    }
+
+    currentLevel = 0;
 }
 
 void Labyrinth::placePlayer(const std::shared_ptr<Player>& player) {
-    auto [row, col] = randomEmptyPos();
     this->player = player;
-    movePlayer2D(INVALID_POS, INVALID_POS, row, col);
+    movePlayer2D(INVALID_POS, INVALID_POS, 0, 0);
 }
 
 auto Labyrinth::haveAWinner() const -> bool {
-    return player && player->getRow() == exitRow && player->getCol() == exitCol;
+    return player && labyrinth[currentLevel].getCell(player->getRow(),player->getCol()) == EXIT_CHAR;
 }
 
 auto Labyrinth::toString() const -> std::string {
     std::ostringstream oss;
-    for (int i = 0; i < nRows; ++i) {
-        for (int j = 0; j < nCols; ++j) {
-            oss << labyrinth[i][j];
+    for (int i = 0; i < labyrinth[currentLevel].getRows(); ++i) {
+        for (int j = 0; j < labyrinth[currentLevel].getCols(i); ++j) {
+            oss << labyrinth[currentLevel].getCell(i,j);
         }
     }
     return oss.str();
-}
-
-void Labyrinth::addMonster(int row, int col, std::shared_ptr<Monster> monster) {
-    if (posOK(row, col) && emptyPos(row, col)) {
-        labyrinth[row][col] = MONSTER_CHAR;
-        monsters[row][col] = monster;
-        monster->setPos(row, col);
-    }
 }
 
 auto Labyrinth::movePlayer(Directions direction) -> std::shared_ptr<Monster> {
@@ -49,20 +41,14 @@ void Labyrinth::addBlock(Orientation orientation, int startRow, int startCol, in
     int incCol = (orientation == Orientation::HORIZONTAL) ? 1 : 0;
 
     for (int row = startRow, col = startCol; posOK(row, col) && emptyPos(row, col) && length > 0; row += incRow, col += incCol, --length) {
-        labyrinth[row][col] = BLOCK_CHAR;
-    }
-}
-
-void Labyrinth::addStaircase(int row, int col) {
-    if (posOK(row, col) && emptyPos(row, col)) {
-        labyrinth[row][col] = STAIRCASE_CHAR;
+        labyrinth[currentLevel].setCell(row, col, BLOCK_CHAR);
     }
 }
 
 auto Labyrinth::isOnStaircase() const -> bool {
     int row = player->getRow();
     int col = player->getCol();
-    return posOK(row, col) && labyrinth[row][col] == STAIRCASE_CHAR;
+    return posOK(row, col) && labyrinth[currentLevel].getCell(row, col) == STAIRCASE_CHAR;
 }
 
 auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
@@ -75,23 +61,23 @@ auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
 }
 
 auto Labyrinth::posOK(int row, int col) const -> bool {
-    return row >= 0 && row < nRows && col >= 0 && col < nCols;
+    return row >= 0 && row < labyrinth[currentLevel].getCols(row) && col >= 0 && col < labyrinth[currentLevel].getRows();
 }
 
 auto Labyrinth::emptyPos(int row, int col) const -> bool {
-    return labyrinth[row][col] == EMPTY_CHAR;
+    return labyrinth[currentLevel].getCell(row, col) == EMPTY_CHAR;
 }
 
 auto Labyrinth::monsterPos(int row, int col) const -> bool {
-    return labyrinth[row][col] == MONSTER_CHAR;
+    return labyrinth[currentLevel].getCell(row, col) == MONSTER_CHAR;
 }
 
 auto Labyrinth::exitPos(int row, int col) const -> bool {
-    return labyrinth[row][col] == EXIT_CHAR;
+    return labyrinth[currentLevel].getCell(row, col) == EXIT_CHAR;
 }
 
 auto Labyrinth::combatPos(int row, int col) const -> bool {
-    return labyrinth[row][col] == COMBAT_CHAR;
+    return labyrinth[currentLevel].getCell(row, col) == COMBAT_CHAR;
 }
 
 auto Labyrinth::canStepOn(int row, int col) const -> bool {
@@ -101,9 +87,9 @@ auto Labyrinth::canStepOn(int row, int col) const -> bool {
 void Labyrinth::updateOldPos(int row, int col) {
     if (posOK(row, col)) {
         if (combatPos(row, col)) {
-            labyrinth[row][col] = MONSTER_CHAR;
+            labyrinth[currentLevel].setCell(row, col, MONSTER_CHAR);
         } else {
-            labyrinth[row][col] = EMPTY_CHAR;
+            labyrinth[currentLevel].setCell(row, col, EMPTY_CHAR);
         }
     }
 }
@@ -126,15 +112,6 @@ auto Labyrinth::dir2Pos(int row, int col, Directions direction) const -> std::tu
     return std::make_tuple(row, col);
 }
 
-auto Labyrinth::randomEmptyPos() const -> std::tuple<int, int> {
-    int row, col;
-    do {
-        row = Dice::randomPos(nRows);
-        col = Dice::randomPos(nCols);
-    } while (!emptyPos(row, col));
-    return std::make_tuple(row, col);
-}
-
 auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::shared_ptr<Monster> {
     std::shared_ptr<Monster> output = nullptr;
 
@@ -144,10 +121,10 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
         }
 
         if (monsterPos(row, col)) {
-            labyrinth[row][col] = COMBAT_CHAR;
-            output = monsters[row][col];
+            labyrinth[currentLevel].setCell(row, col, COMBAT_CHAR);
+            output = labyrinth[currentLevel].getMonster(row,col);
         } else {
-            labyrinth[row][col] = PLAYER_CHAR;
+            labyrinth[currentLevel].setCell(row, col, PLAYER_CHAR);
         }
 
         player->setPos(row, col);
@@ -156,10 +133,3 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
     return output;
 }
 
-auto Labyrinth::getRows() const -> int {
-    return nRows;
-}
-
-auto Labyrinth::getCols() const -> int {
-    return nCols;
-}
