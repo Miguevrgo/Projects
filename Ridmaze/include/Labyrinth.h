@@ -24,7 +24,6 @@ public:
     [[nodiscard]] auto toString() const -> std::string;
     auto movePlayer(Directions direction) -> std::shared_ptr<Monster>;
     void addBlock(Orientation orientation, int startRow, int startCol, int length);
-    [[nodiscard]] auto isOnStaircase() const -> bool;
     [[nodiscard]] auto validMoves(int row, int col) const -> std::vector<Directions>;
 
 private:
@@ -46,6 +45,7 @@ private:
     [[nodiscard]] auto monsterPos(int row, int col) const -> bool;
     [[nodiscard]] auto exitPos(int row, int col) const -> bool;
     [[nodiscard]] auto combatPos(int row, int col) const -> bool;
+    [[nodiscard]] auto stairPos(int row, int col) const -> bool;
     [[nodiscard]] auto canStepOn(int row, int col) const -> bool;
     void updateOldPos(int row, int col);
     [[nodiscard]] auto dir2Pos(int row, int col, Directions direction) const -> std::tuple<int, int>;

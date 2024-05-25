@@ -42,12 +42,6 @@ void Labyrinth::addBlock(Orientation orientation, int startRow, int startCol, in
     }
 }
 
-auto Labyrinth::isOnStaircase() const -> bool {
-    int row = player->getRow();
-    int col = player->getCol();
-    return posOK(row, col) && labyrinth[currentLevel].getCell(row, col) == STAIRCASE_CHAR;
-}
-
 auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
     std::vector<Directions> moves;
     if (canStepOn(row - 1, col)) moves.push_back(Directions::UP);
@@ -78,14 +72,18 @@ auto Labyrinth::combatPos(int row, int col) const -> bool {
 }
 
 auto Labyrinth::canStepOn(int row, int col) const -> bool {
-    return posOK(row, col) && (emptyPos(row, col) || monsterPos(row, col) || exitPos(row, col));
+    return posOK(row, col) && (emptyPos(row, col) || monsterPos(row, col) || exitPos(row, col) || stairPos(row, col));
 }
 
 void Labyrinth::updateOldPos(int row, int col) {
     if (posOK(row, col)) {
         if (combatPos(row, col)) {
             labyrinth[currentLevel].setCell(row, col, MONSTER_CHAR);
-        } else {
+        }
+        else if (stairPos(row, col)) {
+            labyrinth[currentLevel].setCell(row, col, STAIRCASE_CHAR);
+        }
+        else {
             labyrinth[currentLevel].setCell(row, col, EMPTY_CHAR);
         }
     }
@@ -120,7 +118,16 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
         if (monsterPos(row, col)) {
             labyrinth[currentLevel].setCell(row, col, COMBAT_CHAR);
             output = labyrinth[currentLevel].getMonster(row,col);
-        } else {
+        }
+        else if (stairPos(row, col)) {
+            currentLevel++;
+            row = labyrinth[currentLevel].getStairRow();
+            col = labyrinth[currentLevel].getStairCol();
+        }
+        else if (exitPos(row, col)) {
+            labyrinth[currentLevel].setCell(row, col, EXIT_CHAR);
+        }
+        else {
             labyrinth[currentLevel].setCell(row, col, PLAYER_CHAR);
         }
 
@@ -128,5 +135,9 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
     }
 
     return output;
+}
+
+auto Labyrinth::stairPos(int row, int col) const -> bool {
+    return labyrinth[currentLevel].getCell(row, col) == STAIRCASE_CHAR;
 }
 
