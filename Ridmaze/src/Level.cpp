@@ -36,6 +36,9 @@ void Level::configureLevel() {
                     stairRow = row;
                     stairCol = col;
                     break;
+                case EXIT_CHAR:
+                    level[row][col] = EXIT_CHAR;
+                    break;
                 case MONSTER_CHAR: {
                     auto monster = std::make_shared<Monster>("Monster", Dice::randomIntelligence(), Dice::randomStrength());
                     monsters[row][col] = monster;

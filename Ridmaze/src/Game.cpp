@@ -24,7 +24,8 @@ bool Game::nextStep(Directions preferredDirection) {
     log.clear();
     if (player->dead()) {
         manageResurrection();
-    } else {
+    }
+    else {
         Directions direction = actualDirection(preferredDirection);
         if (direction != preferredDirection) {
             logPlayerNoOrders();
@@ -32,7 +33,8 @@ bool Game::nextStep(Directions preferredDirection) {
         auto monster = labyrinth.movePlayer(direction);
         if (monster == nullptr) {
             logNoMonster();
-        } else {
+        }
+        else {
             auto winner = combat(monster);
             manageReward(winner);
         }
