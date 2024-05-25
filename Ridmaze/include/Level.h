@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 #include <fstream>
 #include <memory>
 #include "Monster.h"
