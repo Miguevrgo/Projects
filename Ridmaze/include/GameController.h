@@ -8,7 +8,7 @@
 
 class GameController {
 public:
-    GameController(int rows, int cols);
+    GameController(const std::vector<std::string_view>& configFiles);
     void handlePlayerInput(sf::Keyboard::Key key, sf::Window& window);
     [[nodiscard]] Game getGame() const;
 

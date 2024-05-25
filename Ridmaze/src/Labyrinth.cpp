@@ -22,11 +22,8 @@ auto Labyrinth::haveAWinner() const -> bool {
 
 auto Labyrinth::toString() const -> std::string {
     std::ostringstream oss;
-    for (int i = 0; i < labyrinth[currentLevel].getRows(); ++i) {
-        for (int j = 0; j < labyrinth[currentLevel].getCols(i); ++j) {
-            oss << labyrinth[currentLevel].getCell(i,j);
-        }
-    }
+    oss << labyrinth[currentLevel].toString();
+
     return oss.str();
 }
 
@@ -61,7 +58,7 @@ auto Labyrinth::validMoves(int row, int col) const -> std::vector<Directions> {
 }
 
 auto Labyrinth::posOK(int row, int col) const -> bool {
-    return row >= 0 && row < labyrinth[currentLevel].getCols(row) && col >= 0 && col < labyrinth[currentLevel].getRows();
+    return row >= 0 && row < labyrinth[currentLevel].getRows() && col >= 0 && col < labyrinth[currentLevel].getCols(row);
 }
 
 auto Labyrinth::emptyPos(int row, int col) const -> bool {

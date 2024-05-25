@@ -2,7 +2,6 @@
 // Created by miguevr on 5/24/24.
 //
 
-#include <sstream>
 #include "Level.h"
 
 Level::Level(const std::string_view& configFile) : stairRow(-1), stairCol(-1), inputFile(configFile) {
@@ -30,35 +29,34 @@ void Level::configureLevel() {
 
             switch (cell) {
                 case BLOCK_CHAR:
-                case EMPTY_CHAR:
-                case EXIT_CHAR:
+                    level[row][col] = BLOCK_CHAR;
+                    break;
                 case STAIRCASE_CHAR:
-                    level[row][col] = cell;
-                    if (cell == STAIRCASE_CHAR){
-                        stairRow = row;
-                        stairCol = col;
-                    }
+                    level[row][col] = STAIRCASE_CHAR;
+                    stairRow = row;
+                    stairCol = col;
+                    break;
                 case MONSTER_CHAR: {
                     auto monster = std::make_shared<Monster>("Monster", Dice::randomIntelligence(), Dice::randomStrength());
                     monsters[row][col] = monster;
                     level[row][col] = MONSTER_CHAR;
+                    break;
                 }
                 default:
                     level[row][col] = EMPTY_CHAR;
+                    break;
             }
         }
 
         ++row;
     }
 }
-
 std::string Level::toString() const {
     std::ostringstream oss;
     for (const auto& row : level) {
         for (char cell : row) {
             oss << cell;
         }
-        oss << '\n';
     }
 
     return oss.str();

@@ -14,7 +14,7 @@
 
 class Game {
 public:
-    Game(int rows, int cols);
+    Game(const std::vector<std::string_view>& configFiles);
 
     [[nodiscard]] bool finished() const;
     bool nextStep(Directions preferredDirection);
@@ -22,17 +22,12 @@ public:
 
 private:
     static const int MAX_ROUNDS = 10;
-    static const int NMONSTERS = 10;
-    static const int MONSTERS_POS[NMONSTERS][2];
-    static const int NBLOCKS = 20;
-    static const std::tuple<Orientation, int, int, int> BLOCKS_POS[NBLOCKS];
 
     std::shared_ptr<Player> player;
     std::vector<std::shared_ptr<Monster>> monsters;
     Labyrinth labyrinth;
     std::string log;
 
-    void configureLabyrinth();
     auto actualDirection(Directions preferredDirection) -> Directions;
     auto combat(const std::shared_ptr<Monster>& monster) -> GameCharacter;
     void manageReward(GameCharacter winner);

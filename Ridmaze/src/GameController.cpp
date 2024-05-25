@@ -1,8 +1,8 @@
 #include "GameController.h"
 #include <iostream>
 
-GameController::GameController(int rows, int cols)
-        : game(rows, cols) {}
+GameController::GameController(const std::vector<std::string_view>& configFiles)
+        : game(configFiles) {}
 
 void GameController::handlePlayerInput(sf::Keyboard::Key key, sf::Window& window) {
     Directions direction;

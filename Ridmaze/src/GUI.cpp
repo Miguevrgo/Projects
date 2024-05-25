@@ -5,7 +5,8 @@
 #include "GUI.h"
 
 GUI::GUI(int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"),
-    controller(rows, cols){
+    controller({"../assets/levels/level0.txt","../assets/levels/level1.txt"})
+{
         loadResources();
 }
 
@@ -51,6 +52,12 @@ void GUI::loadResources() {
         exit(1);
     }
     exitSprite.setTexture(exitTexture);
+
+    if (!stairTexture.loadFromFile("../assets/img/stair.png")) {
+        std::cerr << "Error loading stair image\n";
+        exit(1);
+    }
+    stairSprite.setTexture(stairTexture);
 }
 
 void GUI::render(const GameState &state, int rows, int cols) {
@@ -70,6 +77,7 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
     playerSprite.setScale(cellSize / playerTexture.getSize().x, cellSize / playerTexture.getSize().y);
     monsterSprite.setScale(cellSize / monsterTexture.getSize().x, cellSize / monsterTexture.getSize().y);
     exitSprite.setScale(cellSize / exitTexture.getSize().x, cellSize / exitTexture.getSize().y);
+    stairSprite.setScale(cellSize/ stairTexture.getSize().x, cellSize / stairTexture.getSize().y);
 
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
@@ -84,6 +92,9 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
             }
             else if (cell == 'E') {
                 sprite = &exitSprite;
+            }
+            else if(cell == 'S') {
+                sprite = &stairSprite;
             }
 
             if (sprite) {
