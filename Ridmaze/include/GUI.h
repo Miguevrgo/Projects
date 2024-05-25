@@ -43,8 +43,11 @@ private:
     sf::Sprite emptySprite;
     sf::Texture exitTexture;
     sf::Sprite exitSprite;
-    sf::Texture stairTexture;
-    sf::Sprite stairSprite;
+    sf::Texture upStairTexture;
+    sf::Sprite upStairSprite;
+    sf::Texture downStairTexture;
+    sf::Sprite downStairSprite;
+
 
 };
 

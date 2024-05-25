@@ -72,7 +72,8 @@ auto Labyrinth::combatPos(int row, int col) const -> bool {
 }
 
 auto Labyrinth::canStepOn(int row, int col) const -> bool {
-    return posOK(row, col) && (emptyPos(row, col) || monsterPos(row, col) || exitPos(row, col) || stairPos(row, col));
+    return posOK(row, col) && (emptyPos(row, col) || monsterPos(row, col) || exitPos(row, col)
+                                                  || upStairPos(row, col) || downStairPos(row, col));
 }
 
 void Labyrinth::updateOldPos(int row, int col) {
@@ -80,8 +81,11 @@ void Labyrinth::updateOldPos(int row, int col) {
         if (combatPos(row, col)) {
             labyrinth[currentLevel].setCell(row, col, MONSTER_CHAR);
         }
-        else if (stairPos(row, col)) {
-            labyrinth[currentLevel].setCell(row, col, STAIRCASE_CHAR);
+        else if (upStairPos(row, col)) {
+            labyrinth[currentLevel].setCell(row, col, UP_STAIRCASE_CHAR);
+        }
+        else if (downStairPos(row, col)) {
+            labyrinth[currentLevel].setCell(row, col, DOWN_STAIRCASE_CHAR);
         }
         else {
             labyrinth[currentLevel].setCell(row, col, EMPTY_CHAR);
@@ -119,8 +123,13 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
             labyrinth[currentLevel].setCell(row, col, COMBAT_CHAR);
             output = labyrinth[currentLevel].getMonster(row,col);
         }
-        else if (stairPos(row, col)) {
+        else if (downStairPos(row, col)) {
             currentLevel++;
+            row = labyrinth[currentLevel].getStairRow();
+            col = labyrinth[currentLevel].getStairCol();
+        }
+        else if (upStairPos(row, col)) {
+            currentLevel--;
             row = labyrinth[currentLevel].getStairRow();
             col = labyrinth[currentLevel].getStairCol();
         }
@@ -137,7 +146,11 @@ auto Labyrinth::movePlayer2D(int oldRow, int oldCol, int row, int col) -> std::s
     return output;
 }
 
-auto Labyrinth::stairPos(int row, int col) const -> bool {
-    return labyrinth[currentLevel].getCell(row, col) == STAIRCASE_CHAR;
+auto Labyrinth::downStairPos(int row, int col) const -> bool {
+    return labyrinth[currentLevel].getCell(row, col) == DOWN_STAIRCASE_CHAR;
+}
+
+auto Labyrinth::upStairPos(int row, int col) const -> bool {
+    return labyrinth[currentLevel].getCell(row, col) == UP_STAIRCASE_CHAR;
 }
 

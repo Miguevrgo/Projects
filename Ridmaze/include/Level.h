@@ -44,7 +44,8 @@ private:
     static constexpr char BLOCK_CHAR = 'X';
     static constexpr char EMPTY_CHAR = '-';
     static constexpr char MONSTER_CHAR = 'M';
-    static constexpr char STAIRCASE_CHAR = 'S';
+    static constexpr char UP_STAIRCASE_CHAR = 'U';
+    static constexpr char DOWN_STAIRCASE_CHAR = 'D';
     static constexpr char EXIT_CHAR = 'E';
 };
 

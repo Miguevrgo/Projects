@@ -33,7 +33,8 @@ private:
     static constexpr char BLOCK_CHAR = 'X';
     static constexpr char EMPTY_CHAR = '-';
     static constexpr char MONSTER_CHAR = 'M';
-    static constexpr char STAIRCASE_CHAR = 'S';
+    static constexpr char DOWN_STAIRCASE_CHAR = 'D';
+    static constexpr char UP_STAIRCASE_CHAR = 'U';
     static constexpr int INVALID_POS = -1;
 
     std::vector<Level> labyrinth;
@@ -45,7 +46,8 @@ private:
     [[nodiscard]] auto monsterPos(int row, int col) const -> bool;
     [[nodiscard]] auto exitPos(int row, int col) const -> bool;
     [[nodiscard]] auto combatPos(int row, int col) const -> bool;
-    [[nodiscard]] auto stairPos(int row, int col) const -> bool;
+    [[nodiscard]] auto downStairPos(int row, int col) const -> bool;
+    [[nodiscard]] auto upStairPos(int row, int col) const -> bool;
     [[nodiscard]] auto canStepOn(int row, int col) const -> bool;
     void updateOldPos(int row, int col);
     [[nodiscard]] auto dir2Pos(int row, int col, Directions direction) const -> std::tuple<int, int>;
