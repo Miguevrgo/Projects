@@ -53,11 +53,17 @@ void GUI::loadResources() {
     }
     exitSprite.setTexture(exitTexture);
 
-    if (!stairTexture.loadFromFile("../assets/img/stair.png")) {
+    if (!upStairTexture.loadFromFile("../assets/img/stair1.png")) {
         std::cerr << "Error loading stair image\n";
         exit(1);
     }
-    stairSprite.setTexture(stairTexture);
+    upStairSprite.setTexture(upStairTexture);
+
+    if (!downStairTexture.loadFromFile("../assets/img/stair.png")) {
+        std::cerr << "Error loading stair down image\n";
+        exit(1);
+    }
+    downStairSprite.setTexture(downStairTexture);
 }
 
 void GUI::render(const GameState &state, int rows, int cols) {
@@ -77,7 +83,8 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
     playerSprite.setScale(cellSize / playerTexture.getSize().x, cellSize / playerTexture.getSize().y);
     monsterSprite.setScale(cellSize / monsterTexture.getSize().x, cellSize / monsterTexture.getSize().y);
     exitSprite.setScale(cellSize / exitTexture.getSize().x, cellSize / exitTexture.getSize().y);
-    stairSprite.setScale(cellSize/ stairTexture.getSize().x, cellSize / stairTexture.getSize().y);
+    upStairSprite.setScale(cellSize/ upStairTexture.getSize().x, cellSize / upStairTexture.getSize().y);
+    downStairSprite.setScale(cellSize/ downStairTexture.getSize().x, cellSize / downStairTexture.getSize().y);
 
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
@@ -93,8 +100,11 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
             else if (cell == 'E') {
                 sprite = &exitSprite;
             }
-            else if(cell == 'S') {
-                sprite = &stairSprite;
+            else if(cell == 'U') {
+                sprite = &upStairSprite;
+            }
+            else if(cell == 'D') {
+                sprite = &downStairSprite;
             }
 
             if (sprite) {

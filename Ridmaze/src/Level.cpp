@@ -31,8 +31,13 @@ void Level::configureLevel() {
                 case BLOCK_CHAR:
                     level[row][col] = BLOCK_CHAR;
                     break;
-                case STAIRCASE_CHAR:
-                    level[row][col] = STAIRCASE_CHAR;
+                case UP_STAIRCASE_CHAR:
+                    level[row][col] = UP_STAIRCASE_CHAR;
+                    stairRow = row;
+                    stairCol = col;
+                    break;
+                case DOWN_STAIRCASE_CHAR:
+                    level[row][col] = DOWN_STAIRCASE_CHAR;
                     stairRow = row;
                     stairCol = col;
                     break;
