@@ -16,7 +16,7 @@ public:
     auto defend(double receivedAttack) -> bool override;
 
 private:
-    static constexpr int INITIAL_HEALTH = 5;
+    static constexpr int INITIAL_HEALTH = 10;
 };
 
 
