@@ -5,7 +5,7 @@
 #include "GUI.h"
 
 GUI::GUI(int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"),
-    controller({"../assets/levels/level0.txt","../assets/levels/level1.txt"})
+    controller({"../assets/levels/level0.txt","../assets/levels/level1.txt"}), fps(0), fpsCounter(0)
 {
         loadResources();
 }
@@ -64,12 +64,27 @@ void GUI::loadResources() {
         exit(1);
     }
     downStairSprite.setTexture(downStairTexture);
+    fpsText.setFont(font);
+    fpsText.setCharacterSize(20);
+    fpsText.setFillColor(sf::Color::White);
+    fpsText.setPosition(10, 10);
 }
 
 void GUI::render(const GameState &state, int rows, int cols) {
     window.clear(sf::Color::Black);
 
     drawGameState(state, rows, cols);
+
+    fpsCounter++;
+    fpsTime = fpsClock.getElapsedTime();
+    if (fpsTime.asSeconds() >= 1.0f) {
+        fps = fpsCounter;
+        fpsCounter = 0;
+        fpsClock.restart();
+    }
+
+    fpsText.setString("FPS: " + std::to_string(fps));
+    window.draw(fpsText);
 
     window.display();
 }
