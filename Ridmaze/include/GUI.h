@@ -48,6 +48,12 @@ private:
     sf::Texture downStairTexture;
     sf::Sprite downStairSprite;
 
+    int fpsCounter;
+    int fps;
+    sf::Text fpsText;
+    sf::Clock fpsClock;
+    sf::Time fpsTime;
+
 
 };
 
