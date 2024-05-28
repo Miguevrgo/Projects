@@ -8,6 +8,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include "GameState.h"
+#include "Menu.h"
 #include "GameController.h"
 
 class GUI {
@@ -17,7 +18,9 @@ public:
     void render(const GameState& state, int rows, int cols);
     void drawGameState(const GameState& state, int rows, int cols);
     void showMainMenu();
+    void handleMenuInput(sf::Keyboard::Key key);
     void run();
+    void startGame();
     void gameLoop();
     void processEvents();
 
@@ -47,6 +50,13 @@ private:
     sf::Sprite upStairSprite;
     sf::Texture downStairTexture;
     sf::Sprite downStairSprite;
+
+
+    Menu menu;
+    bool inGame;
+
+    std::vector<sf::Texture> optionTextures;
+    std::vector<sf::Sprite> optionSprites;
 
     int fpsCounter;
     int fps;

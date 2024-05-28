@@ -4,8 +4,8 @@
 
 #include "GUI.h"
 
-GUI::GUI(int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"),
-    controller({"../assets/levels/level0.txt","../assets/levels/level1.txt"}), fps(0), fpsCounter(0)
+GUI::GUI(int width, int height) : window(sf::VideoMode(width, height), "Ridmaze"), inGame(false),
+    controller({"../assets/levels/level0.txt","../assets/levels/level1.txt"}), fps(0), fpsCounter(0), menu(width, height)
 {
         loadResources();
 }
@@ -22,6 +22,29 @@ void GUI::loadResources() {
 
     menuSprite.setTexture(menuTexture);
     menuSprite.setPosition((1920 - menuTexture.getSize().x) / 2, (1080 - menuTexture.getSize().y) / 2);
+
+    std::vector<std::string> fileNames = {
+            "../assets/img/start.png",
+            "../assets/img/settings.png",
+            "../assets/img/exit_game.png",
+    };
+
+    int pos = 100;
+    for (const auto& fileName : fileNames) {
+        sf::Texture texture;
+        if (!texture.loadFromFile(fileName)) {
+            std::cerr << "Error loading" << fileName << '\n';
+            exit(1);
+        }
+
+        optionTextures.push_back(texture);
+
+        sf::Sprite sprite;
+        sprite.setTexture(optionTextures.back());
+        sprite.setPosition((1920 - texture.getSize().x) / 2, ((1080 - texture.getSize().y) / 2) + pos);
+        pos += texture.getSize().y + 40;
+        optionSprites.push_back(sprite);
+    }
 
     if (!playerTexture.loadFromFile("../assets/img/player.png")) {
         std::cerr << "Error loading player image\n";
@@ -64,10 +87,17 @@ void GUI::loadResources() {
         exit(1);
     }
     downStairSprite.setTexture(downStairTexture);
+
     fpsText.setFont(font);
     fpsText.setCharacterSize(20);
     fpsText.setFillColor(sf::Color::White);
     fpsText.setPosition(10, 10);
+
+    std::vector<sf::Sprite> menuSprites;
+    for (int i = 0; i < 3; ++i) {
+        menuSprites[i] = optionSprites[i];
+    }
+    menu.setMenuSprites(menuSprites);
 }
 
 void GUI::render(const GameState &state, int rows, int cols) {
@@ -148,27 +178,65 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
 }
 
 void GUI::showMainMenu() {
-    window.clear();
-    window.draw(menuSprite);
-    window.display();
+    while (window.isOpen() && !inGame) {
+        window.clear();
+        window.draw(menuSprite);
+        for (const auto& sprite : optionSprites) {
+            window.draw(sprite);
+        }
+        menu.draw(window);
+        window.display();
 
-    sf::Event event{};
-    while (window.isOpen()) {
+        sf::Event event{};
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Enter) {
-                    return;
-                }
+                handleMenuInput(event.key.code);
             }
         }
     }
 }
 
+void GUI::handleMenuInput(sf::Keyboard::Key key) {
+    if (key == sf::Keyboard::Up) {
+        menu.moveUp();
+    }
+    else if (key == sf::Keyboard::Down) {
+        menu.moveDown();
+    }
+    else if(key == sf::Keyboard::Enter) {
+        int selectedItem = menu.getSelectedIndex();
+
+        switch (selectedItem) {
+            case 0:
+                startGame();
+                break;
+            case 1:
+                startGame();
+                break;
+            default:
+                window.close();
+                break;
+        }
+    }
+
+    window.clear();
+    window.draw(menuSprite);
+    for (const auto& sprite : optionSprites) {
+        window.draw(sprite);
+    }
+    menu.draw(window);
+    window.display();
+}
+
+void GUI::startGame() {
+    inGame = true;
+    gameLoop();
+}
+
 void GUI::run() {
     showMainMenu();
-    gameLoop();
 }
 
 void GUI::processEvents() {
@@ -188,3 +256,4 @@ void GUI::gameLoop() {
         render(controller.getGame().getGameState(), rows, cols);
     }
 }
+
