@@ -35,6 +35,8 @@ add_executable(Ridmaze src/main.cpp
         src/GUI.cpp
         include/Level.h
         src/Level.cpp
+        include/Menu.h
+        src/Menu.cpp
 )
 
 target_link_libraries(Ridmaze sfml-graphics sfml-window sfml-system)
