@@ -91,20 +91,24 @@ void GUI::drawGameState(const GameState &state, int rows, int cols) {
             char cell = labyrinth[y * cols + x];
             sf::Sprite* sprite = nullptr;
 
-            if (cell == 'X') {
-                sprite = &blockSprite;
-            }
-            else if (cell == '-' || cell == 'P' || cell == 'M') {
-                sprite = &emptySprite;
-            }
-            else if (cell == 'E') {
-                sprite = &exitSprite;
-            }
-            else if(cell == 'U') {
-                sprite = &upStairSprite;
-            }
-            else if(cell == 'D') {
-                sprite = &downStairSprite;
+            switch (cell) {
+                case 'X':
+                    [[likely]]
+                    sprite = &blockSprite;
+                    break;
+                case 'E':
+                    sprite = &exitSprite;
+                    break;
+                case 'U':
+                    sprite = &upStairSprite;
+                    break;
+                case 'D':
+                    sprite = &downStairSprite;
+                    break;
+                default: // '-' 'P' 'M' 'C'
+                    [[likely]]
+                    sprite = &emptySprite;
+                    break;
             }
 
             if (sprite) {
