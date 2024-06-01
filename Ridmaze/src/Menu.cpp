@@ -30,3 +30,7 @@ void Menu::moveDown() {
         settingsOptions[selectedIndex].setFillColor(sf::Color::Red);
     }
 }
+
+int Menu::getSelectedIndex() const {
+    return selectedIndex;
+}
