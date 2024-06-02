@@ -34,3 +34,16 @@ void Menu::moveDown() {
 int Menu::getSelectedIndex() const {
     return selectedIndex;
 }
+
+Menu::MenuState Menu::getState() const {
+    return state;
+}
+
+void Menu::select() {
+    if (state == MenuState::MAIN_MENU) {
+        switch (selectedIndex) {
+            case 0:
+                // Implement missing parts
+        }
+    }
+}
