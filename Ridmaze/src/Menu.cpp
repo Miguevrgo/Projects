@@ -43,7 +43,32 @@ void Menu::select() {
     if (state == MenuState::MAIN_MENU) {
         switch (selectedIndex) {
             case 0:
-                // Implement missing parts
+                state = MenuState::SETTINGS;
+                selectedIndex = 0;
+                break;
+            case 1:
+                state = MenuState::EXIT;
+                selectedIndex = 1;
+                break;
+            default:
+                break; // Play
         }
+    }
+    else {
+        switch (selectedIndex) {
+            case 0:
+                // Difficulty
+                break;
+            case 1:
+                // Enable/Disable music
+                break;
+            case 2:
+                // Enable/Disable FPS
+                break;
+            default:
+                break;
+        }
+        state = MenuState::MAIN_MENU;
+        selectedIndex = 0;
     }
 }
