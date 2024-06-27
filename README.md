@@ -24,10 +24,9 @@ These are the main languages I use or I want to use:
 * Python
 	
 ## Projects
-* [Shutdown Linux](Apagar-Linux) ✅
 * [Spell-Checker](Spell-Checker) ✅
 * [Tree](Tree) ✅
-* [RidMaze](RidMaze) ➖
+* [RidMaze](RidMaze) ✅
 * [Code Editor](Code-Editor) ➖
 * [Linear-system-equation](Linear-system-equation) ❌
-* [EzGit](EzGit) ➖
+* [EzGit](EzGit) ✅
