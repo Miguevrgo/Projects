@@ -12,11 +12,13 @@ I hope this repository provides inspiration for anyone who wants to learn and re
 * ✅ - Finished Project
 * ➖ - In progress
 * ❌ - Planning to start
+
 ## Technologies
 Projects are mainly created with some of the following editors and IDE:
 * Visual Studio Code
 * Neovim
 * Jetbrains Clion
+
 ## Languages
 These are the main languages I use or I want to use:
 * C++20
