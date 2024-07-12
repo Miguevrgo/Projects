@@ -12,15 +12,9 @@ fn read_csv(file_path: &str) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
     Ok(data)
 }
 
-// for x in 0..28 {
-//     let pixel = data[i][1 + y * 28 + x];
-//     if pixel == 0.0 {
-//         print!("    ");
-//     } else {
-//         print!("\x1b[48;2;{};{};{}m   \x1b[0m", (pixel * 255.0) as u8, (pixel * 255.0) as u8, (pixel * 255.0) as u8);
-//     }
-// }
-// println!();
+fn transpose<T>(matrix: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    
+}
 
 fn visualize_data(data: &[Vec<f64>], num_samples: usize) {
     for i in 0..num_samples {
@@ -30,7 +24,7 @@ fn visualize_data(data: &[Vec<f64>], num_samples: usize) {
         for y in 0..28 {
             for x in 0..28 {
                 let pixel = data[i][1 + y * 28 + x];
-                print!("{:3} ", (pixel * 255.0) as u8);
+                print!("{:3} ", (pixel) as u8);
             }
             println!();
         }
@@ -38,12 +32,14 @@ fn visualize_data(data: &[Vec<f64>], num_samples: usize) {
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let file_path = "data/mnist_test.csv";
-    let data = read_csv(file_path)?;
-
-    println!("Mostrando los primeros 5 ejemplos del conjunto de datos:");
-    visualize_data(&data, 5);
-
-    Ok(())
+    match read_csv(file_path) {
+        Ok(data) => {
+            
+        }
+        Err(err) => {
+            eprintln!("Error: {}", err);
+        }
+    }
 }
