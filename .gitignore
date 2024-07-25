@@ -24,3 +24,12 @@
 cmake-build-debug/
 .vs/
 .vscode/
+debug/
+target/
+
+Cargo.lock
+
+**/*.rs.bk
+
+*.pdb
+
