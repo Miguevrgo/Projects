@@ -56,7 +56,7 @@ fn build_ui(app: &Application) {
 
     let algorithms = [
         ("Array".to_string(), "array.png".to_string()),
-        ("Sorting".to_string(), "sorting.gif".to_string()),
+        ("Sorting".to_string(), "sorting.png".to_string()),
         ("Graph".to_string(), "graph.gif".to_string()),
         ("Tree".to_string(), "tree.gif".to_string()),
         ("Linked List".to_string(), "linked.gif".to_string()),
