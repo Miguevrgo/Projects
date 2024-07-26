@@ -2,13 +2,13 @@ use gio::Settings;
 use gtk::{gdk, prelude::*};
 use gtk::{
     gio, glib, Align, Application, ApplicationWindow, Box, Button, CssProvider,
-    EventControllerMotion, GestureClick, Grid, Image, Switch,
+    EventControllerMotion, GestureClick, Grid, Image, Stack, StackSwitcher, Switch,
 };
 
 const APP_ID: &str = "org.gtk_rs.Algori";
 const NUM_COLUMNS: usize = 4;
 
-fn build_id(app: &Application) {
+fn build_ui(app: &Application) {
     let settings = Settings::new(APP_ID);
 
     let is_dark_mode = settings.boolean("is-dark-mode");
@@ -34,7 +34,14 @@ fn build_id(app: &Application) {
         glib::Propagation::Proceed
     });
 
-    let grid = Grid::new();
+    let stack = Stack::new();
+    let stack_switcher = StackSwitcher::builder()
+        .stack(&stack)
+        .margin_start(10)
+        .margin_end(10)
+        .build();
+
+    let grid = Grid::builder().row_spacing(5).column_spacing(20).build();
     grid.set_column_homogeneous(true);
     grid.set_row_homogeneous(true);
 
@@ -60,11 +67,25 @@ fn build_id(app: &Application) {
         let column = index % NUM_COLUMNS;
 
         let button = Button::with_label(name);
-        button.set_size_request(window_width / 4, -1);
+        button.set_size_request(200, -1);
         let image = Image::from_file(format!("assets/{}", image_path));
-        image.set_size_request(window_width / 4, window_height / 4);
+        image.set_size_request(275, 275);
 
         let box_container = Box::new(gtk::Orientation::Vertical, 0);
+
+        if row == 0 {
+            box_container.set_margin_top(40);
+        }
+        if row == (algorithms.len() / NUM_COLUMNS) {
+            box_container.set_margin_bottom(10);
+        }
+        if column == 0 {
+            box_container.set_margin_start(30);
+        }
+        if column == (NUM_COLUMNS - 1) {
+            box_container.set_margin_end(30);
+        }
+
         box_container.append(&image);
         box_container.append(&button);
 
@@ -87,9 +108,10 @@ fn build_id(app: &Application) {
 
         let gesture_click = GestureClick::new();
         let name_clone = name.clone();
+        let stack = stack.clone();
         gesture_click.connect_released(move |_, _, _, _| {
             println!("Clicked on {}", name_clone);
-            //TODO: Logic of new page
+            stack.set_visible_child_name(&name_clone);
         });
 
         box_container.add_controller(gesture_click);
@@ -97,12 +119,26 @@ fn build_id(app: &Application) {
         grid.attach(&box_container, column as i32, (row * 2) as i32, 1, 2);
     }
 
+    stack.add_titled(&grid, Some("Home"), "Home");
+
+    for (name, _) in algorithms.iter() {
+        let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
+        let label = gtk::Label::new(Some(&format!("This is the view for {}", name)));
+        algorithm_view.append(&label);
+
+        stack.add_titled(&algorithm_view, Some(&name), &name);
+    }
+
+    let main_container = Box::new(gtk::Orientation::Vertical, 0);
+    main_container.append(&stack_switcher);
+    main_container.append(&stack);
+
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Algori")
         .default_width(window_width)
         .default_height(window_height)
-        .child(&grid)
+        .child(&main_container)
         .build();
 
     if is_maximized {
@@ -116,7 +152,7 @@ fn main() -> glib::ExitCode {
     std::env::set_var("GSETTINGS_SCHEMA_DIR", "./schemas");
     let app = Application::builder().application_id(APP_ID).build();
 
-    app.connect_activate(build_id);
+    app.connect_activate(build_ui);
 
     app.run()
 }
