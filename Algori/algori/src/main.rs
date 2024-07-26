@@ -1,6 +1,9 @@
 use gio::Settings;
-use gtk::prelude::*;
-use gtk::{gio, glib, Align, Application, ApplicationWindow, Button, Grid, Image, Switch};
+use gtk::{gdk, prelude::*};
+use gtk::{
+    gio, glib, Align, Application, ApplicationWindow, Box, Button, CssProvider,
+    EventControllerMotion, GestureClick, Grid, Image, Switch,
+};
 
 const APP_ID: &str = "org.gtk_rs.Algori";
 const NUM_COLUMNS: usize = 4;
@@ -35,11 +38,21 @@ fn build_id(app: &Application) {
     grid.set_column_homogeneous(true);
     grid.set_row_homogeneous(true);
 
+    let css_provider = CssProvider::new();
+    css_provider.load_from_path("style.css");
+
+    gtk::style_context_add_provider_for_display(
+        &gdk::Display::default().unwrap(),
+        &css_provider,
+        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
+
     let algorithms = [
-        ("Array", "array.png"),
-        ("Sorting", "sorting.gif"),
-        ("Graph", "graph.gif"),
-        ("Tree", "tree.gif"),
+        ("Array".to_string(), "array.png".to_string()),
+        ("Sorting".to_string(), "sorting.gif".to_string()),
+        ("Graph".to_string(), "graph.gif".to_string()),
+        ("Tree".to_string(), "tree.gif".to_string()),
+        ("Linked List".to_string(), "linked.gif".to_string()),
     ];
 
     for (index, (name, image_path)) in algorithms.iter().enumerate() {
@@ -51,14 +64,37 @@ fn build_id(app: &Application) {
         let image = Image::from_file(format!("assets/{}", image_path));
         image.set_size_request(window_width / 4, window_height / 4);
 
-        let name = name.to_string();
+        let box_container = Box::new(gtk::Orientation::Vertical, 0);
+        box_container.append(&image);
+        box_container.append(&button);
 
-        button.connect_clicked(move |_| {
-            println!("Clicked on {}", name);
+        let motion_controller = EventControllerMotion::new();
+        let box_container_clone = box_container.clone();
+        motion_controller.connect_enter({
+            let box_container_clone = box_container_clone.clone();
+            move |_, _, _| {
+                box_container_clone.add_css_class("highlight");
+            }
+        });
+        motion_controller.connect_leave({
+            let box_container_clone = box_container_clone.clone();
+            move |_| {
+                box_container_clone.remove_css_class("highlight");
+            }
         });
 
-        grid.attach(&image, column as i32, (row * 2) as i32, 1, 1);
-        grid.attach(&button, column as i32, (row * 2 + 1) as i32, 1, 1);
+        box_container.add_controller(motion_controller);
+
+        let gesture_click = GestureClick::new();
+        let name_clone = name.clone();
+        gesture_click.connect_released(move |_, _, _, _| {
+            println!("Clicked on {}", name_clone);
+            //TODO: Logic of new page
+        });
+
+        box_container.add_controller(gesture_click);
+
+        grid.attach(&box_container, column as i32, (row * 2) as i32, 1, 2);
     }
 
     let window = ApplicationWindow::builder()
