@@ -61,7 +61,7 @@ fn build_ui(app: &Application) {
         ("Tree".to_string(), "tree.png".to_string()),
         ("Linked List".to_string(), "linked_list.svg".to_string()),
         ("Hash Table".to_string(), "hash_table.svg".to_string()),
-        ("Bit Manipulation".to_string(), "tree.png".to_string()),
+        ("Bit Manipulation".to_string(), "bitwise.svg".to_string()),
         ("Math".to_string(), "tree.png".to_string()),
         // ("Stack".to_string(), "tree.png".to_string()),
         // ("Queue".to_string(), "tree.png".to_string()),
