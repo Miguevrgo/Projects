@@ -59,7 +59,8 @@ fn build_ui(app: &Application) {
         ("Sorting".to_string(), "sorting.png".to_string()),
         ("Graph".to_string(), "graph.png".to_string()),
         ("Tree".to_string(), "tree.png".to_string()),
-        ("Linked List".to_string(), "linked.gif".to_string()),
+        ("Linked List".to_string(), "linked_list.svg".to_string()),
+        ("Hash Table".to_string(), "hash_table.svg".to_string()),
     ];
 
     for (index, (name, image_path)) in algorithms.iter().enumerate() {
