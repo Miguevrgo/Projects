@@ -2,7 +2,7 @@ use gio::Settings;
 use gtk::{gdk, prelude::*};
 use gtk::{
     gio, glib, Align, Application, ApplicationWindow, Box, Button, CssProvider,
-    EventControllerMotion, GestureClick, Grid, Image, Stack, StackSwitcher, Switch,
+    EventControllerMotion, GestureClick, Grid, Image, ScrolledWindow, Stack, StackSwitcher, Switch,
 };
 
 const APP_ID: &str = "org.gtk_rs.Algori";
@@ -18,8 +18,8 @@ fn build_ui(app: &Application) {
         .margin_top(48)
         .margin_start(48)
         .margin_end(48)
-        .valign(Align::Center)
-        .halign(Align::Center)
+        .valign(Align::End)
+        .halign(Align::End)
         .state(is_dark_mode)
         .build();
 
@@ -61,6 +61,14 @@ fn build_ui(app: &Application) {
         ("Tree".to_string(), "tree.png".to_string()),
         ("Linked List".to_string(), "linked_list.svg".to_string()),
         ("Hash Table".to_string(), "hash_table.svg".to_string()),
+        ("Bit Manipulation".to_string(), "tree.png".to_string()),
+        ("Math".to_string(), "tree.png".to_string()),
+        // ("Stack".to_string(), "tree.png".to_string()),
+        // ("Queue".to_string(), "tree.png".to_string()),
+        // ("Heap".to_string(), "tree.png".to_string()),
+        // ("Trie".to_string(), "tree.png".to_string()),
+        // ("Binary Search".to_string(), "tree.png".to_string()),
+        // ("Dijkstra".to_string(), "tree.png".to_string()),
     ];
 
     for (index, (name, image_path)) in algorithms.iter().enumerate() {
@@ -120,14 +128,23 @@ fn build_ui(app: &Application) {
         grid.attach(&box_container, column as i32, (row * 2) as i32, 1, 2);
     }
 
-    stack.add_titled(&grid, Some("Home"), "Home");
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&grid)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    stack.add_titled(&scrolled_window, Some("Home"), "Home");
 
     for (name, _) in algorithms.iter() {
         let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
         let label = gtk::Label::new(Some(&format!("This is the view for {}", name)));
         algorithm_view.append(&label);
 
-        stack.add_titled(&algorithm_view, Some(&name), &name);
+        stack.add_titled(&algorithm_view, Some(name), name);
     }
 
     let main_container = Box::new(gtk::Orientation::Vertical, 0);
