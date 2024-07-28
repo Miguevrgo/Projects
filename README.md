@@ -32,3 +32,4 @@ These are the main languages I use or I want to use:
 * [Code Editor](Code-Editor) ➖
 * [Linear-system-equation](Linear-system-equation) ❌
 * [EzGit](EzGit) ✅
+* [Algori](Algori) ➖
