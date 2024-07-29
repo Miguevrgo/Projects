@@ -2,7 +2,7 @@ use gio::Settings;
 use gtk::{gdk, prelude::*};
 use gtk::{
     gio, glib, Align, Application, ApplicationWindow, Box, Button, CssProvider,
-    EventControllerMotion, GestureClick, Grid, Image, ScrolledWindow, Stack, StackSwitcher, Switch,
+    EventControllerMotion, GestureClick, Grid, Image, ScrolledWindow, Stack, Switch,
 };
 
 const APP_ID: &str = "org.gtk_rs.Algori";
@@ -35,11 +35,6 @@ fn build_ui(app: &Application) {
     });
 
     let stack = Stack::new();
-    let stack_switcher = StackSwitcher::builder()
-        .stack(&stack)
-        .margin_start(10)
-        .margin_end(10)
-        .build();
 
     let grid = Grid::builder().row_spacing(5).column_spacing(20).build();
     grid.set_column_homogeneous(true);
@@ -63,12 +58,12 @@ fn build_ui(app: &Application) {
         ("Hash Table".to_string(), "hash_table.svg".to_string()),
         ("Bit Manipulation".to_string(), "bitwise.svg".to_string()),
         ("Math".to_string(), "tree.png".to_string()),
-        // ("Stack".to_string(), "tree.png".to_string()),
-        // ("Queue".to_string(), "tree.png".to_string()),
-        // ("Heap".to_string(), "tree.png".to_string()),
-        // ("Trie".to_string(), "tree.png".to_string()),
-        // ("Binary Search".to_string(), "tree.png".to_string()),
-        // ("Dijkstra".to_string(), "tree.png".to_string()),
+        ("Stack".to_string(), "tree.png".to_string()),
+        ("Queue".to_string(), "tree.png".to_string()),
+        ("Heap".to_string(), "tree.png".to_string()),
+        ("Trie".to_string(), "tree.png".to_string()),
+        ("Binary Search".to_string(), "tree.png".to_string()),
+        ("Dijkstra".to_string(), "tree.png".to_string()),
     ];
 
     for (index, (name, image_path)) in algorithms.iter().enumerate() {
@@ -119,7 +114,6 @@ fn build_ui(app: &Application) {
         let name_clone = name.clone();
         let stack = stack.clone();
         gesture_click.connect_released(move |_, _, _, _| {
-            println!("Clicked on {}", name_clone);
             stack.set_visible_child_name(&name_clone);
         });
 
@@ -137,18 +131,30 @@ fn build_ui(app: &Application) {
     scrolled_window.set_vexpand(true);
     scrolled_window.set_hexpand(true);
 
-    stack.add_titled(&scrolled_window, Some("Home"), "Home");
+    let home_view = Box::new(gtk::Orientation::Vertical, 0);
+    home_view.append(&scrolled_window);
+
+    stack.add_named(&home_view, Some("Home"));
 
     for (name, _) in algorithms.iter() {
         let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
         let label = gtk::Label::new(Some(&format!("This is the view for {}", name)));
+        let stack_clone = stack.clone();
+        let home_button = Button::with_label("Home");
+
+        home_button.connect_clicked(move |_| {
+            stack_clone.set_visible_child_name("Home");
+        });
+
+        algorithm_view.append(&home_button);
         algorithm_view.append(&label);
 
-        stack.add_titled(&algorithm_view, Some(name), name);
+        stack.add_named(&algorithm_view, Some(name));
     }
 
+    stack.set_visible_child_name("Home");
+
     let main_container = Box::new(gtk::Orientation::Vertical, 0);
-    main_container.append(&stack_switcher);
     main_container.append(&stack);
 
     let window = ApplicationWindow::builder()
