@@ -10,6 +10,8 @@ mod views;
 const APP_ID: &str = "org.gtk_rs.Algori";
 const NUM_COLUMNS: usize = 4;
 
+/// Creates the default home view for a scrollable window, which displays all the algorithms
+/// in a grid layout made up of 4-element rows consisting of an image and a button.
 fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
     let grid = Grid::builder().row_spacing(5).column_spacing(20).build();
     grid.set_column_homogeneous(true);
@@ -95,22 +97,6 @@ fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
     home_view
 }
 
-fn create_algorithm_view(stack: &Stack, algorithm_name: &str) -> Box {
-    let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
-    let label = gtk::Label::new(Some(&format!("This is the view for {}", algorithm_name)));
-    let stack_clone = stack.clone();
-    let home_button = Button::with_label("Home");
-
-    home_button.connect_clicked(move |_| {
-        stack_clone.set_visible_child_name("Home");
-    });
-
-    algorithm_view.append(&home_button);
-    algorithm_view.append(&label);
-
-    algorithm_view
-}
-
 fn build_ui(app: &Application) {
     let settings = Settings::new(APP_ID);
 
@@ -160,7 +146,24 @@ fn build_ui(app: &Application) {
     stack.add_named(&home_view, Some("Home"));
 
     for (name, _) in &algorithms {
-        let algorithm_view = create_algorithm_view(&stack, name);
+        let algorithm_view = match name.as_str() {
+            //TODO: Implement each view in views/
+            "Array" => views::array::create_view(&stack),
+            "Sorting" => views::sorting::create_view(&stack),
+            "Graph" => views::graph::create_view(&stack),
+            "Tree" => views::tree::create_view(&stack),
+            "Linked List" => views::linked_list::create_view(&stack),
+            "Hash Table" => views::hash_table::create_view(&stack),
+            "Bit Manipulation" => views::bit_manipulation::create_view(&stack),
+            "Math" => views::math::create_view(&stack),
+            "Stack" => views::stack::create_view(&stack),
+            "Queue" => views::queue::create_view(&stack),
+            "Heap" => views::heap::create_view(&stack),
+            "Trie" => views::trie::create_view(&stack),
+            "Binary Search" => views::binary_search::create_view(&stack),
+            "Dijkstra" => views::dijkstra::create_view(&stack),
+            _ => Box::new(gtk::Orientation::Vertical, 10),
+        };
         stack.add_named(&algorithm_view, Some(name));
     }
 
