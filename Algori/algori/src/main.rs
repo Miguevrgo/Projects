@@ -5,37 +5,12 @@ use gtk::{
     EventControllerMotion, GestureClick, Grid, Image, ScrolledWindow, Stack, Switch,
 };
 
+mod views;
+
 const APP_ID: &str = "org.gtk_rs.Algori";
 const NUM_COLUMNS: usize = 4;
 
-fn build_ui(app: &Application) {
-    let settings = Settings::new(APP_ID);
-
-    let is_dark_mode = settings.boolean("is-dark-mode");
-
-    let dark_mode_switch = Switch::builder()
-        .margin_bottom(48)
-        .margin_top(48)
-        .margin_start(48)
-        .margin_end(48)
-        .valign(Align::End)
-        .halign(Align::End)
-        .state(is_dark_mode)
-        .build();
-
-    let window_width = settings.int("window-width");
-    let window_height = settings.int("window-height");
-    let is_maximized = settings.boolean("is-maximized");
-
-    dark_mode_switch.connect_state_set(move |_, is_enabled| {
-        settings
-            .set_boolean("is-dark-mode", is_enabled)
-            .expect("Could not set dark mode");
-        glib::Propagation::Proceed
-    });
-
-    let stack = Stack::new();
-
+fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
     let grid = Grid::builder().row_spacing(5).column_spacing(20).build();
     grid.set_column_homogeneous(true);
     grid.set_row_homogeneous(true);
@@ -48,23 +23,6 @@ fn build_ui(app: &Application) {
         &css_provider,
         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
-
-    let algorithms = [
-        ("Array".to_string(), "array.svg".to_string()),
-        ("Sorting".to_string(), "sorting.png".to_string()),
-        ("Graph".to_string(), "graph.png".to_string()),
-        ("Tree".to_string(), "tree.png".to_string()),
-        ("Linked List".to_string(), "linked_list.svg".to_string()),
-        ("Hash Table".to_string(), "hash_table.svg".to_string()),
-        ("Bit Manipulation".to_string(), "bitwise.svg".to_string()),
-        ("Math".to_string(), "tree.png".to_string()),
-        ("Stack".to_string(), "tree.png".to_string()),
-        ("Queue".to_string(), "tree.png".to_string()),
-        ("Heap".to_string(), "tree.png".to_string()),
-        ("Trie".to_string(), "tree.png".to_string()),
-        ("Binary Search".to_string(), "tree.png".to_string()),
-        ("Dijkstra".to_string(), "tree.png".to_string()),
-    ];
 
     for (index, (name, image_path)) in algorithms.iter().enumerate() {
         let row = index / NUM_COLUMNS;
@@ -112,9 +70,9 @@ fn build_ui(app: &Application) {
 
         let gesture_click = GestureClick::new();
         let name_clone = name.clone();
-        let stack = stack.clone();
+        let stack_clone = stack.clone();
         gesture_click.connect_released(move |_, _, _, _| {
-            stack.set_visible_child_name(&name_clone);
+            stack_clone.set_visible_child_name(&name_clone);
         });
 
         box_container.add_controller(gesture_click);
@@ -134,21 +92,75 @@ fn build_ui(app: &Application) {
     let home_view = Box::new(gtk::Orientation::Vertical, 0);
     home_view.append(&scrolled_window);
 
+    home_view
+}
+
+fn create_algorithm_view(stack: &Stack, algorithm_name: &str) -> Box {
+    let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
+    let label = gtk::Label::new(Some(&format!("This is the view for {}", algorithm_name)));
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Home");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    algorithm_view.append(&home_button);
+    algorithm_view.append(&label);
+
+    algorithm_view
+}
+
+fn build_ui(app: &Application) {
+    let settings = Settings::new(APP_ID);
+
+    let is_dark_mode = settings.boolean("is-dark-mode");
+
+    let dark_mode_switch = Switch::builder()
+        .margin_bottom(48)
+        .margin_top(48)
+        .margin_start(48)
+        .margin_end(48)
+        .valign(Align::End)
+        .halign(Align::End)
+        .state(is_dark_mode)
+        .build();
+
+    let window_width = settings.int("window-width");
+    let window_height = settings.int("window-height");
+    let is_maximized = settings.boolean("is-maximized");
+
+    dark_mode_switch.connect_state_set(move |_, is_enabled| {
+        settings
+            .set_boolean("is-dark-mode", is_enabled)
+            .expect("Could not set dark mode");
+        glib::Propagation::Proceed
+    });
+
+    let stack = Stack::new();
+
+    let algorithms = [
+        ("Array".to_string(), "array.svg".to_string()),
+        ("Sorting".to_string(), "sorting.png".to_string()),
+        ("Graph".to_string(), "graph.png".to_string()),
+        ("Tree".to_string(), "tree.png".to_string()),
+        ("Linked List".to_string(), "linked_list.svg".to_string()),
+        ("Hash Table".to_string(), "hash_table.svg".to_string()),
+        ("Bit Manipulation".to_string(), "bitwise.svg".to_string()),
+        ("Math".to_string(), "tree.png".to_string()),
+        ("Stack".to_string(), "tree.png".to_string()),
+        ("Queue".to_string(), "tree.png".to_string()),
+        ("Heap".to_string(), "tree.png".to_string()),
+        ("Trie".to_string(), "tree.png".to_string()),
+        ("Binary Search".to_string(), "tree.png".to_string()),
+        ("Dijkstra".to_string(), "tree.png".to_string()),
+    ];
+
+    let home_view = create_home_view(&stack, &algorithms);
     stack.add_named(&home_view, Some("Home"));
 
-    for (name, _) in algorithms.iter() {
-        let algorithm_view = Box::new(gtk::Orientation::Vertical, 10);
-        let label = gtk::Label::new(Some(&format!("This is the view for {}", name)));
-        let stack_clone = stack.clone();
-        let home_button = Button::with_label("Home");
-
-        home_button.connect_clicked(move |_| {
-            stack_clone.set_visible_child_name("Home");
-        });
-
-        algorithm_view.append(&home_button);
-        algorithm_view.append(&label);
-
+    for (name, _) in &algorithms {
+        let algorithm_view = create_algorithm_view(&stack, name);
         stack.add_named(&algorithm_view, Some(name));
     }
 
