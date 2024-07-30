@@ -1,8 +1,8 @@
 use gio::Settings;
 use gtk::{gdk, prelude::*};
 use gtk::{
-    gio, glib, Align, Application, ApplicationWindow, Box, Button, CssProvider,
-    EventControllerMotion, GestureClick, Grid, Image, ScrolledWindow, Stack, Switch,
+    gio, glib, Application, ApplicationWindow, Box, Button, CssProvider, EventControllerMotion,
+    GestureClick, Grid, Image, ScrolledWindow, Stack,
 };
 
 mod views;
@@ -100,28 +100,9 @@ fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
 fn build_ui(app: &Application) {
     let settings = Settings::new(APP_ID);
 
-    let is_dark_mode = settings.boolean("is-dark-mode");
-
-    let dark_mode_switch = Switch::builder()
-        .margin_bottom(48)
-        .margin_top(48)
-        .margin_start(48)
-        .margin_end(48)
-        .valign(Align::End)
-        .halign(Align::End)
-        .state(is_dark_mode)
-        .build();
-
     let window_width = settings.int("window-width");
     let window_height = settings.int("window-height");
     let is_maximized = settings.boolean("is-maximized");
-
-    dark_mode_switch.connect_state_set(move |_, is_enabled| {
-        settings
-            .set_boolean("is-dark-mode", is_enabled)
-            .expect("Could not set dark mode");
-        glib::Propagation::Proceed
-    });
 
     let stack = Stack::new();
 
