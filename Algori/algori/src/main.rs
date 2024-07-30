@@ -32,6 +32,15 @@ fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
 
         let button = Button::with_label(name);
         button.set_size_request(200, -1);
+
+        button.connect_clicked({
+            let stack_clone = stack.clone();
+            let name_clone = name.clone();
+            move |_| {
+                stack_clone.set_visible_child_name(&name_clone);
+            }
+        });
+
         let image = Image::from_file(format!("assets/{}", image_path));
         image.set_size_request(275, 275);
 
