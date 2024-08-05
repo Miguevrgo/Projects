@@ -23,6 +23,7 @@
 *.iml
 cmake-build-debug/
 .vs/
+build/
 .vscode/
 debug/
 target/
