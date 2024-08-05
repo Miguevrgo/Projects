@@ -1,4 +1,0 @@
-/home/miguevr/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/miguevr/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -G Ninja -S /home/miguevr/GitHub/Projects/Marble-Sim -B /home/miguevr/GitHub/Projects/Marble-Sim/build
--- Configuring done (0.1s)
--- Generating done (0.0s)
--- Build files have been written to: /home/miguevr/GitHub/Projects/Marble-Sim/build
