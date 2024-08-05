@@ -1,1 +1,1 @@
-/usr/bin/c++ "CMakeFiles/Marble-Sim.dir/src/main.cpp.o" -o Marble-Sim  /usr/lib/x86_64-linux-gnu/libGL.so /usr/lib/x86_64-linux-gnu/libGLU.so /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 /usr/lib/x86_64-linux-gnu/libGLEW.so 
+/usr/bin/c++ -g "CMakeFiles/Marble-Sim.dir/src/main.cpp.o" -o Marble-Sim  /usr/lib/x86_64-linux-gnu/libOpenGL.so /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libGLU.so /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 /usr/lib/x86_64-linux-gnu/libGLEW.so 

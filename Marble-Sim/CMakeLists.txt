@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(Marble-Sim)
+cmake_policy(SET CMP0072 NEW) # REMOVE?
 
 set(CMAKE_CXX_STANDARD 20)
 
