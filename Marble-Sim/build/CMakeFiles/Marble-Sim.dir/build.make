@@ -92,7 +92,8 @@ Marble__Sim_EXTERNAL_OBJECTS =
 
 Marble-Sim: CMakeFiles/Marble-Sim.dir/src/main.cpp.o
 Marble-Sim: CMakeFiles/Marble-Sim.dir/build.make
-Marble-Sim: /usr/lib/x86_64-linux-gnu/libGL.so
+Marble-Sim: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+Marble-Sim: /usr/lib/x86_64-linux-gnu/libGLX.so
 Marble-Sim: /usr/lib/x86_64-linux-gnu/libGLU.so
 Marble-Sim: /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
 Marble-Sim: /usr/lib/x86_64-linux-gnu/libGLEW.so
