@@ -12,6 +12,7 @@ include_directories(
     ${OPENGL_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 file(GLOB SOURCES "src/*.cpp")
@@ -23,3 +24,4 @@ target_link_libraries(Marble-Sim
     glfw
     GLEW::GLEW
 )
+
