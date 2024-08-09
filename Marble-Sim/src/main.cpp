@@ -49,7 +49,7 @@ int main() {
     Shader shaderProgram("../shaders/shader.vs", "../shaders/shader.fs");
 
     float vertices[] = {
-        // positions          // colors           // texture coords
+        // positions          // colors           // texture1 coords
         0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
         0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
@@ -85,10 +85,10 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // ---------|Loading the texture|------------
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    // ---------|Loading the texture1|------------
+    unsigned int texture1, texture2;
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -98,13 +98,36 @@ int main() {
     int width, height, nrChannels;
     unsigned char *data = stbi_load("../assets/container.jpg", &width, &height, &nrChannels, 0);
 
+    if (data) { // Not really necessary as Shader class ends execution
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cerr << "Failed to load texture1" << std::endl;
+    }
+    stbi_image_free(data);
+
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // stbi_set_flip_vertically_on_load(true); OpenGL expects 0.0 on y to be on bottom
+    data = stbi_load("../assets/brickwall.jpg", &width, &height, &nrChannels, 0);
+
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     } else {
-        std::cerr << "Failed to load texture" << std::endl;
+        std::cerr << "Failed to load texture2" << std::endl;
     }
     stbi_image_free(data);
+
+    shaderProgram.use();
+    glUniform1i(glGetUniformLocation(shaderProgram.getID(), "texture1"), 0);
+    shaderProgram.setInt("texture2", 1);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -112,7 +135,10 @@ int main() {
         glClearColor(0.9f, 0.8f, 0.6f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
 
         shaderProgram.use();
         glBindVertexArray(VAO);
