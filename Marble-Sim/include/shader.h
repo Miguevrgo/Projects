@@ -14,6 +14,7 @@ class Shader {
     void setBool(const std::string_view &name, bool value) const;
     void setInt(const std::string_view &name, int value) const;
     void setFloat(const std::string_view &name, float value) const;
+    int getID() const { return this->ID; };
 
   private:
     unsigned int ID;
