@@ -15,8 +15,8 @@ I hope this repository provides inspiration for anyone who wants to learn and re
 
 ## Technologies
 Projects are mainly created with some of the following editors and IDE:
-* Visual Studio Code
 * Neovim
+* Visual Studio Code
 * Jetbrains Clion
 
 ## Languages
@@ -29,7 +29,9 @@ These are the main languages I use or I want to use:
 * [Spell-Checker](Spell-Checker) ✅
 * [Tree](Tree) ✅
 * [RidMaze](RidMaze) ✅
-* [Code Editor](Code-Editor) ➖
-* [Linear-system-equation](Linear-system-equation) ❌
 * [EzGit](EzGit) ✅
+* [Useful-C++](Useful-C++) ✅
+* [Code Editor](Code-Editor) ➖
+* [Marble-Sim](Marble-Sim) ➖
 * [Algori](Algori) ➖
+* [MvrSTL](MvrSTL) ❌
