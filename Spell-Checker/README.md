@@ -1,5 +1,7 @@
 # Spell Checker
 
+![Spell Checker](https://raw.githubusercontent.com/Miguevrgo/Projects/master/Spell-Checker/Spell.gif)
+
 ## Objective
 
 The aim of this project is to develop a modern C++ program capable of correcting and suggesting the most probable words for given inputs. It's designed to enhance text accuracy and readability by providing intelligent spelling corrections.
