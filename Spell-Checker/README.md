@@ -20,8 +20,18 @@ The spell checker is built with a focus on performance and accuracy. By taking i
 
 ## Usage
 
-Just clone the repository and compile with the given CmakeList file, you can easily explore the different files as there are not many and the name is quite descriptive. For the language files, just consider that it'll work as long as
-you provide a valid file with a word per column with its frequency associated.
+To use it, just clone the repository, go to the project folder, create a build directory, and build it using cmake. You have to install Qt if not already.
+### Debian
+```
+sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+git clone https://github.com/Miguevrgo/Projects.git 
+cd Projects/Spell-Checker
+mkdir build
+cd build
+cmake ..
+make
+```
+
 
 ## Contributing
 
