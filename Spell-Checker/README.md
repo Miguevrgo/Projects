@@ -1,6 +1,7 @@
 # Spell Checker
-
-![Spell Checker](https://raw.githubusercontent.com/Miguevrgo/Projects/master/Spell-Checker/Spell.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Miguevrgo/Projects/master/Spell-Checker/Spell.gif" alt="Spell Checker" />
+</p>
 
 ## Objective
 
