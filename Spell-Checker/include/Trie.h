@@ -7,35 +7,45 @@
 #ifndef SPELL_CHECKER_TRIE_H
 #define SPELL_CHECKER_TRIE_H
 
-#include <unordered_map>
+#include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 class TrieNode {
-public:
+  public:
     unsigned int frequency; // Frequency of the word | 0 for non-existent words
-    std::unordered_map<char, TrieNode*> children;
-    TrieNode() : frequency(0) {};
+    std::unordered_map<char, std::unique_ptr<TrieNode>> children;
+    TrieNode() : frequency(0){};
+    TrieNode(const TrieNode &other);
+    TrieNode &operator=(const TrieNode &rhs);
 };
 
 class Trie {
-private:
-    TrieNode* root;
-    void clear(TrieNode* node);
-    bool removeHelper(TrieNode* node, const std::string& word, int depth);
+  private:
+    std::unique_ptr<TrieNode> root;
 
-public:
-    Trie() : root(new TrieNode()) {}
-    ~Trie() { clear(root);}
-    void Insert(const std::string &word, unsigned int frequency);
-    bool Remove(const std::string &word);
-    int GetFrequency(const std::string &word) const;
-    TrieNode* GetRoot() const;
-    [[nodiscard]] bool Search(const std::string &word) const;
-    [[nodiscard]] bool StartsWith(const std::string &prefix) const;
-    [[nodiscard]] std::vector<std::pair<std::string,unsigned int>> AutoComplete (const std::string &prefix) const;
-    void FindAllWords(const TrieNode* node, std::string& current, std::vector<std::pair<std::string, unsigned int>> words) const;
+    void clear(TrieNode *node) noexcept;
+    bool removeHelper(TrieNode *node, std::string_view word, size_t depth) noexcept;
+    void findAllWords(const TrieNode *node, std::string &current,
+                      std::vector<std::pair<std::string, unsigned int>> &words) const noexcept;
+
+  public:
+    Trie() noexcept : root(std::make_unique<TrieNode>()) {}
+    Trie(const Trie &other);
+    Trie &operator=(const Trie &other);
+    Trie(Trie &&) noexcept = default;            // Allow move
+    Trie &operator=(Trie &&) noexcept = default; // Allow move
+    ~Trie() noexcept { clear(root.get()); }
+
+    void insert(std::string_view word, unsigned int frequency) noexcept;
+    bool remove(std::string_view word) noexcept;
+    [[nodiscard]] bool search(std::string_view word) const noexcept;
+    [[nodiscard]] bool startsWith(std::string_view prefix) const noexcept;
+    [[nodiscard]] std::vector<std::pair<std::string, unsigned int>>
+    autoComplete(std::string_view prefix) const noexcept;
+    [[nodiscard]] int getFrequency(std::string_view word) const noexcept;
+    [[nodiscard]] const TrieNode *getRoot() const noexcept;
 };
 
-
-#endif //SPELL_CHECKER_TRIE_H
+#endif // SPELL_CHECKER_TRIE_H

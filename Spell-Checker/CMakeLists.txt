@@ -1,20 +1,18 @@
-cmake_minimum_required(VERSION 3.27)
-project(Spell-Checker)
+cmake_minimum_required(VERSION 3.14)
+
+project(Spell-Checker VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(BASE_FOLDER ${CMAKE_SOURCE_DIR})
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -O2")
 
-# wxwidgets
-find_package(wxWidgets REQUIRED core base)
-include(${wxWidgets_USE_FILE})
-
-include_directories(${BASE_FOLDER}/include)
-
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 add_executable(Spell-Checker src/main.cpp src/Corrector.cpp
         src/Dictionary.cpp
         src/Utils.cpp
         src/Trie.cpp
 )
 
-# Linking
-target_link_libraries(Spell-Checker ${wxWidgets_LIBRARIES})
+target_link_libraries(Spell-Checker Qt5::Widgets)
+

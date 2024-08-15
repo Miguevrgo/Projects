@@ -8,102 +8,94 @@
 #include "Utils.h"
 #include <functional>
 
-
-
-Dictionary::Dictionary(const std::string &filename, const std::string &language) {
-    this->language = language;
+Dictionary::Dictionary(const std::filesystem::path &filename, const std::string &language)
+    : language(language), trie(std::make_unique<Trie>()) {
     LoadFromFile(filename);
 }
 
-bool Dictionary::LoadFromFile(const std::string &filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()){
+Dictionary::Dictionary(Dictionary &&other) noexcept
+    : language(std::move(other.language)), trie(std::move(other.trie)) {}
+
+Dictionary::Dictionary(const Dictionary &other) { trie = std::make_unique<Trie>(*other.trie); }
+
+Dictionary &Dictionary::operator=(Dictionary &&rhs) noexcept {
+    if (this != &rhs) {
+        language = std::move(rhs.language);
+        trie = std::move(rhs.trie);
+    }
+    return *this;
+}
+
+bool Dictionary::LoadFromFile(const std::filesystem::path &filename) {
+    std::vector<std::pair<std::string, unsigned int>> words;
+
+    if (!Utils::ParseInput(filename, words)) {
         return false;
     }
 
-    std::vector<std::pair<std::string,unsigned int>> words;
-    if (!Utils::ParseInput(file, words)){
-        return false;
-    }
-
-    for (const auto& word : words){
-        trie.Insert(word.first, word.second);
+    for (const auto &word : words) {
+        trie->insert(word.first, word.second);
     }
 
     return true;
 }
 
-void Dictionary::SetLanguage(const std::string &newLang) {
-    this->language = newLang;
-}
+void Dictionary::SetLanguage(std::string_view newLang) { language = newLang; }
 
-void Dictionary::AddWord(const std::string &word, unsigned int frequency) {
+void Dictionary::AddWord(std::string_view word, unsigned int frequency) {
     std::string normalizedWord = Utils::NormalizeWord(word);
-    this->trie.Insert(word, frequency);
+    trie->insert(normalizedWord, frequency);
 }
 
-bool Dictionary::CheckWord(const std::string &word) {
+bool Dictionary::CheckWord(std::string_view word) const {
     std::string normalizedWord = Utils::NormalizeWord(word);
-    return (this->trie.Search(word));
+    return trie->search(normalizedWord);
 }
 
-bool Dictionary::RemoveWord(const std::string &word) {
+bool Dictionary::RemoveWord(std::string_view word) {
     std::string normalizedWord = Utils::NormalizeWord(word);
-    return (this->trie.Remove(word));
+    return trie->remove(normalizedWord);
 }
 
-Dictionary Dictionary::operator+(const std::string &word) {
-    Dictionary newDictionary = *this;
-    newDictionary.AddWord(word,1);
+Dictionary Dictionary::operator+(std::string_view word) const {
+    Dictionary newDictionary(*this);
+    newDictionary.AddWord(word, 1);
     return newDictionary;
 }
 
-Dictionary Dictionary::operator-(const std::string &word) {
-    Dictionary newDictionary = *this;
+Dictionary Dictionary::operator-(std::string_view word) const {
+    Dictionary newDictionary(*this);
     newDictionary.RemoveWord(word);
     return newDictionary;
 }
 
-Dictionary Dictionary::operator+(const Dictionary &other) {
-    Dictionary newDictionary = *this;
-    for (const auto& word : other.trie.AutoComplete("")){
-        newDictionary.AddWord(word.first,word.second);
+Dictionary Dictionary::operator+(const Dictionary &other) const {
+    Dictionary newDictionary(*this);
+    for (const auto &word : other.trie->autoComplete("")) {
+        newDictionary.AddWord(word.first, word.second);
     }
     return newDictionary;
 }
 
-std::istream &operator>>(std::ifstream &is, Dictionary &dictionary) {
-    std::vector<std::pair<std::string,unsigned int>> words;
-    Utils::ParseInput(is, words);
-
-    for (const auto& word : words){
-        dictionary.trie.Insert(word.first, word.second);
-    }
-    return is;
-}
-
-Dictionary &Dictionary::operator=(const Dictionary &rhs) {
-    this->language = rhs.language;
-    this->trie = rhs.trie;
-    return *this;
-}
-
-std::vector<std::string> Dictionary::GetWordsOfLengthRange(int minLength, int maxLength) const {
+[[nodiscard]] std::vector<std::string>
+Dictionary::GetWordsOfLengthRange(int minLength, int maxLength) const noexcept {
     std::vector<std::string> wordsInRange;
     std::string currentWord;
-    TrieNode* rootNode = trie.GetRoot();
+    const TrieNode *rootNode = trie->getRoot();
 
-    std::function<void(TrieNode*, const std::string&)> traverse = [&](TrieNode* node, const std::string& word){
+    std::function<void(const TrieNode *, std::string)> traverse = [&](const TrieNode *node,
+                                                                      std::string word) {
         if (!node) {
             return;
         }
 
-        if (node->frequency && word.length() >= minLength && word.length() <= maxLength) {
+        if (node->frequency && word.length() >= static_cast<size_t>(minLength) &&
+            word.length() <= static_cast<size_t>(maxLength)) {
             wordsInRange.push_back(word);
         }
 
-        for (const auto& child : node->children) {
-            traverse(child.second, word + child.first);
+        for (const auto &child : node->children) {
+            traverse(child.second.get(), word + child.first);
         }
     };
 
@@ -112,6 +104,4 @@ std::vector<std::string> Dictionary::GetWordsOfLengthRange(int minLength, int ma
     return wordsInRange;
 }
 
-int Dictionary::GetFrequency(const std::string &word) const {
-    return trie.GetFrequency(word);
-}
+int Dictionary::GetFrequency(const std::string &word) const { return trie->getFrequency(word); }

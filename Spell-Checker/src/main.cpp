@@ -1,72 +1,74 @@
-#include <wx/wx.h>
-#include <sstream>
 #include "Corrector.h"
 #include "Dictionary.h"
+#include <QApplication>
+#include <QComboBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QString>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QWidget>
 
-class SpellCheckerFrame : public wxFrame {
-public:
-    SpellCheckerFrame(const wxString& title)
-            : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500, 300)) {
+class SpellCheckerWidget : public QWidget {
+  public:
+    SpellCheckerWidget() {
+        QVBoxLayout *layout = new QVBoxLayout(this);
 
-        wxPanel *panel = new wxPanel(this, -1);
-        wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+        QLabel *label1 = new QLabel("Elige un idioma:");
+        layout->addWidget(label1);
 
-        wxStaticText *st1 = new wxStaticText(panel, wxID_ANY, wxT("Elige un idioma:")); // Spanish or English
-        vbox->Add(st1, 0, wxLEFT | wxTOP, 10);
+        QComboBox *comboBox = new QComboBox();
+        comboBox->addItem("English");
+        comboBox->addItem("Spanish");
+        layout->addWidget(comboBox);
 
-        wxArrayString choices;
-        choices.Add(wxT("English"));
-        choices.Add(wxT("Spanish"));
-        wxChoice *choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
-        vbox->Add(choice, 0, wxLEFT | wxTOP, 10);
+        QLabel *label2 = new QLabel("Ingresa una palabra o frase:");
+        layout->addWidget(label2);
 
-        wxStaticText *st2 = new wxStaticText(panel, wxID_ANY, wxT("Ingresa una palabra o frase:"));
-        vbox->Add(st2, 0, wxLEFT | wxTOP, 10);
+        QTextEdit *textEdit = new QTextEdit();
+        layout->addWidget(textEdit);
 
-        wxTextCtrl *tc = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-        vbox->Add(tc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
+        QPushButton *button = new QPushButton("Corregir");
+        layout->addWidget(button);
 
-        wxButton *btn = new wxButton(panel, wxID_ANY, wxT("Corregir"));
-        vbox->Add(btn, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 10);
-
-        panel->SetSizer(vbox);
-        Centre();
-
-        btn->Bind(wxEVT_BUTTON, [this, tc, choice](wxCommandEvent& event) {
-            std::string resourcedir = "./resources";
-            std::string language = (choice->GetSelection() == 0) ? "english.txt" : "spanish.txt";
+        connect(button, &QPushButton::clicked, [=]() {
+            std::string resourcedir = "../resources";
+            std::string language = (comboBox->currentIndex() == 0) ? "english.txt" : "spanish.txt";
 
             Dictionary dictionary(resourcedir + "/" + language, language);
             Corrector corrector(dictionary);
 
-            std::string inputText = tc->GetValue().ToStdString();
-            std::istringstream iss(inputText);
+            QString inputText = textEdit->toPlainText();
+            std::istringstream iss(inputText.toStdString());
             std::string word;
-            wxString result;
-            wxTextAttr redAttr(*wxRED); // Red text for misspelled words
-            wxTextAttr greenAttr(*wxGREEN); // Green text for unchanged words
+            textEdit->clear();
 
-            tc->Clear();
+            while (iss >> word) {
+                std::vector<std::string> suggestions =
+                    corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 1);
+                QString correctedWord = (!suggestions.empty())
+                                            ? QString::fromStdString(suggestions[0])
+                                            : QString::fromStdString(word);
 
-            while (iss >> word) { // Read word or sentence
-                std::vector<std::string> suggestions = corrector.GetTopSuggestions(corrector.SuggestCorrections(word), 1);
-                wxString correctedWord = (!suggestions.empty()) ? wxString(suggestions[0]) : wxString(word);
+                if (correctedWord == QString::fromStdString(word)) {
+                    textEdit->setTextColor(Qt::green);
+                } else {
+                    textEdit->setTextColor(Qt::red);
+                }
 
-                wxTextAttr colorAttr = (correctedWord.IsSameAs(word, false)) ? greenAttr : redAttr;
-                tc->SetDefaultStyle(colorAttr);
-                tc->AppendText(correctedWord + " ");
+                textEdit->insertPlainText(correctedWord + " ");
             }
         });
     }
 };
 
-class SpellCheckerApp : public wxApp {
-public:
-    virtual bool OnInit() {
-        SpellCheckerFrame *frame = new SpellCheckerFrame(wxT("Corrector Ortográfico"));
-        frame->Show(true);
-        return true;
-    }
-};
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
 
-wxIMPLEMENT_APP(SpellCheckerApp);
+    SpellCheckerWidget widget;
+    widget.setWindowTitle("Corrector Ortográfico");
+    widget.resize(500, 300);
+    widget.show();
+
+    return app.exec();
+}
