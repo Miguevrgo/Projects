@@ -1,6 +1,6 @@
 use crossterm::event::{read, Event, Event::Key, KeyCode::Char, KeyEvent, KeyModifiers};
+use terminal::{Position, Size, Terminal};
 mod terminal;
-use terminal::Terminal;
 
 #[derive(Default)]
 pub struct Editor {
@@ -20,6 +20,7 @@ impl Editor {
     }
 
     fn repl(&mut self) -> Result<(), std::io::Error> {
+        Terminal::print("Welcome to Oxide")?;
         loop {
             let event = read()?;
             self.evaluate_event(&event);
@@ -49,20 +50,22 @@ impl Editor {
         Terminal::hide_cursor()?;
         if self.should_quit {
             Terminal::clear_screen()?;
-            print!("Bye\r\n");
+            Terminal::print("Bye\r\n")?;
         } else {
             Self::draw_rows()?;
-            Terminal::move_cursor_to(0, 0)?;
+            Terminal::move_cursor_to(Position { x: 0, y: 0 })?;
         }
         Terminal::show_cursor()?;
+        Terminal::execute()?;
         Ok(())
     }
 
     fn draw_rows() -> Result<(), std::io::Error> {
-        let height = Terminal::size()?.1;
-        for current_row in 0..height {
+        let Size { height, .. } = Terminal::size()?;
+        for row in 0..height {
+            Terminal::clear_line()?;
             print!("~");
-            if current_row + 1 < height {
+            if row + 1 < height {
                 print!("\r\n");
             }
         }
