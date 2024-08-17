@@ -1,8 +1,7 @@
+mod buffer;
 mod editor;
-use editor::Editor;
+mod terminal;
 
 fn main() {
-    let mut oxide = Editor::new();
-
-    oxide.run();
+    let oxide = 1;
 }
