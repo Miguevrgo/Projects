@@ -1,53 +1,53 @@
-use buffer::GapBuffer;
-
 mod buffer;
-mod editor;
-//mod terminal;
+mod status_bar;
+mod terminal;
 
-use crossterm::{
-    cursor,
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
-    execute, terminal,
-};
-use std::io::{self, Write};
+use buffer::GapBuffer;
+use crossterm::event::KeyCode;
+use status_bar::StatusBar;
+use terminal::Terminal;
 
-fn main() -> Result<(), std::io::Error> {
-    let mut buffer = GapBuffer::from_string("Hello");
-
-    // Inicializar terminal
-    let mut stdout = io::stdout();
-    terminal::enable_raw_mode()?;
-    execute!(stdout, terminal::EnterAlternateScreen, EnableMouseCapture)?;
+fn main() {
+    Terminal::init();
+    let mut buffer = GapBuffer::from_string("Welcome to Oxide-Editor!");
+    let filename = "untitled.txt";
+    let mut status_bar = StatusBar::new(filename);
 
     loop {
-        // Limpiar la pantalla y mover el cursor
-        execute!(
-            stdout,
-            terminal::Clear(terminal::ClearType::All),
-            cursor::MoveTo(0, 0)
-        )?;
+        Terminal::clear_screen();
 
-        // Mostrar el contenido del buffer
-        buffer.print_buffer();
-        stdout.flush()?;
+        Terminal::render_text(&buffer.extract_text());
 
-        // Leer la entrada del usuario
-        if let Event::Key(KeyEvent { code, .. }) = event::read()? {
-            match code {
-                KeyCode::Char(c) => buffer.insert_char(c), // Insertar carácter
-                KeyCode::Backspace => buffer.backspace(),  // Eliminar carácter antes del cursor
-                KeyCode::Delete => buffer.delete(),        // Eliminar carácter después del cursor
-                KeyCode::Left => buffer.cursor_left(),     // Mover cursor a la izquierda
-                KeyCode::Right => buffer.cursor_right(),   // Mover cursor a la derecha
-                KeyCode::Esc => break,                     // Salir del bucle con Esc
-                _ => {}                                    // Ignorar otras teclas
+        status_bar.render();
+
+        if let Some(key) = Terminal::read_key() {
+            match key {
+                KeyCode::Esc | KeyCode::Char('q') => break,
+                KeyCode::Char(c) => {
+                    buffer.insert_char(c);
+                    status_bar.update("INSERT");
+                }
+                KeyCode::Left => {
+                    buffer.cursor_left();
+                    status_bar.update("NORMAL");
+                }
+                KeyCode::Right => {
+                    buffer.cursor_right();
+                    status_bar.update("NORMAL");
+                }
+                KeyCode::Backspace => {
+                    buffer.backspace();
+                    status_bar.update("INSERT");
+                }
+                KeyCode::Delete => {
+                    buffer.delete();
+                    status_bar.update("INSERT");
+                }
+                _ => {}
             }
         }
     }
 
-    // Restaurar el estado de la terminal
-    execute!(stdout, DisableMouseCapture, terminal::LeaveAlternateScreen)?;
-    terminal::disable_raw_mode()?;
-
-    Ok(())
+    // Restaurar la terminal
+    Terminal::restore();
 }
