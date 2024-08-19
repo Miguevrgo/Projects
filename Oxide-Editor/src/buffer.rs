@@ -14,6 +14,7 @@ pub struct GapBuffer {
     text: Vec<char>,
     gap_start: usize, // Cursor
     gap_end: usize,
+    line_indices: Vec<usize>,
 }
 
 #[allow(dead_code)]
@@ -23,6 +24,24 @@ impl GapBuffer {
             text: vec![' '; max(size, MIN_BUF_SIZE)],
             gap_start: 0,
             gap_end: size,
+            line_indices: vec![0],
+        }
+    }
+
+    pub fn update_line_indices(&mut self) {
+        self.line_indices.clear();
+        self.line_indices.push(0);
+
+        for i in 0..self.gap_start {
+            if self.text[i] == '\n' {
+                self.line_indices.push(i + 1);
+            }
+        }
+
+        for i in self.gap_end..self.text.len() {
+            if self.text[i] == '\n' {
+                self.line_indices.push(i + 1);
+            }
         }
     }
 
@@ -58,6 +77,11 @@ impl GapBuffer {
 
         self.text[self.gap_start] = ch;
         self.gap_start += 1;
+
+        if ch == '\n' {
+            self.line_indices.push(self.gap_start);
+            self.line_indices.sort_unstable();
+        }
     }
 
     pub fn cursor_left(&mut self) {
@@ -76,6 +100,39 @@ impl GapBuffer {
         }
     }
 
+    pub fn cursor_up(&mut self) {
+        let current_line = self.get_line_number();
+        if current_line > 0 {
+            self.gap_start = self.line_indices[current_line];
+        }
+    }
+
+    pub fn cursor_down(&mut self) {
+        let current_line = self.get_line_number();
+        if current_line < self.line_indices.len() {
+            self.gap_start = self.line_indices[current_line];
+        }
+    }
+    // Lets ignore this logic now and just not allow for going up in lines
+    // pub fn backspace(&mut self) {
+    //      if self.gap_start > 0 {
+    //          self.gap_start -= 1;
+    //          if self.text[self.gap_start] == '\n' {
+    //              let line_idx = self.line_indices.binary_search(&(self.gap_start + 1)).unwrap();
+    //              self.line_indices.remove(line_idx);
+    //          }
+    //      }
+    //  }
+    //
+    //  pub fn delete(&mut self) {
+    //      if self.gap_end < self.text.len() {
+    //          if self.text[self.gap_end] == '\n' {
+    //              let line_idx = self.line_indices.binary_search(&(self.gap_end + 1)).unwrap();
+    //              self.line_indices.remove(line_idx);
+    //          }
+    //          self.gap_end += 1;
+    //      }
+    //  }
     pub fn backspace(&mut self) {
         if self.gap_start > 0 {
             self.gap_start -= 1;
@@ -90,11 +147,42 @@ impl GapBuffer {
         //       todo!("Shrink when len < len/4");
     }
 
+    pub fn get_line_number(&self) -> usize {
+        match self.line_indices.binary_search(&self.gap_start) {
+            Ok(line) => line,
+            Err(line) => line - 1,
+        }
+    }
+
+    pub fn get_cursor_position(&self) -> (u16, u16) {
+        let line_start = self.line_indices[self.get_line_number()];
+        let x = self.gap_start - line_start;
+        (x as u16, self.get_line_number() as u16)
+    }
+
     pub fn extract_text(&mut self) -> String {
         let mut result = String::new();
         result.extend(&self.text[..self.gap_start]);
         result.extend(&self.text[self.gap_end..]);
         result
+    }
+
+    pub fn get_lines(&self) -> Vec<String> {
+        let mut lines = Vec::new();
+
+        for i in 0..self.line_indices.len() {
+            let start = self.line_indices[i];
+            let end = if i + 1 < self.line_indices.len() {
+                self.line_indices[i + 1] - 1
+            } else {
+                self.gap_start + (self.text.len() - self.gap_end)
+            };
+            let mut line = String::new();
+            line.extend(&self.text[start..end]);
+            lines.push(line);
+        }
+        todo!("Fix it");
+        lines
     }
 
     pub fn print_buffer(&mut self) {
