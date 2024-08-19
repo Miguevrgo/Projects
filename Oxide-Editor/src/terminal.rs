@@ -1,7 +1,7 @@
 use std::io::stdout;
 
 use crossterm::{
-    cursor::{Hide, MoveTo, Show},
+    cursor::{Hide, MoveTo, MoveToNextLine, Show},
     event::{read, Event, KeyCode},
     execute,
     style::Print,
@@ -13,28 +13,30 @@ use crossterm::{
 
 pub struct Terminal;
 
+#[allow(dead_code)]
 impl Terminal {
     pub fn init() {
-        let mut stdout = stdout();
-        execute!(stdout, EnterAlternateScreen, Hide).unwrap();
-        execute!(stdout, SetTitle("Oxide")).unwrap();
+        execute!(stdout(), EnterAlternateScreen, Hide).unwrap();
+        execute!(stdout(), SetTitle("Oxide")).unwrap();
         enable_raw_mode().unwrap();
     }
 
     pub fn restore() {
-        let mut stdout = stdout();
-        execute!(stdout, Show, LeaveAlternateScreen).unwrap();
+        execute!(stdout(), Show, LeaveAlternateScreen).unwrap();
         disable_raw_mode().unwrap();
     }
 
     pub fn clear_screen() {
-        let mut stdout = stdout();
-        execute!(stdout, Clear(ClearType::All), MoveTo(0, 0)).unwrap();
+        execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0)).unwrap();
     }
 
     pub fn render_text(text: &str) {
-        let mut stdout = stdout();
-        execute!(stdout, Print(text)).unwrap();
+        let text = text.replace('\n', "\n\r");
+        execute!(stdout(), Print(text)).unwrap();
+    }
+
+    pub fn render_new_line() {
+        execute!(stdout(), MoveToNextLine(1)).unwrap();
     }
 
     pub fn read_key() -> Option<KeyCode> {
@@ -45,8 +47,11 @@ impl Terminal {
         }
     }
 
+    pub fn show_cursor() {
+        execute!(stdout(), Show).unwrap();
+    }
+
     pub fn move_cursor_to(x: u16, y: u16) {
-        let mut stdout = stdout();
-        execute!(stdout, MoveTo(x, y)).unwrap();
+        execute!(stdout(), MoveTo(x, y)).unwrap();
     }
 }
