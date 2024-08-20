@@ -94,14 +94,12 @@ impl GapBuffer {
         }
     }
 
-    pub fn cursor_right(&mut self) -> bool {
+    pub fn cursor_right(&mut self) {
         if self.gap_end < self.text.len() {
             self.text[self.gap_start] = self.text[self.gap_end];
             self.gap_start += 1;
             self.gap_end += 1;
-            return true;
         }
-        false
     }
 
     pub fn backspace(&mut self) {
@@ -126,7 +124,7 @@ impl GapBuffer {
     }
 
     pub fn get_cursor_position(&self) -> (u16, u16) {
-        let line_start = self.line_indices[self.get_line_number()];
+        let line_start = self.line_indices[self.get_line_number() - 1];
         let x = self.gap_start - line_start;
         (x as u16, self.get_line_number() as u16)
     }
