@@ -30,8 +30,16 @@ impl Terminal {
         execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0)).unwrap();
     }
 
+    pub fn render_multiline_text(text: &str, line_jumps: &Vec<usize>) {
+        let mut text = text.to_string();
+        for pos in line_jumps {
+            text.insert(*pos, '\r');
+        }
+
+        execute!(stdout(), Print(text)).unwrap();
+    }
+
     pub fn render_text(text: &str) {
-        let text = text.replace('\n', "\n\r");
         execute!(stdout(), Print(text)).unwrap();
     }
 
