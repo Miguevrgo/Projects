@@ -7,7 +7,7 @@ use editor::Editor;
 
 fn main() {
     let filename = "untitled.txt";
-    let initial_text = "Welcome to Oxide-Editor!";
+    let initial_text = "holas\r\nndo cruel\r\nerro";
 
     let mut editor = Editor::new(filename, initial_text);
     editor.run();
