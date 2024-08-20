@@ -28,6 +28,10 @@ impl GapBuffer {
         }
     }
 
+    pub fn get_line_indices(&mut self) -> Vec<usize> {
+        self.line_indices.clone()
+    }
+
     pub fn update_line_indices(&mut self) {
         self.line_indices.clear();
         self.line_indices.push(0);
@@ -181,7 +185,6 @@ impl GapBuffer {
             line.extend(&self.text[start..end]);
             lines.push(line);
         }
-        todo!("Fix it");
         lines
     }
 

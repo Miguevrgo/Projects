@@ -50,7 +50,10 @@ impl Editor {
     fn render(&mut self) {
         Terminal::clear_screen();
 
-        Terminal::render_text(&self.buffer.extract_text());
+        Terminal::render_multiline_text(
+            &self.buffer.extract_text(),
+            &self.buffer.get_line_indices(),
+        );
         self.status_bar.render();
         Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
     }
