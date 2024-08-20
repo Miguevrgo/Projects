@@ -1,7 +1,7 @@
 use std::io::stdout;
 
 use crossterm::{
-    cursor::{Hide, MoveTo, MoveToNextLine, Show},
+    cursor::{Hide, MoveTo, Show},
     event::{read, Event, KeyCode},
     execute,
     style::Print,
@@ -13,38 +13,35 @@ use crossterm::{
 
 pub struct Terminal;
 
-#[allow(dead_code)]
 impl Terminal {
+    /// Initializes the terminal for the editor, setting its title name to Oxide
+    /// and enabling raw_mode
     pub fn init() {
         execute!(stdout(), EnterAlternateScreen, Hide).unwrap();
         execute!(stdout(), SetTitle("Oxide")).unwrap();
         enable_raw_mode().unwrap();
     }
 
+    /// Restores the terminal to its original state
     pub fn restore() {
         execute!(stdout(), Show, LeaveAlternateScreen).unwrap();
         disable_raw_mode().unwrap();
     }
 
+    /// Clears the terminal screen and moves the cursor to (0,0)
     pub fn clear_screen() {
         execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0)).unwrap();
     }
 
-    pub fn render_multiline_text(text: &str, line_jumps: &Vec<usize>) {
-        let mut text = text.to_string();
-        for pos in line_jumps {
-            text.insert(*pos, '\r');
-        }
-
-        execute!(stdout(), Print(text)).unwrap();
-    }
-
+    /// Renders the given text to the terminal without any formatting
+    /// or cursor movement
+    ///
+    /// # Arguments
+    ///
+    /// * `text`- The text to render to the terminal with type
+    ///
     pub fn render_text(text: &str) {
         execute!(stdout(), Print(text)).unwrap();
-    }
-
-    pub fn render_new_line() {
-        execute!(stdout(), MoveToNextLine(1)).unwrap();
     }
 
     pub fn read_key() -> Option<KeyCode> {

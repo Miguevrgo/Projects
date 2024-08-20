@@ -5,13 +5,19 @@ use crossterm::{
     terminal::{size, Clear, ClearType},
 };
 use std::io::stdout;
-
+/// The 'StatusBar' struct represents the status bar in the lower part of the editor
 pub struct StatusBar {
     filename: String,
     mode: String,
 }
 
 impl StatusBar {
+    /// Creates a new 'StatusBar' instance.
+    ///
+    /// # Arguments
+    ///
+    /// * 'filename' - The name of the file being edited
+    /// #TODO: Change filename to path from root directory back
     pub fn new(filename: &str) -> Self {
         Self {
             filename: filename.to_string(),
@@ -19,10 +25,17 @@ impl StatusBar {
         }
     }
 
+    /// Updates the status message shown in the status bar.
+    ///
+    /// # Arguments
+    ///
+    /// * 'status' - The new status message to display
     pub fn update(&mut self, mode: &str) {
         self.mode = mode.to_string();
     }
 
+    /// Renders the status bar on the bottom of the screen,
+    /// This involves printing Styled mode and filename
     pub fn render(&self) {
         let (cols, rows) = size().unwrap();
         let arrow = "";

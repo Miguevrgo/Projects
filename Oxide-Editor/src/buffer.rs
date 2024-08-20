@@ -17,7 +17,6 @@ pub struct GapBuffer {
     line_indices: Vec<usize>,
 }
 
-#[allow(dead_code)]
 impl GapBuffer {
     pub fn new(size: usize) -> Self {
         Self {
@@ -28,25 +27,8 @@ impl GapBuffer {
         }
     }
 
-    pub fn get_line_indices(&mut self) -> Vec<usize> {
-        self.line_indices.clone()
-    }
-
-    pub fn update_line_indices(&mut self) {
-        self.line_indices.clear();
-        self.line_indices.push(0);
-
-        for i in 0..self.gap_start {
-            if self.text[i] == '\n' {
-                self.line_indices.push(i + 1);
-            }
-        }
-
-        for i in self.gap_end..self.text.len() {
-            if self.text[i] == '\n' {
-                self.line_indices.push(i + 1);
-            }
-        }
+    pub fn is_new_line(&self) -> bool {
+        self.text[self.gap_start] == '\n' || self.text[self.gap_start] == '\r'
     }
 
     pub fn grow_bufffer(&mut self, mut new_size: usize) {
@@ -68,7 +50,11 @@ impl GapBuffer {
         let mut buffer = Self::new(s.len() + 16);
 
         for ch in s.chars() {
-            buffer.insert_char(ch);
+            match ch {
+                '\n' => buffer.insert_new_line(),
+                '\r' => continue,
+                _ => buffer.insert_char(ch),
+            }
         }
         buffer
     }
@@ -81,11 +67,23 @@ impl GapBuffer {
 
         self.text[self.gap_start] = ch;
         self.gap_start += 1;
+    }
 
-        if ch == '\n' {
-            self.line_indices.push(self.gap_start);
-            self.line_indices.sort_unstable();
+    pub fn insert_new_line(&mut self) {
+        if self.gap_start + 1 == self.gap_end {
+            let new_size = saturating_dbl(self.text.len());
+            self.grow_bufffer(new_size)
         }
+
+        self.text[self.gap_start] = '\n';
+        self.gap_start += 1;
+        self.text[self.gap_start] = '\r';
+        self.gap_start += 1;
+        self.line_indices.push(self.gap_start);
+    }
+
+    pub fn cursor_position(&self) -> usize {
+        self.gap_start
     }
 
     pub fn cursor_left(&mut self) {
@@ -96,47 +94,16 @@ impl GapBuffer {
         }
     }
 
-    pub fn cursor_right(&mut self) {
+    pub fn cursor_right(&mut self) -> bool {
         if self.gap_end < self.text.len() {
             self.text[self.gap_start] = self.text[self.gap_end];
             self.gap_start += 1;
             self.gap_end += 1;
+            return true;
         }
+        false
     }
 
-    pub fn cursor_up(&mut self) {
-        let current_line = self.get_line_number();
-        if current_line > 0 {
-            self.gap_start = self.line_indices[current_line];
-        }
-    }
-
-    pub fn cursor_down(&mut self) {
-        let current_line = self.get_line_number();
-        if current_line < self.line_indices.len() {
-            self.gap_start = self.line_indices[current_line];
-        }
-    }
-    // Lets ignore this logic now and just not allow for going up in lines
-    // pub fn backspace(&mut self) {
-    //      if self.gap_start > 0 {
-    //          self.gap_start -= 1;
-    //          if self.text[self.gap_start] == '\n' {
-    //              let line_idx = self.line_indices.binary_search(&(self.gap_start + 1)).unwrap();
-    //              self.line_indices.remove(line_idx);
-    //          }
-    //      }
-    //  }
-    //
-    //  pub fn delete(&mut self) {
-    //      if self.gap_end < self.text.len() {
-    //          if self.text[self.gap_end] == '\n' {
-    //              let line_idx = self.line_indices.binary_search(&(self.gap_end + 1)).unwrap();
-    //              self.line_indices.remove(line_idx);
-    //          }
-    //          self.gap_end += 1;
-    //      }
-    //  }
     pub fn backspace(&mut self) {
         if self.gap_start > 0 {
             self.gap_start -= 1;
@@ -173,23 +140,24 @@ impl GapBuffer {
 
     pub fn get_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
+        let mut line = String::new();
 
-        for i in 0..self.line_indices.len() {
-            let start = self.line_indices[i];
-            let end = if i + 1 < self.line_indices.len() {
-                self.line_indices[i + 1] - 1
+        for (i, &ch) in self.text.iter().enumerate() {
+            if i == self.gap_start {
+                line.extend(&self.text[self.gap_end..]);
+            }
+            if ch == '\n' {
+                lines.push(line.clone());
+                line.clear();
             } else {
-                self.gap_start + (self.text.len() - self.gap_end)
-            };
-            let mut line = String::new();
-            line.extend(&self.text[start..end]);
+                line.push(ch);
+            }
+        }
+
+        if !line.is_empty() {
             lines.push(line);
         }
-        lines
-    }
 
-    pub fn print_buffer(&mut self) {
-        let text = self.extract_text();
-        println!("{}", text);
+        lines
     }
 }

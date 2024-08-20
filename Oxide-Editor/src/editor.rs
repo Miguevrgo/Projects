@@ -49,11 +49,7 @@ impl Editor {
 
     fn render(&mut self) {
         Terminal::clear_screen();
-
-        Terminal::render_multiline_text(
-            &self.buffer.extract_text(),
-            &self.buffer.get_line_indices(),
-        );
+        Terminal::render_text(&self.buffer.extract_text());
         self.status_bar.render();
         Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
     }
@@ -76,21 +72,28 @@ impl Editor {
 
     fn move_cursor_left(&mut self) {
         self.buffer.cursor_left();
-        self.update_status_bar(MODE_NORMAL);
-        if self.cursor_x > 0 {
+        if self.buffer.is_new_line() {
+            self.buffer.cursor_left();
+            self.cursor_y -= 1;
+            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 1) as u16;
+        } else if self.cursor_x > 0 {
             self.cursor_x -= 1;
         }
+        self.update_status_bar(MODE_NORMAL);
     }
 
     fn move_cursor_right(&mut self) {
-        let (cursor_x, cursor_y) = self.buffer.get_cursor_position();
-        let lines = self.buffer.get_lines();
-        if cursor_y as usize >= lines.len() || cursor_x as usize >= lines[cursor_y as usize].len() {
-            return;
+        if self.buffer.cursor_position() < self.buffer.extract_text().len() {
+            self.buffer.cursor_right();
+            if self.buffer.is_new_line() {
+                self.buffer.cursor_right(); // Move past '\r' if present
+                self.cursor_y += 1;
+                self.cursor_x = 0;
+            } else {
+                self.cursor_x += 1;
+            }
+            self.update_status_bar(MODE_NORMAL);
         }
-        self.buffer.cursor_right();
-        self.update_status_bar(MODE_NORMAL);
-        self.cursor_x += 1;
     }
 
     fn backspace_char(&mut self) {
@@ -107,19 +110,11 @@ impl Editor {
     }
 
     fn insert_newline(&mut self) {
-        self.buffer.insert_char('\n');
+        self.buffer.insert_new_line();
 
         self.update_status_bar(MODE_INSERT);
         self.cursor_x = 0;
         self.cursor_y += 1;
-    }
-
-    fn show_numbers(&mut self) {
-        let lines = self.buffer.get_lines();
-
-        for (i, line) in lines.iter().enumerate() {
-            Terminal::render_text(&format!("{:>4} {}", i + 1, line));
-        }
     }
 
     pub fn exit(&self) {
