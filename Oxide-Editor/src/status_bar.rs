@@ -5,6 +5,30 @@ use crossterm::{
     terminal::{size, Clear, ClearType},
 };
 use std::io::stdout;
+
+const COLOR_MODE_INSERT: Color = Color::Rgb {
+    r: 97,
+    g: 175,
+    b: 239,
+};
+const COLOR_MODE_NORMAL: Color = Color::Rgb {
+    r: 152,
+    g: 195,
+    b: 119,
+};
+
+const LIGHT_GRAY_BACKGROUND: Color = Color::Rgb {
+    r: 59,
+    g: 63,
+    b: 76,
+};
+
+const GRAY_BACKGROUND: Color = Color::Rgb {
+    r: 49,
+    g: 53,
+    b: 63,
+};
+
 /// The 'StatusBar' struct represents the status bar in the lower part of the editor
 pub struct StatusBar {
     filename: String,
@@ -49,64 +73,29 @@ impl StatusBar {
         };
 
         let status_bar = format!(
-            "{}{}{}{}{}{}",
+            "{}{}{}{}{}",
             format!(" {} ", self.mode)
-                .with(Color::Rgb {
-                    r: 40,
-                    g: 44,
-                    b: 52
-                })
-                .on(Color::Rgb {
-                    r: 152,
-                    g: 195,
-                    b: 119
+                .with(GRAY_BACKGROUND)
+                .on(if self.mode == "INSERT" {
+                    COLOR_MODE_INSERT
+                } else {
+                    COLOR_MODE_NORMAL
                 })
                 .bold(),
             arrow
-                .with(Color::Rgb {
-                    r: 152,
-                    g: 195,
-                    b: 119
+                .with(if self.mode == "INSERT" {
+                    COLOR_MODE_INSERT
+                } else {
+                    COLOR_MODE_NORMAL
                 })
-                .on(Color::Rgb {
-                    r: 59,
-                    g: 63,
-                    b: 76
-                }),
-            " File ".with(Color::White).on(Color::Rgb {
-                r: 59,
-                g: 63,
-                b: 76
-            }),
-            arrow
-                .with(Color::Rgb {
-                    r: 59,
-                    g: 63,
-                    b: 76
-                })
-                .on(Color::Rgb {
-                    r: 49,
-                    g: 53,
-                    b: 63
-                }),
-            format!(" {} ", self.filename)
+                .on(LIGHT_GRAY_BACKGROUND),
+            " File ".with(Color::White).on(LIGHT_GRAY_BACKGROUND),
+            arrow.with(LIGHT_GRAY_BACKGROUND).on(GRAY_BACKGROUND),
+            format!(" {} {}", self.filename, padding)
                 .with(Color::White)
-                .on(Color::Rgb {
-                    r: 49,
-                    g: 53,
-                    b: 63
-                }),
-            padding.on(Color::Rgb {
-                r: 49,
-                g: 53,
-                b: 63
-            })
+                .on(GRAY_BACKGROUND),
         )
-        .on(Color::Rgb {
-            r: 152,
-            g: 195,
-            b: 119,
-        });
+        .on(Color::Grey);
 
         execute!(
             stdout(),
