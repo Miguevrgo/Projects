@@ -13,9 +13,12 @@ const MODE_NORMAL: usize = 2;
 
 impl Editor {
     pub fn new(filename: &str, initial_text: &str) -> Self {
-        let buffer = GapBuffer::from_string(initial_text);
+        let buffer = GapBuffer::from(initial_text);
         let status_bar = StatusBar::new(filename);
-        let (cursor_x, cursor_y) = buffer.get_cursor_position();
+        let (cursor_x, cursor_y) = (
+            buffer.cursor_after_last_crlf() as u16,
+            buffer.get_num_lines() - 1,
+        );
         Terminal::init();
 
         Self {
@@ -70,23 +73,37 @@ impl Editor {
         self.status_bar.update(mode_str);
     }
 
-    fn move_cursor_left(&mut self) {
+    fn old_move_cursor_left(&mut self) {
         self.buffer.cursor_left();
-        if self.buffer.is_new_line() {
+        if self.buffer.is_crlf() {
             self.buffer.cursor_left();
             self.cursor_y -= 1;
-            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 1) as u16;
+            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 2) as u16;
         } else if self.cursor_x > 0 {
             self.cursor_x -= 1;
         }
         self.update_status_bar(MODE_NORMAL);
     }
+    fn move_cursor_left(&mut self) {
+        if self.cursor_x > 0 {
+            self.buffer.cursor_left();
+            self.cursor_x -= 1;
+        } else {
+            self.buffer.cursor_left();
+            self.buffer.cursor_left();
+            self.cursor_y -= 1;
+            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 2) as u16;
+        }
+        self.update_status_bar(MODE_NORMAL);
+    }
 
     fn move_cursor_right(&mut self) {
-        if self.buffer.cursor_position() < self.buffer.extract_text().len() {
+        if self.buffer.cursor_after_last_crlf()
+            < self.buffer.get_lines()[self.cursor_y as usize].len()
+        {
             self.buffer.cursor_right();
-            if self.buffer.is_new_line() {
-                self.buffer.cursor_right(); // Move past '\r' if present
+            if self.buffer.is_crlf() {
+                self.buffer.cursor_right();
                 self.cursor_y += 1;
                 self.cursor_x = 0;
             } else {
@@ -97,9 +114,9 @@ impl Editor {
     }
 
     fn backspace_char(&mut self) {
-        self.buffer.backspace();
-        self.update_status_bar(MODE_INSERT);
         if self.cursor_x > 0 {
+            self.buffer.backspace();
+            self.update_status_bar(MODE_INSERT);
             self.cursor_x -= 1;
         }
     }
@@ -110,7 +127,8 @@ impl Editor {
     }
 
     fn insert_newline(&mut self) {
-        self.buffer.insert_new_line();
+        self.buffer.insert_char('\r');
+        self.buffer.insert_char('\n');
 
         self.update_status_bar(MODE_INSERT);
         self.cursor_x = 0;
