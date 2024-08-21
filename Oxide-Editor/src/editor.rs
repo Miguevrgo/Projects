@@ -73,43 +73,28 @@ impl Editor {
         self.status_bar.update(mode_str);
     }
 
-    fn old_move_cursor_left(&mut self) {
-        self.buffer.cursor_left();
-        if self.buffer.is_crlf() {
-            self.buffer.cursor_left();
-            self.cursor_y -= 1;
-            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 2) as u16;
-        } else if self.cursor_x > 0 {
-            self.cursor_x -= 1;
-        }
-        self.update_status_bar(MODE_NORMAL);
-    }
     fn move_cursor_left(&mut self) {
         if self.cursor_x > 0 {
             self.buffer.cursor_left();
             self.cursor_x -= 1;
-        } else {
+        } else if self.cursor_y > 0 {
             self.buffer.cursor_left();
             self.buffer.cursor_left();
             self.cursor_y -= 1;
-            self.cursor_x = (self.buffer.get_lines()[self.cursor_y as usize].len() - 2) as u16;
+            self.cursor_x = self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
         }
         self.update_status_bar(MODE_NORMAL);
     }
 
     fn move_cursor_right(&mut self) {
-        if self.buffer.cursor_after_last_crlf()
-            < self.buffer.get_lines()[self.cursor_y as usize].len()
-        {
+        if self.cursor_x < self.buffer.get_lines()[self.cursor_y as usize].len() as u16 {
             self.buffer.cursor_right();
-            if self.buffer.is_crlf() {
-                self.buffer.cursor_right();
-                self.cursor_y += 1;
-                self.cursor_x = 0;
-            } else {
-                self.cursor_x += 1;
-            }
-            self.update_status_bar(MODE_NORMAL);
+            self.cursor_x += 1;
+        } else if self.cursor_y < self.buffer.get_num_lines() - 1 {
+            self.buffer.cursor_right();
+            self.buffer.cursor_right();
+            self.cursor_y += 1;
+            self.cursor_x = 0;
         }
     }
 
