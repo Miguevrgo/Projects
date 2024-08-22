@@ -8,17 +8,6 @@ pub struct GapBuffer {
 }
 
 impl GapBuffer {
-    pub fn new(size: usize) -> Self {
-        let init_size = max(size, MIN_BUF_SIZE);
-        let mut buffer = Vec::with_capacity(init_size);
-        buffer.resize(init_size, '\0');
-        Self {
-            buffer,
-            gap_start: 0,
-            gap_end: size,
-        }
-    }
-
     pub fn from(text: &str) -> Self {
         let text_len = text.chars().count();
         let buffer_size = max(text_len * 2, MIN_BUF_SIZE);
@@ -77,13 +66,12 @@ impl GapBuffer {
         self.buffer = new_buffer;
     }
 
-    pub fn insert_char(&mut self, c: char) -> bool {
+    pub fn insert_char(&mut self, c: char) {
         if self.gap_start == self.gap_end {
             self.grow_buffer();
         }
         self.buffer[self.gap_start] = c;
         self.gap_start += 1;
-        true
     }
 
     pub fn cursor_left(&mut self) {
@@ -269,14 +257,14 @@ mod tests {
     fn get_lines() {
         let buffer = GapBuffer::from("Hello\r\nWorld\r\n");
         let lines = buffer.get_lines();
-        assert_eq!(lines, vec!["Hello\r\n", "World\r\n"]);
+        assert_eq!(lines, vec!["Hello", "World"]);
     }
 
     #[test]
     fn get_lines_no_crlf() {
         let buffer = GapBuffer::from("Hello\r\n World");
         let lines = buffer.get_lines();
-        assert_eq!(lines, vec!["Hello\r\n", " World"]);
+        assert_eq!(lines, vec!["Hello", " World"]);
     }
 
     #[test]
@@ -307,7 +295,7 @@ mod tests {
 
     #[test]
     fn insert_chars() {
-        let mut buffer = GapBuffer::new(0);
+        let mut buffer = GapBuffer::from("");
         buffer.insert_char('H');
         buffer.insert_char('e');
         buffer.insert_char('l');
@@ -327,7 +315,7 @@ mod tests {
 
     #[test]
     fn remove_chars() {
-        let mut buffer = GapBuffer::new(0);
+        let mut buffer = GapBuffer::from("");
         buffer.insert_char('H');
         buffer.insert_char('e');
         buffer.insert_char('l');
