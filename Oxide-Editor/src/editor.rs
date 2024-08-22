@@ -45,6 +45,7 @@ impl Editor {
                     KeyCode::Backspace => self.backspace_char(),
                     KeyCode::Delete => self.delete_char(),
                     KeyCode::Enter => self.insert_newline(),
+                    KeyCode::Tab => self.insert_tab(),
                     _ => {}
                 }
                 Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
@@ -57,6 +58,14 @@ impl Editor {
         Terminal::render_text(&self.buffer.extract_text());
         self.status_bar.render();
         Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
+    }
+
+    fn insert_tab(&mut self) {
+        self.buffer.insert_char(' ');
+        self.buffer.insert_char(' ');
+        self.buffer.insert_char(' ');
+        self.buffer.insert_char(' ');
+        self.cursor_x += 4;
     }
 
     fn insert_char(&mut self, ch: char) {
@@ -105,6 +114,11 @@ impl Editor {
             self.buffer.backspace();
             self.update_status_bar(MODE_INSERT);
             self.cursor_x -= 1;
+        } else if self.cursor_y > 0 {
+            self.buffer.backspace();
+            self.buffer.backspace();
+            self.cursor_y -= 1;
+            self.cursor_x = self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
         }
     }
 

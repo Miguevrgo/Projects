@@ -5,21 +5,19 @@ mod terminal;
 
 use editor::Editor;
 
-fn main() {
+fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: Oxide <filename>");
-        std::process::exit(1);
+    if args.len() == 2 {
+        let filename = &args[1];
+        let file_path = std::path::Path::new(filename);
+
+        if !std::path::Path::is_file(file_path) {
+            std::fs::File::create(filename)?;
+        }
+        let mut editor = Editor::new(filename);
+        editor.run();
+        editor.exit();
     }
 
-    let filename = &args[1];
-    let file_path = std::path::Path::new(filename);
-
-    if !std::path::Path::is_file(file_path) {
-        eprintln!("File not found: {}", filename);
-        std::process::exit(1);
-    }
-    let mut editor = Editor::new(filename);
-    editor.run();
-    editor.exit();
+    Ok(())
 }
