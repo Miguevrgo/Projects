@@ -6,10 +6,20 @@ mod terminal;
 use editor::Editor;
 
 fn main() {
-    let filename = "untitled.txt";
-    let initial_text = "holas\r\nndo cruel\r\nerro";
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: Oxide <filename>");
+        std::process::exit(1);
+    }
 
-    let mut editor = Editor::new(filename, initial_text);
+    let filename = &args[1];
+    let file_path = std::path::Path::new(filename);
+
+    if !std::path::Path::is_file(file_path) {
+        eprintln!("File not found: {}", filename);
+        std::process::exit(1);
+    }
+    let mut editor = Editor::new(filename);
     editor.run();
     editor.exit();
 }

@@ -12,8 +12,10 @@ const MODE_INSERT: usize = 1;
 const MODE_NORMAL: usize = 2;
 
 impl Editor {
-    pub fn new(filename: &str, initial_text: &str) -> Self {
-        let buffer = GapBuffer::from(initial_text);
+    pub fn new(filename: &str) -> Self {
+        let initial_text = std::fs::read_to_string(filename).unwrap_or_else(|_| String::new());
+        let initial_text = Self::parse_text(initial_text);
+        let buffer = GapBuffer::from(&initial_text);
         let status_bar = StatusBar::new(filename);
         let (cursor_x, cursor_y) = (
             buffer.cursor_after_last_crlf() as u16,
@@ -118,6 +120,18 @@ impl Editor {
         self.update_status_bar(MODE_INSERT);
         self.cursor_x = 0;
         self.cursor_y += 1;
+    }
+
+    pub fn parse_text(mut text: String) -> String {
+        let mut i = 0;
+        while i < text.len() {
+            if text.as_bytes()[i] == b'\n' {
+                text.insert(i, '\r');
+                i += 1; // Avanzar el índice para evitar un bucle infinito
+            }
+            i += 1;
+        }
+        text
     }
 
     pub fn exit(&self) {
