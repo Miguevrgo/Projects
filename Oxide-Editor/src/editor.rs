@@ -38,7 +38,7 @@ impl Editor {
 
             if let Some(key) = Terminal::read_key() {
                 match key {
-                    KeyCode::Esc => break,
+                    KeyCode::Esc => self.normal_mode(),
                     KeyCode::Char(ch) => self.insert_char(ch),
                     KeyCode::Left => self.move_cursor_left(),
                     KeyCode::Right => self.move_cursor_right(),
@@ -68,6 +68,52 @@ impl Editor {
         self.cursor_x += 4;
     }
 
+    fn normal_mode(&mut self) {
+        self.update_status_bar(MODE_NORMAL);
+        // Vim movement //TODO:
+
+        loop {
+            self.render();
+
+            if let Some(key) = Terminal::read_key() {
+                match key {
+                    KeyCode::Char('i') => break,
+                    KeyCode::Char('h') => self.move_cursor_left(),
+                    KeyCode::Char('l') => self.move_cursor_right(),
+                    KeyCode::Char('j') => {
+                        if self.cursor_y < self.buffer.get_num_lines() - 1 {
+                            //self.buffer.cursor_down();
+                            self.cursor_y += 1;
+                        }
+                    }
+                    KeyCode::Char('k') => {
+                        if self.cursor_y > 0 {
+                            //self.buffer.cursor_up();
+                            self.cursor_y -= 1;
+                        }
+                    }
+                    KeyCode::Char('x') => self.delete_char(),
+                    KeyCode::Char('o') => {
+                        self.insert_newline();
+                        break;
+                    }
+
+                    KeyCode::Char('0') => {
+                        self.cursor_x = 0;
+                        //self.buffer.cursor_to_line_start();
+                    }
+                    KeyCode::Char('$') => {
+                        self.cursor_x =
+                            self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
+                        //self.buffer.cursor_to_line_end();
+                    }
+                    _ => {}
+                }
+                Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
+            }
+        }
+    }
+
     fn insert_char(&mut self, ch: char) {
         self.buffer.insert_char(ch);
         self.update_status_bar(MODE_INSERT);
@@ -94,7 +140,6 @@ impl Editor {
             self.cursor_y -= 1;
             self.cursor_x = self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
         }
-        self.update_status_bar(MODE_NORMAL);
     }
 
     fn move_cursor_right(&mut self) {
@@ -141,7 +186,7 @@ impl Editor {
         while i < text.len() {
             if text.as_bytes()[i] == b'\n' {
                 text.insert(i, '\r');
-                i += 1; // Avanzar el índice para evitar un bucle infinito
+                i += 1;
             }
             i += 1;
         }
