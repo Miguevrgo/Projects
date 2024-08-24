@@ -90,6 +90,37 @@ impl GapBuffer {
         }
     }
 
+    pub fn cursor_to_line_start(&mut self) {
+        let last_crlf_pos = self.cursor_after_last_crlf();
+        for _ in 1..last_crlf_pos {
+            self.cursor_left();
+        }
+    }
+
+    pub fn cursor_up(&mut self, cursor_x: u16) -> u16 {
+        let last_crlf_pos = self.cursor_after_last_crlf();
+        for _ in 0..last_crlf_pos {
+            self.cursor_left();
+        }
+
+        self.cursor_left();
+        self.cursor_left();
+
+        let previous_line = self.cursor_after_last_crlf();
+        for _ in 0..previous_line {
+            self.cursor_left();
+        }
+
+        for i in 0..cursor_x {
+            self.cursor_right();
+            if self.buffer[self.gap_start] == '\r' {
+                return i + 1;
+            }
+        }
+
+        cursor_x
+    }
+
     pub fn backspace(&mut self) {
         if self.gap_start > 0 {
             self.gap_start -= 1;
