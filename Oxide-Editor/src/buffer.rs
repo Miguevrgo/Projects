@@ -152,33 +152,25 @@ impl GapBuffer {
     pub fn get_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
         let mut current_line = String::new();
-        let mut was_cr = false;
 
         for (i, &c) in self.buffer.iter().enumerate() {
             if i >= self.gap_start && i < self.gap_end {
                 continue;
             }
-
-            current_line.push(c);
-
-            if was_cr && c == '\n' {
+            
+            if c == '\n' {
                 lines.push(current_line.clone());
                 current_line.clear();
             }
 
-            was_cr = c == '\r';
+            if c != '\r' && c != '\n' {
+                current_line.push(c);                
+            }
+
         }
 
         if !current_line.is_empty() {
             lines.push(current_line);
-        }
-
-        // TODO: Improve this
-        for line in lines.iter_mut() {
-            if line.ends_with("\r\n") {
-                line.pop();
-                line.pop();
-            }
         }
 
         lines
