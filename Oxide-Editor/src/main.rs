@@ -32,7 +32,7 @@ fn main() -> Result<(), io::Error> {
     let mut editor = Editor::new(&filename);
     editor.run();
     editor.exit();
-    std::fs::remove_file(file_path)?;
 
     Ok(())
 }
+

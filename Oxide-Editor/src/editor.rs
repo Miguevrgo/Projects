@@ -70,7 +70,6 @@ impl Editor {
 
     fn normal_mode(&mut self) {
         self.update_status_bar(MODE_NORMAL);
-        // Vim movement //TODO:
 
         loop {
             self.render();
@@ -78,10 +77,7 @@ impl Editor {
             if let Some(key) = Terminal::read_key() {
                 match key {
                     KeyCode::Char('i') => break,
-                    KeyCode::Char('q') => {
-                        self.exit();
-                        std::process::exit(0);
-                    }
+                    KeyCode::Char(':') => self.handle_commmand(),
                     KeyCode::Char('h') => self.move_cursor_left(),
                     KeyCode::Char('l') => self.move_cursor_right(),
                     KeyCode::Char('j') => {
@@ -108,7 +104,7 @@ impl Editor {
                     KeyCode::Char('$') => {
                         self.cursor_x =
                             self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
-                        //self.buffer.cursor_to_line_end();
+                        //self.buffer.cursor_to_line_end(); //TODO:
                     }
                     _ => {}
                 }
@@ -194,6 +190,47 @@ impl Editor {
             i += 1;
         }
         text
+    }
+
+    fn handle_commmand(&mut self) {
+        // TODO: FUlly implement
+        let mut small_command = String::new();
+        loop {
+            self.render();
+            Terminal::print_command_box();
+            if let Some(key) = Terminal::read_key() {
+                match key {
+                    KeyCode::Enter => break,
+                    KeyCode::Char(ch) => small_command.push(ch),
+                    KeyCode::Backspace => {
+                        small_command.pop();
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
+
+        match small_command.bytes().next() {
+            Some(b'w') => {
+                self.save_to_file();
+            }
+            Some(b'q') => {
+                self.exit();
+                std::process::exit(0);
+            }
+            // Escape TODO? CHECK NEXT ITERATOR?
+            Some(b'\x1b') => {}
+            _ => {}
+        }
+    }
+
+    fn save_to_file(&self) {
+        let content = self.buffer.get_lines();
+        let content = content.join("\n");
+
+        std::fs::write(self.status_bar.get_filename(), content).unwrap();
     }
 
     pub fn exit(&self) {

@@ -49,6 +49,13 @@ impl StatusBar {
         }
     }
 
+    /// Returns the filename being edited.
+    /// # Returns
+    /// * The filename being edited
+    pub fn get_filename(&self) -> String {
+        self.filename.clone()
+    }
+
     /// Updates the status message shown in the status bar.
     ///
     /// # Arguments
