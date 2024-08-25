@@ -4,7 +4,7 @@ use crossterm::{
     cursor::{Hide, MoveTo, Show},
     event::{read, Event, KeyCode},
     execute,
-    style::Print,
+    style::{Color, Print, PrintStyledContent, Stylize},
     terminal::{
         disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
         LeaveAlternateScreen, SetTitle,
@@ -50,6 +50,29 @@ impl Terminal {
         } else {
             None
         }
+    }
+
+    pub fn print_command_box() {
+        let term_size = crossterm::terminal::size().unwrap();
+        let length = term_size.0 as usize / 2;
+        let content_down = "─".repeat(length);
+        let content = "─".repeat(length.saturating_sub(16) / 2);
+        let content = format!("{}| Command Mode |{}", content, content);
+        let content_middle = " ".repeat(length);
+
+        let x_position = (term_size.0 / 2).saturating_sub(length as u16 / 2);
+
+        execute!(
+            stdout(),
+            MoveTo(x_position, 1),
+            PrintStyledContent(format!("╭{}╮", content).with(Color::Cyan)),
+            MoveTo(x_position, 2),
+            PrintStyledContent(format!("│{}│", content_middle).with(Color::Cyan)),
+            MoveTo(x_position, 3),
+            PrintStyledContent(format!("╰{}╯", content_down).with(Color::Cyan)),
+            MoveTo(x_position + 1, 2),
+        )
+        .unwrap();
     }
 
     pub fn show_cursor() {

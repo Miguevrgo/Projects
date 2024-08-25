@@ -141,6 +141,8 @@ impl GapBuffer {
         }
     }
 
+    /// Returns all the text contained in the buffer,
+    /// it returns \r\n if present
     pub fn extract_text(&self) -> String {
         let front_text: String = self.buffer[0..self.gap_start].iter().collect();
         let back_text: String = self.buffer[self.gap_end..].iter().collect();
@@ -157,16 +159,15 @@ impl GapBuffer {
             if i >= self.gap_start && i < self.gap_end {
                 continue;
             }
-            
+
             if c == '\n' {
                 lines.push(current_line.clone());
                 current_line.clear();
             }
 
             if c != '\r' && c != '\n' {
-                current_line.push(c);                
+                current_line.push(c);
             }
-
         }
 
         if !current_line.is_empty() {
