@@ -52,13 +52,21 @@ impl Terminal {
         }
     }
 
-    pub fn print_command_box() {
+    /// Prints a command box at the top of the terminal with the given text
+    /// and returns the x and y position of the cursor after the box
+    /// has been printed.
+    ///
+    /// # Arguments
+    ///
+    /// * `text`- The text to render in the command box
+    ///
+    pub fn print_command_box(text: &str) -> (u16, u16) {
         let term_size = crossterm::terminal::size().unwrap();
         let length = term_size.0 as usize / 2;
         let content_down = "─".repeat(length);
         let content = "─".repeat(length.saturating_sub(16) / 2);
         let content = format!("{}| Command Mode |{}", content, content);
-        let content_middle = " ".repeat(length);
+        let content_middle = format!("{:<width$}", text, width = length);
 
         let x_position = (term_size.0 / 2).saturating_sub(length as u16 / 2);
 
@@ -70,9 +78,11 @@ impl Terminal {
             PrintStyledContent(format!("│{}│", content_middle).with(Color::Cyan)),
             MoveTo(x_position, 3),
             PrintStyledContent(format!("╰{}╯", content_down).with(Color::Cyan)),
-            MoveTo(x_position + 1, 2),
+            MoveTo(x_position + 1 + text.len() as u16, 2),
         )
         .unwrap();
+
+        (x_position + 1, 2)
     }
 
     pub fn show_cursor() {
