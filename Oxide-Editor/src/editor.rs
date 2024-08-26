@@ -76,7 +76,10 @@ impl Editor {
 
             if let Some(key) = Terminal::read_key() {
                 match key {
-                    KeyCode::Char('i') => break,
+                    KeyCode::Char('i') => {
+                        self.update_status_bar(MODE_INSERT);
+                        break;
+                    }
                     KeyCode::Char(':') => self.handle_commmand(),
                     KeyCode::Char('h') => self.move_cursor_left(),
                     KeyCode::Char('l') => self.move_cursor_right(),
@@ -115,7 +118,6 @@ impl Editor {
 
     fn insert_char(&mut self, ch: char) {
         self.buffer.insert_char(ch);
-        self.update_status_bar(MODE_INSERT);
         self.cursor_x += 1;
     }
 
@@ -156,7 +158,6 @@ impl Editor {
     fn backspace_char(&mut self) {
         if self.cursor_x > 0 {
             self.buffer.backspace();
-            self.update_status_bar(MODE_INSERT);
             self.cursor_x -= 1;
         } else if self.cursor_y > 0 {
             self.buffer.backspace();
@@ -168,40 +169,39 @@ impl Editor {
 
     fn delete_char(&mut self) {
         self.buffer.delete();
-        self.update_status_bar(MODE_INSERT);
     }
 
     fn insert_newline(&mut self) {
         self.buffer.insert_char('\r');
         self.buffer.insert_char('\n');
 
-        self.update_status_bar(MODE_INSERT);
         self.cursor_x = 0;
         self.cursor_y += 1;
     }
 
-    pub fn parse_text(mut text: String) -> String {
-        let mut i = 0;
-        while i < text.len() {
-            if text.as_bytes()[i] == b'\n' {
-                text.insert(i, '\r');
-                i += 1;
+    pub fn parse_text(text: String) -> String {
+        let mut bytes = Vec::with_capacity(text.len() * 2);
+        for byte in text.bytes() {
+            if byte == b'\n' {
+                bytes.push(b'\r');
             }
-            i += 1;
+            bytes.push(byte);
         }
-        text
+        String::from_utf8(bytes).unwrap()
     }
 
     fn handle_commmand(&mut self) {
         // TODO: FUlly implement
         let mut small_command = String::new();
         loop {
-            self.render();
-            Terminal::print_command_box();
+            let (box_x, box_y) = Terminal::print_command_box(&small_command);
+            Terminal::move_cursor_to(box_x + small_command.len() as u16, box_y);
             if let Some(key) = Terminal::read_key() {
                 match key {
                     KeyCode::Enter => break,
-                    KeyCode::Char(ch) => small_command.push(ch),
+                    KeyCode::Char(ch) => {
+                        small_command.push(ch);
+                    }
                     KeyCode::Backspace => {
                         small_command.pop();
                     }
@@ -214,9 +214,14 @@ impl Editor {
 
         match small_command.bytes().next() {
             Some(b'w') => {
-                self.save_to_file();
+                self.save_file();
             }
             Some(b'q') => {
+                self.exit();
+                std::process::exit(0);
+            }
+            Some(b'd') => {
+                self.delete_file();
                 self.exit();
                 std::process::exit(0);
             }
@@ -226,7 +231,11 @@ impl Editor {
         }
     }
 
-    fn save_to_file(&self) {
+    fn delete_file(&self) {
+        std::fs::remove_file(self.status_bar.get_filename()).unwrap();
+    }
+
+    fn save_file(&self) {
         let content = self.buffer.get_lines();
         let content = content.join("\n");
 
