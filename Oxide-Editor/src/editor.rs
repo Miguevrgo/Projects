@@ -107,7 +107,7 @@ impl Editor {
                     KeyCode::Char('$') => {
                         self.cursor_x =
                             self.buffer.get_lines()[self.cursor_y as usize].len() as u16;
-                        //self.buffer.cursor_to_line_end(); //TODO:
+                        self.buffer.cursor_to_line_end();
                     }
                     _ => {}
                 }
