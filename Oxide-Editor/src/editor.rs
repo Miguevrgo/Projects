@@ -48,7 +48,6 @@ impl Editor {
                     KeyCode::Tab => self.insert_tab(),
                     _ => {}
                 }
-                Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
             }
         }
     }
@@ -81,11 +80,14 @@ impl Editor {
                     KeyCode::Char('h') => self.move_cursor_left(),
                     KeyCode::Char('l') => self.move_cursor_right(),
                     KeyCode::Char('j') => {
+                        //TODO: Fix
                         if self.cursor_y < self.buffer.get_num_lines() - 1 {
+                            self.cursor_x = self.buffer.cursor_down(self.cursor_x);
                             self.cursor_y += 1;
                         }
                     }
                     KeyCode::Char('k') => {
+                        //TODO: Fix
                         if self.cursor_y > 0 {
                             self.cursor_x = self.buffer.cursor_up(self.cursor_x);
                             self.cursor_y -= 1;
@@ -108,7 +110,6 @@ impl Editor {
                     }
                     _ => {}
                 }
-                Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
             }
         }
     }

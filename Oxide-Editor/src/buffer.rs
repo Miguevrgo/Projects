@@ -122,15 +122,29 @@ impl GapBuffer {
         self.cursor_left();
         self.cursor_left();
 
-        let previous_line = self.cursor_after_last_crlf();
-        for _ in 0..previous_line {
-            self.cursor_left();
+        let left_spaces = self.cursor_after_last_crlf() as i16 - cursor_x as i16;
+        if left_spaces > 0 {
+            for _ in 0..left_spaces {
+                self.cursor_left();
+            }
+
+            cursor_x
+        } else {
+            self.cursor_after_last_crlf() as u16
+        }
+    }
+
+    pub fn cursor_down(&mut self, cursor_x: u16) -> u16 {
+        while self.buffer[self.gap_start] != '\r' {
+            self.cursor_right();
         }
 
-        for i in 0..cursor_x {
-            self.cursor_right();
-            if self.buffer[self.gap_start] == '\r' {
-                return i + 1;
+        self.cursor_right();
+        self.cursor_right();
+
+        for _ in 0..=cursor_x {
+            if self.buffer[self.gap_start] != '\r' && self.gap_end < self.buffer.len() {
+                self.cursor_right();
             }
         }
 
