@@ -61,10 +61,7 @@ impl Editor {
     }
 
     fn insert_tab(&mut self) {
-        self.buffer.insert_char(' ');
-        self.buffer.insert_char(' ');
-        self.buffer.insert_char(' ');
-        self.buffer.insert_char(' ');
+        self.buffer.insert_text("    ");
         self.cursor_x += 4;
     }
 

@@ -74,6 +74,16 @@ impl GapBuffer {
         self.gap_start += 1;
     }
 
+    pub fn insert_text(&mut self, text: &str) {
+        if self.gap_start + text.len() == self.gap_end {
+            self.grow_buffer();
+        }
+
+        self.buffer[self.gap_start..self.gap_start + text.len()]
+            .copy_from_slice(text.chars().collect::<Vec<char>>().as_slice());
+        self.gap_start += text.len();
+    }
+
     pub fn cursor_left(&mut self) {
         if self.gap_start > 0 {
             self.gap_start -= 1;
