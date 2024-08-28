@@ -1,5 +1,12 @@
-use crate::{buffer::GapBuffer, status_bar::StatusBar, terminal::Terminal};
+use crate::{
+    buffer::GapBuffer,
+    status_bar::StatusBar,
+    style::{Token, TokenType},
+    syntax,
+    terminal::Terminal,
+};
 use crossterm::event::KeyCode;
+use crossterm::style::{Color, StyledContent, Stylize};
 
 pub struct Editor {
     buffer: GapBuffer,
@@ -54,9 +61,52 @@ impl Editor {
 
     fn render(&mut self) {
         Terminal::clear_screen();
-        Terminal::render_text(&self.buffer.extract_text());
+        self.render_text();
         self.status_bar.render();
         Terminal::move_cursor_to(self.cursor_x, self.cursor_y);
+    }
+
+    fn render_text(&mut self) {
+        let mut rendered_text = String::new();
+
+        for line in self.buffer.get_lines() {
+            let tokens = syntax::tokenize(&line);
+
+            for token in tokens {
+                let styled_token = Self::style_token(&token);
+                rendered_text.push_str(&styled_token.to_string());
+            }
+
+            rendered_text.push_str("\r\n");
+        }
+
+        Terminal::render_text(&rendered_text);
+    }
+
+    fn style_token(token: &Token) -> StyledContent<&str> {
+        match token.token_type {
+            TokenType::Keyword => token.text.as_str().with(Color::Magenta),
+            TokenType::Comment => token.text.as_str().with(Color::Rgb {
+                r: 92,
+                g: 99,
+                b: 112,
+            }),
+            TokenType::StringLiteral => token.text.as_str().with(Color::Rgb {
+                r: 142,
+                g: 183,
+                b: 115,
+            }),
+            TokenType::Function => token.text.as_str().with(Color::Rgb {
+                r: 97,
+                g: 175,
+                b: 239,
+            }),
+            TokenType::Normal => token.text.as_str().with(Color::Rgb {
+                r: 171,
+                g: 178,
+                b: 191,
+            }),
+        }
     }
 
     fn insert_tab(&mut self) {
@@ -87,7 +137,6 @@ impl Editor {
                         }
                     }
                     KeyCode::Char('k') => {
-                        //TODO: Fix
                         if self.cursor_y > 0 {
                             self.cursor_x = self.buffer.cursor_up(self.cursor_x);
                             self.cursor_y -= 1;
