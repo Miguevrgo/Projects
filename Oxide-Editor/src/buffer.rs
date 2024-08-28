@@ -142,9 +142,12 @@ impl GapBuffer {
         self.cursor_right();
         self.cursor_right();
 
-        for _ in 0..=cursor_x {
-            if self.buffer[self.gap_start] != '\r' && self.gap_end < self.buffer.len() {
+        for i in 0..cursor_x {
+            if self.buffer[self.gap_start] != '\r' {
                 self.cursor_right();
+            }
+            if self.gap_end < self.buffer.len() {
+                return i;
             }
         }
 

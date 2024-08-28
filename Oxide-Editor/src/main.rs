@@ -1,6 +1,8 @@
 mod buffer;
 mod editor;
 mod status_bar;
+mod style;
+mod syntax;
 mod terminal;
 
 use editor::Editor;
@@ -35,4 +37,3 @@ fn main() -> Result<(), io::Error> {
 
     Ok(())
 }
-

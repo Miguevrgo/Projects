@@ -41,7 +41,6 @@ impl StatusBar {
     /// # Arguments
     ///
     /// * 'filename' - The name of the file being edited
-    /// #TODO: Change filename to path from root directory back
     pub fn new(filename: &str) -> Self {
         Self {
             filename: filename.to_string(),
