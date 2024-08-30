@@ -176,13 +176,13 @@ impl GapBuffer {
 
     /// Returns all the text contained in the buffer,
     /// it returns \r\n if present
-    pub fn extract_text(&self) -> String {
-        let front_text: String = self.buffer[0..self.gap_start].iter().collect();
-        let back_text: String = self.buffer[self.gap_end..].iter().collect();
-        let back_text = back_text.replace('\0', "").clone();
-
-        format!("{}{}", front_text, back_text)
-    }
+    // pub fn extract_text(&self) -> String {
+    //     let front_text: String = self.buffer[0..self.gap_start].iter().collect();
+    //     let back_text: String = self.buffer[self.gap_end..].iter().collect();
+    //     let back_text = back_text.replace('\0', "").clone();
+    //
+    //     format!("{}{}", front_text, back_text)
+    // }
 
     pub fn get_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
@@ -243,7 +243,7 @@ mod tests {
     #[test]
     fn extract_text() {
         let buffer = GapBuffer::from("Hello World");
-        let buffer = buffer.extract_text();
+        let buffer = buffer.get_lines().join("\r\n");
         assert_eq!(buffer, "Hello World");
     }
 
@@ -252,7 +252,7 @@ mod tests {
         let mut buffer = GapBuffer::from("Hello");
         buffer.cursor_left();
         assert_eq!(buffer.gap_start, 4);
-        assert_eq!(buffer.extract_text(), "Hello");
+        assert_eq!(buffer.get_lines().join("\r\n"), "Hello");
     }
 
     #[test]
@@ -260,7 +260,7 @@ mod tests {
         let mut buffer = GapBuffer::from("Hello");
         buffer.cursor_right();
         assert_eq!(buffer.gap_start, 5);
-        assert_eq!(buffer.extract_text(), "Hello");
+        assert_eq!(buffer.get_lines().join("\r\n"), "Hello");
     }
 
     #[test]
@@ -283,7 +283,7 @@ mod tests {
         buffer.cursor_left();
         assert_eq!(buffer.gap_start, 0);
 
-        assert_eq!(buffer.extract_text(), "Hel\r\nWod");
+        assert_eq!(buffer.get_lines().join("\r\n"), "Hel\r\nWod");
     }
 
     #[test]
@@ -358,7 +358,7 @@ mod tests {
         buffer.insert_char('l');
         buffer.insert_char('l');
         buffer.insert_char('o');
-        assert_eq!(buffer.extract_text(), "Hello");
+        assert_eq!(buffer.get_lines()[0], "Hello");
         assert_eq!(buffer.gap_start, 5);
         let mut text = Vec::new();
         text.push("Hello");
@@ -366,7 +366,7 @@ mod tests {
             buffer.insert_char('a');
         }
         text.append(&mut vec!["a"; 2000]);
-        assert_eq!(buffer.extract_text().chars().count(), 2005);
+        assert_eq!(buffer.get_lines()[0].chars().count(), 2005);
         assert_eq!(buffer.gap_start, 2005);
     }
 
@@ -378,7 +378,7 @@ mod tests {
         buffer.insert_char('l');
         buffer.insert_char('l');
         buffer.insert_char('o');
-        assert_eq!(buffer.extract_text(), "Hello");
+        assert_eq!(buffer.get_lines()[0], "Hello");
         assert_eq!(buffer.gap_start, 5);
         let mut text = Vec::new();
         text.push("Hello");
@@ -386,15 +386,15 @@ mod tests {
             buffer.insert_char('a');
         }
         text.append(&mut vec!["a"; 2000]);
-        assert_eq!(buffer.extract_text().chars().count(), 2005);
+        assert_eq!(buffer.get_lines()[0].chars().count(), 2005);
         assert_eq!(buffer.gap_start, 2005);
 
         for _ in 0..2000 {
             buffer.backspace();
         }
-        assert_eq!(buffer.extract_text().chars().count(), 5);
+        assert_eq!(buffer.get_lines()[0].chars().count(), 5);
         assert_eq!(buffer.gap_start, 5);
-        assert_eq!(buffer.extract_text(), "Hello");
+        assert_eq!(buffer.get_lines()[0], "Hello");
     }
 
     #[test]
