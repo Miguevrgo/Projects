@@ -13,6 +13,7 @@ pub struct Editor {
     status_bar: StatusBar,
     cursor_x: u16,
     cursor_y: u16,
+    scroll_offset: u16,
 }
 
 const MODE_INSERT: usize = 1;
@@ -35,6 +36,7 @@ impl Editor {
             status_bar,
             cursor_x,
             cursor_y,
+            scroll_offset: 0,
         }
     }
 
@@ -53,6 +55,8 @@ impl Editor {
                     KeyCode::Delete => self.delete_char(),
                     KeyCode::Enter => self.insert_newline(),
                     KeyCode::Tab => self.insert_tab(),
+                    KeyCode::Up => self.scroll_up(),
+                    KeyCode::Down => self.scroll_down(),
                     _ => {}
                 }
             }
@@ -68,21 +72,39 @@ impl Editor {
 
     fn render_text(&mut self) {
         let mut rendered_text = String::new();
+        let lines = self.buffer.get_lines();
+        let term_height = Terminal::size().1 - 1;
+        let start_line = self.scroll_offset as usize;
+        let end_line = std::cmp::min((self.scroll_offset + term_height) as usize, lines.len()); // TODO: Missing first and last lines?
 
-        for line in self.buffer.get_lines() {
-            let tokens = syntax::tokenize(&line);
+        if start_line < lines.len() {
+            for line in &lines[start_line..end_line] {
+                let tokens = syntax::tokenize(&line);
 
-            for token in tokens {
-                let styled_token = Self::style_token(&token);
-                rendered_text.push_str(&styled_token.to_string());
+                for token in tokens {
+                    let styled_token = Self::style_token(&token);
+                    rendered_text.push_str(&styled_token.to_string());
+                }
+
+                rendered_text.push_str("\r\n");
             }
-
-            rendered_text.push_str("\r\n");
         }
 
         Terminal::render_text(&rendered_text);
     }
 
+    fn scroll_up(&mut self) {
+        if self.scroll_offset > 0 {
+            self.scroll_offset -= 1;
+        }
+    }
+
+    fn scroll_down(&mut self) {
+        if self.scroll_offset < self.buffer.get_num_lines() - Terminal::size().1 {
+            self.scroll_offset += 1;
+        }
+    }
+    
     fn style_token(token: &Token) -> StyledContent<&str> {
         match token.token_type {
             TokenType::Keyword => token.text.as_str().with(Color::Magenta),
