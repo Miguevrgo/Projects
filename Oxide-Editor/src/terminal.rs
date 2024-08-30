@@ -4,7 +4,7 @@ use crossterm::{
     cursor::{Hide, MoveTo, Show},
     event::{read, Event, KeyCode},
     execute,
-    style::{Color, Print, PrintStyledContent, StyledContent, Stylize},
+    style::{Color, Print, PrintStyledContent, Stylize},
     terminal::{
         disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
         LeaveAlternateScreen, SetTitle,
@@ -42,10 +42,6 @@ impl Terminal {
     ///
     pub fn render_text(text: &str) {
         execute!(stdout(), Print(text)).unwrap();
-    }
-
-    pub fn render_styled_text(text: StyledContent<&str>) {
-        execute!(stdout(), PrintStyledContent(text)).unwrap();
     }
 
     pub fn read_key() -> Option<KeyCode> {
