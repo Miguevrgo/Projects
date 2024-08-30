@@ -85,6 +85,10 @@ impl Terminal {
         (x_position + 1, 2)
     }
 
+    pub fn size() -> (u16, u16) {
+        return crossterm::terminal::size().unwrap();
+    }
+
     pub fn show_cursor() {
         execute!(stdout(), Show).unwrap();
     }
