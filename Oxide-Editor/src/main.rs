@@ -31,9 +31,10 @@ fn main() -> Result<(), io::Error> {
         fs::File::create(&filename)?;
     }
 
-    let mut editor = Editor::new(&filename);
-    editor.run();
-    editor.exit();
+    let editor = Editor::new(&filename);
+    let mut unwrapped_editor = editor.unwrap();
+    unwrapped_editor.run()?;
+    unwrapped_editor.exit()?;
 
     Ok(())
 }
