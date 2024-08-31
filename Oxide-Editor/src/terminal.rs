@@ -1,4 +1,4 @@
-use std::io::stdout;
+use std::io::{self, stdout};
 
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
@@ -16,21 +16,24 @@ pub struct Terminal;
 impl Terminal {
     /// Initializes the terminal for the editor, setting its title name to Oxide
     /// and enabling raw_mode
-    pub fn init() {
-        execute!(stdout(), EnterAlternateScreen, Hide).unwrap();
-        execute!(stdout(), SetTitle("Oxide")).unwrap();
-        enable_raw_mode().unwrap();
+    pub fn init() -> Result<(), io::Error> {
+        execute!(stdout(), EnterAlternateScreen, Hide)?;
+        execute!(stdout(), SetTitle("Oxide"))?;
+        enable_raw_mode()?;
+        Ok(())
     }
 
     /// Restores the terminal to its original state
-    pub fn restore() {
-        execute!(stdout(), Show, LeaveAlternateScreen).unwrap();
-        disable_raw_mode().unwrap();
+    pub fn restore() -> Result<(), io::Error> {
+        execute!(stdout(), Show, LeaveAlternateScreen)?;
+        disable_raw_mode()?;
+        Ok(())
     }
 
     /// Clears the terminal screen and moves the cursor to (0,0)
-    pub fn clear_screen() {
-        execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0)).unwrap();
+    pub fn clear_screen() -> Result<(), io::Error> {
+        execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0))?;
+        Ok(())
     }
 
     /// Renders the given text to the terminal without any formatting
@@ -40,15 +43,16 @@ impl Terminal {
     ///
     /// * `text`- The text to render to the terminal with type
     ///
-    pub fn render_text(text: &str) {
-        execute!(stdout(), Print(text)).unwrap();
+    pub fn render_text(text: &str) -> Result<(), io::Error> {
+        execute!(stdout(), Print(text))?;
+        Ok(())
     }
 
-    pub fn read_key() -> Option<KeyCode> {
-        if let Event::Key(event) = read().unwrap() {
-            Some(event.code)
+    pub fn read_key() -> Result<Option<KeyCode>, io::Error> {
+        if let Event::Key(event) = read()? {
+            Ok(Some(event.code))
         } else {
-            None
+            Ok(None)
         }
     }
 
@@ -60,8 +64,8 @@ impl Terminal {
     ///
     /// * `text`- The text to render in the command box
     ///
-    pub fn print_command_box(text: &str) -> (u16, u16) {
-        let term_size = crossterm::terminal::size().unwrap();
+    pub fn print_command_box(text: &str) -> Result<(u16, u16), io::Error> {
+        let term_size = crossterm::terminal::size()?;
         let length = term_size.0 as usize / 2;
         let content_down = "─".repeat(length);
         let content = "─".repeat(length.saturating_sub(16) / 2);
@@ -79,21 +83,22 @@ impl Terminal {
             MoveTo(x_position, 3),
             PrintStyledContent(format!("╰{}╯", content_down).with(Color::Cyan)),
             MoveTo(x_position + 1 + text.len() as u16, 2),
-        )
-        .unwrap();
+        )?;
 
-        (x_position + 1, 2)
+        Ok((x_position + 1, 2))
     }
 
-    pub fn size() -> (u16, u16) {
-        return crossterm::terminal::size().unwrap();
+    pub fn size() -> Result<(u16, u16), io::Error> {
+        Ok(crossterm::terminal::size()?)
     }
 
-    pub fn show_cursor() {
-        execute!(stdout(), Show).unwrap();
+    pub fn show_cursor() -> Result<(), io::Error> {
+        execute!(stdout(), Show)?;
+        Ok(())
     }
 
-    pub fn move_cursor_to(x: u16, y: u16) {
-        execute!(stdout(), MoveTo(x, y)).unwrap();
+    pub fn move_cursor_to(x: u16, y: u16) -> Result<(), io::Error> {
+        execute!(stdout(), MoveTo(x, y))?;
+        Ok(())
     }
 }
