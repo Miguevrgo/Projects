@@ -1,6 +1,10 @@
-use gtk::{prelude::*, Box, Button, ComboBoxText, DrawingArea, Entry, Label, Orientation, TextView, Dialog, Window};
+use gtk::{gdk, prelude::*, Box, Button, ComboBoxText, Dialog, DrawingArea, Entry, Label, Orientation, TextBuffer, TextTag, TextTagTable, TextView, Window};
 use std::cell::RefCell;
 use std::rc::Rc;
+use syntect::easy::HighlightLines;
+use syntect::highlighting::{ThemeSet, Style};
+use syntect::parsing::SyntaxSet;
+use syntect::util::LinesWithEndings;
 
 const NUM_ELEMENTS: usize = 10;
 
@@ -93,6 +97,37 @@ int* vector_get(Vector* vector, size_t index) {
 }
 "#;
 
+fn highlight_code(code: &str, language: &str) -> TextBuffer {
+    let ss = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let syntax = match language {
+        "Rust" => ss.find_syntax_by_extension("rs").unwrap(),
+        "C++" => ss.find_syntax_by_extension("cpp").unwrap(),
+        "C" => ss.find_syntax_by_extension("c").unwrap(),
+        _ => ss.find_syntax_plain_text(),
+    };
+    let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
+    let buffer = TextBuffer::new(Some(&TextTagTable::new()));
+    let tag_table = buffer.tag_table();
+    
+    for line in LinesWithEndings::from(code) {
+        let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ss).unwrap();
+        for (style, text) in ranges {
+            let tag = TextTag::new(None);
+            tag.set_foreground(Some(&gdk::RGBA::new(
+                style.foreground.r as f32 / 255.0,
+                style.foreground.g as f32 / 255.0,
+                style.foreground.b as f32 / 255.0,
+                style.foreground.a as f32 / 255.0,
+            ).to_string()));
+            tag_table.add(&tag);
+            buffer.insert_with_tags(&mut buffer.end_iter(), text, &[&tag]);
+        }
+    }
+
+    buffer
+}
+
 pub fn create_view(stack: &gtk::Stack) -> Box {
     let view = Box::new(Orientation::Horizontal, 10);
     let stack_clone = stack.clone();
@@ -100,8 +135,10 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
     });
+
     let controls = Box::new(Orientation::Vertical, 10);
     controls.append(&home_button);
+    
     let elements_label = Label::new(Some("Number of Elements:"));
     controls.append(&elements_label);
     let elements_entry = Entry::new();
@@ -109,23 +146,28 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     controls.append(&elements_entry);
     let create_button = Button::with_label("Create Array");
     controls.append(&create_button);
+    
     let insert_label = Label::new(Some("Insert Element:"));
     controls.append(&insert_label);
     let insert_entry = Entry::new();
     controls.append(&insert_entry);
     let insert_button = Button::with_label("Insert");
     controls.append(&insert_button);
+    
     let delete_label = Label::new(Some("Delete Element:"));
     controls.append(&delete_label);
     let delete_entry = Entry::new();
     controls.append(&delete_entry);
     let delete_button = Button::with_label("Delete");
     controls.append(&delete_button);
+    
     let language_label = Label::new(Some("Code Language:"));
     let language_combo = ComboBoxText::new();
+    
     language_combo.append_text("Rust");
     language_combo.append_text("C++");
     language_combo.append_text("C");
+    
     let show_button = Button::with_label("Show Code");
     let language_box = Box::new(Orientation::Horizontal, 10);
     language_box.append(&language_label);
@@ -133,9 +175,11 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     controls.append(&language_box);
     controls.append(&show_button);
     view.append(&controls);
+    
     let drawing_area = DrawingArea::new();
     drawing_area.set_vexpand(true);
     drawing_area.set_hexpand(true);
+    
     let state = Rc::new(AppState::new());
     drawing_area.set_draw_func({
         let state = state.clone();
@@ -146,31 +190,39 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             let element_size = (width as f64 - 20.0) / capacity as f64 - 5.0;
             let total_width = capacity as f64 * (element_size + 5.0) - 5.0;
             let offset_x = (width as f64 - total_width) / 2.0;
+            
             cr.set_source_rgb(0.1568, 0.1725, 0.2039);
             cr.paint().unwrap();
+            
             for i in 0..capacity {
                 let x = offset_x + i as f64 * (element_size + 5.0);
                 let y = (height as f64 - element_size) / 2.0;
+                
                 if i < num_elements {
                     cr.set_source_rgb(0.0, 0.0, 1.0);
                 } else {
                     cr.set_source_rgb(0.5, 0.5, 0.5);
                 }
+                
                 cr.rectangle(x, y, element_size, element_size);
                 cr.fill().unwrap();
+                
                 if i < num_elements {
                     cr.set_source_rgb(1.0, 1.0, 1.0);
                     cr.set_font_size(element_size / 2.5);
+                    
                     let text = format!("{}", elements[i]);
                     let extents = cr.text_extents(&text).unwrap();
                     let text_x = x + (element_size - extents.width()) / 2.0;
                     let text_y = y + (element_size + extents.height()) / 2.0;
+                    
                     cr.move_to(text_x, text_y);
                     cr.show_text(&text).unwrap();
                 }
             }
         }
     });
+
     view.append(&drawing_area);
     create_button.connect_clicked({
         let state = state.clone();
@@ -183,6 +235,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             drawing_area.queue_draw();
         }
     });
+
     insert_button.connect_clicked({
         let state = state.clone();
         let drawing_area = drawing_area.clone();
@@ -197,6 +250,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             drawing_area.queue_draw();
         }
     });
+
     delete_button.connect_clicked({
         let state = state.clone();
         let drawing_area = drawing_area.clone();
@@ -209,6 +263,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             drawing_area.queue_draw();
         }
     });
+    
     show_button.connect_clicked(move |_| {
         let language = language_combo.active_text().unwrap().to_string();
         let code = match language.as_str() {
@@ -217,6 +272,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             "C" => C_VECTOR_CODE,
             _ => "",
         };
+        let buffer = highlight_code(code, &language);
         let dialog = Dialog::with_buttons(
             Some("Vector Implementation"),
             Some(&Window::default()),
@@ -225,7 +281,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         );
         let content_area = dialog.content_area();
         let text_view = TextView::new();
-        text_view.buffer().set_text(code);
+        text_view.set_buffer(Some(&buffer));
         content_area.append(&text_view);
         dialog.show();
         dialog.connect_response(|dialog, _| {
