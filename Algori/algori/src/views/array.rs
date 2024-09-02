@@ -1,25 +1,19 @@
-use gtk::{prelude::*, Box, Button, ComboBoxText, DrawingArea, Entry, Label, Orientation};
-use rand::Rng;
+use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Label, Orientation};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-const MARGIN: f64 = 20.0;
 const NUM_ELEMENTS: usize = 10;
 
 struct AppState {
-    heights: RefCell<Vec<i32>>,
-    sorting_index: RefCell<usize>,
-    sorted: RefCell<bool>,
-    current_indices: RefCell<Option<(usize, usize)>>,
+    elements: RefCell<Vec<i32>>,
+    capacity: RefCell<usize>,
 }
 
 impl AppState {
     fn new() -> Self {
         Self {
-            heights: RefCell::new(Vec::new()),
-            sorting_index: RefCell::new(0),
-            sorted: RefCell::new(false),
-            current_indices: RefCell::new(None),
+            elements: RefCell::new(Vec::new()),
+            capacity: RefCell::new(NUM_ELEMENTS),
         }
     }
 }
@@ -75,38 +69,39 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     drawing_area.set_draw_func({
         let state = state.clone();
         move |_, cr, width, height| {
-            let heights = state.heights.borrow();
-            let num_elements = heights.len();
-            let element_width = (width as f64 - 2.0 * MARGIN) / num_elements as f64 - 5.0;
-            let total_width = num_elements as f64 * (element_width + 5.0) - 5.0;
+            let elements = state.elements.borrow();
+            let capacity = *state.capacity.borrow();
+            let num_elements = elements.len();
+            let element_size = (width as f64 - 20.0) / capacity as f64 - 5.0;
+            let total_width = capacity as f64 * (element_size + 5.0) - 5.0;
             let offset_x = (width as f64 - total_width) / 2.0;
 
             cr.set_source_rgb(0.1568, 0.1725, 0.2039);
             cr.paint().unwrap();
 
-            for (i, &elem_height) in heights.iter().enumerate() {
-                let x = offset_x + i as f64 * (element_width + 5.0);
-                let y = height as f64 - MARGIN - elem_height as f64;
+            for i in 0..capacity {
+                let x = offset_x + i as f64 * (element_size + 5.0);
+                let y = (height as f64 - element_size) / 2.0;
 
-                if let Some((a, b)) = *state.current_indices.borrow() {
-                    if i == a || i == b {
-                        cr.set_source_rgb(1.0, 0.0, 0.0);
-                    } else {
-                        cr.set_source_rgb(0.0, 0.0, 1.0);
-                    }
-                } else {
+                if i < num_elements {
                     cr.set_source_rgb(0.0, 0.0, 1.0);
+                } else {
+                    cr.set_source_rgb(0.5, 0.5, 0.5);
                 }
 
-                cr.rectangle(x, y, element_width, elem_height as f64);
+                cr.rectangle(x, y, element_size, element_size);
                 cr.fill().unwrap();
 
-                // Draw memory address and value
-                cr.set_source_rgb(1.0, 1.0, 1.0);
-                cr.move_to(x, y - 10.0);
-                cr.show_text(&format!("{:p}", &heights[i])).unwrap();
-                cr.move_to(x, y + elem_height as f64 + 10.0);
-                cr.show_text(&format!("{}", heights[i])).unwrap();
+                if i < num_elements {
+                    cr.set_source_rgb(1.0, 1.0, 1.0);
+                    cr.set_font_size(element_size / 2.5);
+                    let text = format!("{}", elements[i]);
+                    let extents = cr.text_extents(&text).unwrap();
+                    let text_x = x + (element_size - extents.width()) / 2.0;
+                    let text_y = y + (element_size + extents.height()) / 2.0;
+                    cr.move_to(text_x, text_y);
+                    cr.show_text(&text).unwrap();
+                }
             }
         }
     });
@@ -118,10 +113,9 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         let drawing_area = drawing_area.clone();
         move |_| {
             let num_elements: usize = elements_entry.text().parse().unwrap_or(NUM_ELEMENTS);
-            let mut heights = state.heights.borrow_mut();
-            *heights = (0..num_elements)
-                .map(|_| rand::thread_rng().gen_range(100..=700))
-                .collect();
+            let mut elements = state.elements.borrow_mut();
+            *elements = (0..num_elements).map(|x| x as i32).collect();
+            *state.capacity.borrow_mut() = num_elements;
             drawing_area.queue_draw();
         }
     });
@@ -131,8 +125,12 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         let drawing_area = drawing_area.clone();
         move |_| {
             let value: i32 = insert_entry.text().parse().unwrap_or(0);
-            let mut heights = state.heights.borrow_mut();
-            heights.push(value);
+            let mut elements = state.elements.borrow_mut();
+            let mut capacity = state.capacity.borrow_mut();
+            if elements.len() == *capacity {
+                *capacity *= 2;
+            }
+            elements.push(value);
             drawing_area.queue_draw();
         }
     });
@@ -142,9 +140,9 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         let drawing_area = drawing_area.clone();
         move |_| {
             let value: i32 = delete_entry.text().parse().unwrap_or(0);
-            let mut heights = state.heights.borrow_mut();
-            if let Some(pos) = heights.iter().position(|&x| x == value) {
-                heights.remove(pos);
+            let mut elements = state.elements.borrow_mut();
+            if let Some(pos) = elements.iter().position(|&x| x == value) {
+                elements.remove(pos);
             }
             drawing_area.queue_draw();
         }
