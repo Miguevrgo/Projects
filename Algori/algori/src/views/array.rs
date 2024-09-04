@@ -26,46 +26,114 @@ impl AppState {
 }
 
 const RUST_VECTOR_CODE: &str = r#"
-pub struct Vector<T> {
-    elements: Vec<T>,
+pub struct Vec<T> {
+    ptr: NonNull<T>,
+    cap: usize,
+    len: usize,
 }
 
-impl<T> Vector<T> {
+impl<T> Vec<T> {
     pub fn new() -> Self {
-        Vector { elements: Vec::new() }
+        Vec {
+            ptr: NonNull::dangling() // mem::align_of::<T>(),
+            len: 0,
+            cap: 0,
+        }
+    }
+
+    pub fn grow(&mut self) {
+        let (new_cap, new_layout) = if self.cap == 0 {
+            (1, Layout::array::<T>(1).unwrap())
+        } else {
+            let new_cap = 2 * self.cap;
+
+            let new_layout = Layout::array::<T>(new_cap).unwrap();
+            (new_cap, new_layout)
+        };
+
+        let new_ptr = if self.cap == 0 {
+            unsafe {
+                alloc::alloc(new_layout)
+            }
+        } else {
+            let old_layout = Layout::array::<T>(self.cap).unwrap();
+            let old_ptr = self.ptr.as_ptr() as *mut u8;
+            unsafe { alloc::realloc(old_ptr, old_layout, new_layout.size())}
+        };
+
+        self.ptr = match NonNull::new(new_ptr as *mut T) {
+            Some(p) => p,
+            None => alloc::handle_alloc_error(new_layout),
+        };
+        self.cap = new_cap
     }
 
     pub fn push(&mut self, value: T) {
-        self.elements.push(value);
+        if self.len == self.cap { self.grow(); }
+
+        unsafe {
+            ptr::write(self.ptr.as_ptr().add(self.len), elem);
+        }
+
+        self.len += 1;
     }
 
-    pub fn get(&self, index: usize) -> Option<&T> {
-        self.elements.get(index)
+    pub fn pop(&mut self) -> Option<T> {
+        if self.len == 0 {
+            None
+        } else {
+            self.len -= 1;
+            unsafe {
+                Some(ptr::read(self.ptr.as_ptr().add(self.len)))
+            }
+        }
     }
 }
 "#;
 
 const CPP_VECTOR_CODE: &str = r#"
-#include <vector>
-
 template <typename T>
 class Vector {
 public:
-    Vector() : elements() {}
+    Vector() : elements(nullptr), len(0), cap(0) {}
+
+    ~Vector() {
+        delete[] elements;
+    }
 
     void push(const T& value) {
-        elements.push_back(value);
+        if (len == cap) {
+            resize();
+        }
+        elements[len++] = value;
     }
 
     T* get(size_t index) {
-        if (index < elements.size()) {
+        if (index < len) {
             return &elements[index];
         }
         return nullptr;
     }
 
 private:
-    std::vector<T> elements;
+    T* elements;
+    size_t len;
+    size_t cap;
+
+    void resize() {
+        size_t new_cap = (cap == 0) ? 1 : 2 * cap;
+        T* new_elements = new T[new_cap];
+
+        //std::memcpy
+        for (size_t i = 0; i < len; ++i) {
+            new_elements[i] = elements[i];
+        }
+
+        delete[] elements;
+
+        elements = new_elements;
+        cap = new_cap;
+    }
 };
 "#;
 
@@ -138,6 +206,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let view = Box::new(Orientation::Horizontal, 10);
     let stack_clone = stack.clone();
     let home_button = Button::with_label("Home");
+    home_button.set_widget_name("home-button");
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
     });
@@ -151,6 +220,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     elements_entry.set_text("10");
     controls.append(&elements_entry);
     let create_button = Button::with_label("Create Array");
+    create_button.set_widget_name("create-button");
     controls.append(&create_button);
 
     let insert_label = Label::new(Some("Insert Element:"));
@@ -158,6 +228,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let insert_entry = Entry::new();
     controls.append(&insert_entry);
     let insert_button = Button::with_label("Insert");
+    insert_button.set_widget_name("insert-button");
     controls.append(&insert_button);
 
     let delete_label = Label::new(Some("Delete Element:"));
@@ -165,6 +236,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let delete_entry = Entry::new();
     controls.append(&delete_entry);
     let delete_button = Button::with_label("Delete");
+    delete_button.set_widget_name("delete-button");
     controls.append(&delete_button);
 
     let language_label = Label::new(Some("Code Language:"));
@@ -296,4 +368,3 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     });
     view
 }
-

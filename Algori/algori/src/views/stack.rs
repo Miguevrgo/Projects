@@ -15,20 +15,22 @@ impl AppState {
 }
 
 pub fn create_view(stack: &gtk::Stack) -> Box {
-    let view = Box::new(Orientation::Vertical, 10);
+    let view = Box::new(Orientation::Horizontal, 10);
     let stack_clone = stack.clone();
     let home_button = Button::with_label("Home");
+    home_button.set_widget_name("home-button");
 
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
     });
 
-    view.append(&home_button);
-
-    let controls = Box::new(Orientation::Horizontal, 10);
+    let controls = Box::new(Orientation::Vertical, 10);
+    controls.append(&home_button);
     let push_entry = Entry::new();
     let push_button = Button::with_label("Push");
+    push_button.set_widget_name("push-button");
     let pop_button = Button::with_label("Pop");
+    pop_button.set_widget_name("pop-button");
 
     controls.append(&push_entry);
     controls.append(&push_button);
@@ -94,3 +96,4 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
     view
 }
+
