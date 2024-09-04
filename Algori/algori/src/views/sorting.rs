@@ -28,6 +28,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let view = Box::new(Orientation::Horizontal, 10);
     let stack_clone = stack.clone();
     let home_button = Button::with_label("Home");
+    home_button.set_widget_name("home-button");
 
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
@@ -96,12 +97,19 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     });
 
     view.append(&drawing_area);
+    let controls_array = Box::new(Orientation::Vertical, 10);
 
     let sort_button = Button::with_label("Sort Step by Step");
-    view.append(&sort_button);
+    sort_button.set_widget_name("sort-shuffle-button");
+    controls_array.append(&sort_button);
+    sort_button.set_vexpand(true);
 
     let shuffle_button = Button::with_label("Shuffle");
-    view.append(&shuffle_button);
+    shuffle_button.set_widget_name("sort-shuffle-button");
+    controls_array.append(&shuffle_button);
+    shuffle_button.set_vexpand(true);
+
+    view.append(&controls_array);
 
     sort_button.connect_clicked({
         let state = state.clone();
