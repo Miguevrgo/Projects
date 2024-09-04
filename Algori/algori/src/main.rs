@@ -21,7 +21,7 @@ fn create_home_view(stack: &Stack, algorithms: &[(String, String)]) -> Box {
     css_provider.load_from_path("style.css");
 
     gtk::style_context_add_provider_for_display(
-        &gdk::Display::default().unwrap(),
+        &gdk::Display::default().expect("Error: Failed to load style.css"),
         &css_provider,
         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
