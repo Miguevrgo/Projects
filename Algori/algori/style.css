@@ -31,48 +31,105 @@
 .highlight {
     animation: highlight-animation 2s infinite;
 }
-
-button { /* TODO: Applies to home view, correct that */
+/* -----------------------------------------------------------------------
+ *  Style for the home button used in every view to come back to home page
+ * -----------------------------------------------------------------------
+ * */
+#home-button {
+    background-color: #3498db;
+    color: #1a1a1a;
+    border: 2px solid #2980b9;
+    border-radius: 7px;
+    padding: 12px 24px;
+    font-size: 25px;
+    padding-right: 70px;
+    margin-left: 5px;
+    margin-top: 5px;
+    font-family: Arial, sans-serif;
     font-weight: bold;
-    border: none;
+    text-decoration: none;
+    background-image: url('assets/icons/home.svg');
+    transition: all 0.3s ease-in-out;
+    background-size: 50px 50px;
+    background-position: 85% center;
+}
+
+#home-button:hover {
+    background-color: rgb(111, 92, 235);
+    border: 3px solid #fcf4f4;
+    box-shadow: 0px 0px 5px rgba(70, 56, 196, 0.8);
+    border-radius: 10px;
+    transform: scale(1.05);
+    animation: highlight-animatio 3s infinite;
+    background-image: url('assets/icons/home.svg');
+    background-size: 50px 50px;
+    background-position: center;
+    color: transparent;
+}
+
+@keyframes highlight-animatio {
+    0% {
+        border-color: #2e00f9;
+        box-shadow: 0px 0px 5px rgba(30, 0, 255, 0.8);
+        transform: scale(0.95);
+    }
+    50% {
+        border-color: #20abe7;
+        box-shadow: 0px 0px 8px rgb(74, 162, 196);
+        transform: scale(1);
+    }
+    100% {
+        border-color: #2e00f9;
+        box-shadow: 0px 0px 5px rgba(30, 0, 255, 0.8);
+        transform: scale(0.95);
+    }
+}
+
+#home-button:active {
+    background-color: #1f6db2; 
+    background-image: url('assets/icons/home.svg');
+    background-size: 50px 50px;
+    color: transparent;
+    border: 3px solid #1a5a8f;
+    transform: scale(0.95);
+}
+
+/*----------------------------------------------------*/
+
+#push-button {
+    font-weight: bold;
+    border: solid;
     padding: 10px 20px;
     border-radius: 5px;
     color: #fff;
     transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-button:hover {
-    transform: scale(1.05);
-}
-
-#home-button {
-    background-color: #ffcc00;
-}
-
-#home-button:hover {
-    background-color: #e6b800;
-}
-
-#create-button {
-    background-color: #4CAF50;
-}
-
-#create-button:hover {
-    background-color: #45a049;
-}
-
-#insert-button {
     background-color: #00ccff;
 }
 
-#insert-button:hover {
+#push-button:hover {
+    transform: scale(1.05);
     background-color: #00b3e6;
 }
 
-#delete-button {
+#pop-button {
     background-color: #ff6699;
 }
 
-#delete-button:hover {
+#pop-button:hover {
     background-color: #e65c85;
+}
+
+#sort-shuffle-button {
+    font-weight: bold;
+    border: solid;
+    padding: 10px 20px;
+    margin: 10px;
+    color: #1a1a1a;
+    border-radius: 5px;
+    background-color: #fdfd96;
+}
+
+#sort-shuffle-button:hover {
+    transform: scale(1.05);
+    background-color: #cdcd79;
 }
