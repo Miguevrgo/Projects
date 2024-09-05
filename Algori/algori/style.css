@@ -100,8 +100,9 @@
     font-weight: bold;
     border: solid;
     padding: 10px 20px;
+    margin-left: 10px;
     border-radius: 5px;
-    color: #fff;
+    color: #1a1a1a;
     transition: background-color 0.3s ease, transform 0.3s ease;
     background-color: #00ccff;
 }
@@ -112,10 +113,18 @@
 }
 
 #pop-button {
+    font-weight: bold;
+    border: solid;
+    padding: 10px 20px;
+    margin-left: 10px;
+    border-radius: 5px;
+    color: #1a1a1a;
+    transition: background-color 0.3s ease, transform 0.3s ease;
     background-color: #ff6699;
 }
 
 #pop-button:hover {
+    transform: scale(1.05);
     background-color: #e65c85;
 }
 
@@ -123,7 +132,7 @@
     font-weight: bold;
     border: solid;
     padding: 10px 20px;
-    margin: 10px;
+    margin: 15px;
     color: #1a1a1a;
     border-radius: 5px;
     background-color: #fdfd96;
@@ -132,4 +141,17 @@
 #sort-shuffle-button:hover {
     transform: scale(1.05);
     background-color: #cdcd79;
+}
+
+
+#square-element {
+    border-radius: 10px;
+    border: 2px solid #00008B; /* Borde más oscuro */
+    background-color: #0000FF; /* Color del bloque */
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+#square-element:hover {
+    transform: scale(1.05);
+    background-color: #1E90FF; /* Color del bloque al pasar el ratón */
 }
