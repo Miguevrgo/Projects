@@ -1,4 +1,5 @@
 use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Orientation};
+use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -78,10 +79,14 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         let state = state.clone();
         let drawing_area = drawing_area.clone();
         move |_| {
-            if let Ok(value) = push_entry.text().parse() {
-                state.elements.borrow_mut().push(value);
-                drawing_area.queue_draw();
-            }
+            let value = if let Ok(value) = push_entry.text().parse() {
+                value
+            } else {
+                rand::thread_rng().gen_range(0..=100)
+            };
+
+            state.elements.borrow_mut().push(value);
+            drawing_area.queue_draw();
         }
     });
 
@@ -96,4 +101,3 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
     view
 }
-
