@@ -1,8 +1,8 @@
-use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Orientation};
+use gtk::{prelude::*, Box, Button, Entry, Orientation};
+use rand::Rng;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use rand::Rng;
 
 struct AppState {
     queue: RefCell<VecDeque<i32>>,
@@ -40,7 +40,6 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     controls.append(&dequeue_button);
     view.append(&controls);
 
-    // Crear un contenedor para los elementos de la cola
     let queue_container = Box::new(Orientation::Vertical, 10);
     queue_container.set_widget_name("queue-container");
     queue_container.set_vexpand(true);
@@ -62,11 +61,10 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
             state.queue.borrow_mut().push_back(value);
 
-            // Crear un nuevo widget para representar el elemento
             let element = Button::with_label(&format!("{}", value));
-            element.set_widget_name("square-element"); // Aplicar clase CSS
+            element.set_widget_name("square-element");
             queue_container.append(&element);
-            queue_container.show(); // Asegurar que el nuevo widget sea visible
+            queue_container.show();
         }
     });
 
@@ -74,9 +72,9 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
         let state = state.clone();
         let queue_container = queue_container.clone();
         move |_| {
-            if let Some(_) = state.queue.borrow_mut().pop_front() {
+            if state.queue.borrow_mut().pop_front().is_some() {
                 if let Some(first_child) = queue_container.first_child() {
-                    queue_container.remove(&first_child); // Eliminar el primer widget en la cola
+                    queue_container.remove(&first_child);
                 }
             }
         }

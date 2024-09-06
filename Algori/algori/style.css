@@ -146,12 +146,14 @@
 
 #square-element {
     border-radius: 10px;
-    border: 2px solid #00008B; /* Borde más oscuro */
-    background-color: #0000FF; /* Color del bloque */
+    border: 2px solid #00008B;
+    margin-left: 50px;
+    margin-right: 50px;
+    background-color: #0000FF;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 #square-element:hover {
     transform: scale(1.05);
-    background-color: #1E90FF; /* Color del bloque al pasar el ratón */
+    background-color: #1E90FF;
 }
