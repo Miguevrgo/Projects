@@ -36,6 +36,9 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     controls.append(&push_entry);
     controls.append(&push_button);
     controls.append(&pop_button);
+    let help_button = Button::new();
+    help_button.set_widget_name("help-button");
+    controls.append(&help_button);
     view.append(&controls);
 
     let drawing_area = DrawingArea::new();
