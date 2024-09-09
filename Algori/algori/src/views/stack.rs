@@ -1,8 +1,7 @@
-use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Orientation};
+use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Orientation, ScrolledWindow, TextBuffer, TextTag, TextTagTable, TextView, Window};
 use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
-
 struct AppState {
     elements: RefCell<Vec<i32>>,
 }
@@ -13,6 +12,35 @@ impl AppState {
             elements: RefCell::new(Vec::new()),
         }
     }
+}
+
+fn highlight_code(code: &str) -> TextBuffer {
+    let buffer = TextBuffer::new(Some(&TextTagTable::new()));
+    let tag_table = buffer.tag_table();
+
+    // Crear tags para los diferentes estilos
+    let header1_tag = TextTag::new(Some("header1"));
+    header1_tag.set_property("weight", &700);
+    header1_tag.set_property("scale", &1.5);
+    tag_table.add(&header1_tag);
+
+    let header2_tag = TextTag::new(Some("header2"));
+    header2_tag.set_property("weight", &700);
+    header2_tag.set_property("scale", &4.0);
+    tag_table.add(&header2_tag);
+
+    for line in code.lines() {
+        if line.starts_with("## ") {
+            buffer.insert_with_tags(&mut buffer.end_iter(), line, &[&header2_tag]);
+        } else if line.starts_with("# ") {
+            buffer.insert_with_tags(&mut buffer.end_iter(), line, &[&header1_tag]);
+        } else {
+            buffer.insert(&mut buffer.end_iter(), line);
+        }
+        buffer.insert(&mut buffer.end_iter(), "\n");
+    }
+
+    buffer
 }
 
 pub fn create_view(stack: &gtk::Stack) -> Box {
@@ -100,6 +128,38 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             state.elements.borrow_mut().pop();
             drawing_area.queue_draw();
         }
+    });
+
+    help_button.connect_clicked(move |_| {
+        let help_window = Window::new();
+        help_window.set_title(Some("Help"));
+        help_window.set_default_size(800, 600);
+    
+        let scrolled_window = ScrolledWindow::new();
+        let text_view = TextView::new();
+        text_view.set_editable(false);
+        text_view.set_cursor_visible(false);
+    
+        let markdown_text = r#"
+# Algoritmo de Ejemplo
+    
+Este es un ejemplo de cómo se puede mostrar la ayuda.
+    
+## Pasos del Algoritmo
+    
+1. Inicializar
+2. Procesar
+3. Finalizar
+    
+**Nota:** Este es un texto de ejemplo con formato mínimo.
+"#;
+    
+        let buffer = highlight_code(markdown_text);
+    
+        text_view.set_buffer(Some(&buffer));
+        scrolled_window.set_child(Some(&text_view));
+        help_window.set_child(Some(&scrolled_window));
+        help_window.show();
     });
 
     view
