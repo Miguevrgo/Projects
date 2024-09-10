@@ -12,3 +12,4 @@ pub mod sorting;
 pub mod stack;
 pub mod tree;
 pub mod trie;
+pub mod help;
