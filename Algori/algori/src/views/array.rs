@@ -9,6 +9,8 @@ use syntect::highlighting::{Style, ThemeSet};
 use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
 
+use super::help::create_view_array as create_help_view;
+
 const NUM_ELEMENTS: usize = 10;
 
 struct AppState {
@@ -250,9 +252,13 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let language_box = Box::new(Orientation::Horizontal, 10);
     language_box.append(&language_label);
     language_box.append(&language_combo);
+    let help_button = Button::new();
+    help_button.set_widget_name("help-button");
+    view.append(&controls);
+
     controls.append(&language_box);
     controls.append(&show_button);
-    view.append(&controls);
+    controls.append(&help_button);
 
     let drawing_area = DrawingArea::new();
     drawing_area.set_vexpand(true);
@@ -366,5 +372,15 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
             dialog.close();
         });
     });
+
+    help_button.connect_clicked({
+        let stack_clone = stack.clone();
+        move |_| {
+            let help_view = create_help_view(&stack_clone);
+            stack_clone.add_named(&help_view, Some("Help"));
+            stack_clone.set_visible_child_name("Help");
+        }
+    });
+
     view
 }

@@ -171,3 +171,62 @@
 #help-button:hover {
     transform: scale(1.1);
 }
+
+#back-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+}
+
+#back-button:hover {
+    background-color: #45a049;
+}
+
+/* -----------------------------------------------------------------------
+ *  Style for the text on the help view
+ * -----------------------------------------------------------------------
+ * */
+
+#help-view {
+    background-color: #282C34;
+    color: #FFFFFF;
+    padding: 20px;
+}
+
+#help-title {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#help-description {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+#help-steps-title {
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+#help-steps-content {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+#help-note {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-style: italic;
+    margin-top: 20px;
+}

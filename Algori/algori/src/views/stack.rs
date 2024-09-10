@@ -1,8 +1,8 @@
+use crate::views::help::create_view_stack as create_help_view;
 use gtk::{prelude::*, Box, Button, DrawingArea, Entry, Orientation};
 use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::views::help::create_view as create_help_view;
 
 struct AppState {
     elements: RefCell<Vec<i32>>,
@@ -24,19 +24,22 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
     });
+
     let controls = Box::new(Orientation::Vertical, 10);
-    controls.append(&home_button);
     let push_entry = Entry::new();
     let push_button = Button::with_label("Push");
-    push_button.set_widget_name("push-button");
     let pop_button = Button::with_label("Pop");
+    let help_button = Button::new();
+    push_button.set_widget_name("push-button");
     pop_button.set_widget_name("pop-button");
+    help_button.set_widget_name("help-button");
+
+    controls.append(&home_button);
     controls.append(&push_entry);
     controls.append(&push_button);
     controls.append(&pop_button);
-    let help_button = Button::new();
-    help_button.set_widget_name("help-button");
     controls.append(&help_button);
+
     view.append(&controls);
     let drawing_area = DrawingArea::new();
     drawing_area.set_vexpand(true);
