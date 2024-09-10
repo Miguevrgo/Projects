@@ -12,6 +12,11 @@ This application is designed to help students and professionals understand and a
 - Intuitive graphical user interface (GUI) using GTK4
 - Support for multiple algorithms from different categories (sorting, searching, etc.)
 
+## Tasks
+- [] Make help documentation for each view
+- [] Provide an interactive experience for each view
+- [] Error handling
+
 ## Requirements
 
 To run Algori, you need to have the following components installed:
@@ -63,9 +68,9 @@ Contributions are welcome! If you have any ideas for new features, find bugs, or
 
 ## Inspiration
 
-This project was inspired by [Visualgo](https://visualgo.net/), an educational tool for visualizing data structures and algorithms. 
-However, my goal was to create a desktop application that is faster and provides a more pleasant experience for users. 
-While the idea originated from Visualgo, I did not copy anything directly. Many aspects will be different as I have implemented what I considered best at each moment. 
+This project was inspired by [Visualgo](https://visualgo.net/), an educational tool for visualizing data structures and algorithms.
+However, my goal was to create a desktop application that is faster and provides a more pleasant experience for users.
+While the idea originated from Visualgo, I did not copy anything directly. Many aspects will be different as I have implemented what I considered best at each moment.
 My intention was neither to make it the same nor completely different, but rather to create the most effective solution possible, even if that sometimes aligns with Visualgo's approach.
 
 
