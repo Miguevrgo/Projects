@@ -187,6 +187,8 @@
 /* -----------------------------------------------------------------------
  *  Style for the text on the help view
  * -----------------------------------------------------------------------
+ *      help-title -> Title for the view
+ *      help-subtitle ->
  * */
 
 #help-view {
@@ -202,26 +204,18 @@
     margin-top: 10px;
 }
 
-#help-description {
+#help-subtitle {
     font-family: 'Cascadia Code', monospace;
-    font-size: 16px;
+    font-size: 20px;
+    font-weight: bold;
     margin-top: 10px;
 }
 
-#help-steps-title {
-    font-family: Arial, sans-serif;
+#help-content {
+    font-family: 'Cascadia Code', monospace;
     font-size: 20px;
     font-weight: bold;
     margin-top: 20px;
-}
-
-#help-steps-content {
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    padding: 10px;
-    margin-top: 10px;
 }
 
 #help-note {
