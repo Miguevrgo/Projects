@@ -223,4 +223,6 @@
     font-size: 14px;
     font-style: italic;
     margin-top: 20px;
+    border-radius: 5px;
+    border: 2px solid #FFFFFF;
 }
