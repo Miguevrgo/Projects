@@ -14,7 +14,10 @@ struct LinkedList {
 
 impl LinkedList {
     fn new() -> Self {
-        LinkedList { head: None, tail: None }
+        LinkedList {
+            head: None,
+            tail: None,
+        }
     }
 
     fn add_front(&mut self, value: i32) {
@@ -29,10 +32,7 @@ impl LinkedList {
     }
 
     fn add_back(&mut self, value: i32) {
-        let new_node = Rc::new(RefCell::new(Node {
-            value,
-            next: None,
-        }));
+        let new_node = Rc::new(RefCell::new(Node { value, next: None }));
         if let Some(tail) = self.tail.take() {
             tail.borrow_mut().next = Some(new_node.clone());
         } else {
@@ -67,7 +67,7 @@ impl Iterator for LinkedListIterator {
     fn next(&mut self) -> Option<Self::Item> {
         self.current.take().map(|current| {
             let current_borrowed = current.borrow();
-            self.current = current_borrowed.next.clone();
+            self.current.clone_from(&current_borrowed.next);
             current_borrowed.value
         })
     }
@@ -139,7 +139,12 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
             for value in list.iter() {
                 cr.set_source_rgb(0.0, 0.0, 1.0);
-                cr.rectangle(current_x, height as f64 / 2.0 - node_height / 2.0, node_width, node_height);
+                cr.rectangle(
+                    current_x,
+                    height as f64 / 2.0 - node_height / 2.0,
+                    node_width,
+                    node_height,
+                );
                 cr.fill().unwrap();
 
                 cr.set_source_rgb(1.0, 1.0, 1.0);
@@ -147,7 +152,8 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
                 let text = format!("{}", value);
                 let extents = cr.text_extents(&text).unwrap();
                 let text_x = current_x + (node_width - extents.width()) / 2.0;
-                let text_y = height as f64 / 2.0 - node_height / 2.0 + (node_height + extents.height()) / 2.0;
+                let text_y = height as f64 / 2.0 - node_height / 2.0
+                    + (node_height + extents.height()) / 2.0;
                 cr.move_to(text_x, text_y);
                 cr.show_text(&text).unwrap();
 
@@ -203,3 +209,4 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
     view
 }
+
