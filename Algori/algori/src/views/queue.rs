@@ -41,7 +41,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     view.append(&controls);
 
     let queue_container = Box::new(Orientation::Vertical, 10);
-    queue_container.set_widget_name("queue-container");
+    queue_container.set_widget_name("drawing-background");
     queue_container.set_vexpand(true);
     queue_container.set_hexpand(true);
     view.append(&queue_container);

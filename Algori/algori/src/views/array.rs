@@ -230,7 +230,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let insert_entry = Entry::new();
     controls.append(&insert_entry);
     let insert_button = Button::with_label("Insert");
-    insert_button.set_widget_name("insert-button");
+    insert_button.set_widget_name("push-button");
     controls.append(&insert_button);
 
     let delete_label = Label::new(Some("Delete Element:"));
@@ -238,7 +238,7 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     let delete_entry = Entry::new();
     controls.append(&delete_entry);
     let delete_button = Button::with_label("Delete");
-    delete_button.set_widget_name("delete-button");
+    delete_button.set_widget_name("pop-button");
     controls.append(&delete_button);
 
     let language_label = Label::new(Some("Code Language:"));

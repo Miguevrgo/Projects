@@ -100,7 +100,7 @@
     font-weight: bold;
     border: solid;
     padding: 10px 20px;
-    margin-left: 10px;
+    margin-left: 5px;
     border-radius: 5px;
     color: #1a1a1a;
     transition: background-color 0.3s ease, transform 0.3s ease;
@@ -116,7 +116,7 @@
     font-weight: bold;
     border: solid;
     padding: 10px 20px;
-    margin-left: 10px;
+    margin-left: 5px;
     border-radius: 5px;
     color: #1a1a1a;
     transition: background-color 0.3s ease, transform 0.3s ease;
@@ -147,8 +147,8 @@
 #square-element {
     border-radius: 10px;
     border: 2px solid #00008B;
-    margin-left: 50px;
-    margin-right: 50px;
+    margin-left: 100px;
+    margin-right: 100px;
     background-color: #0000FF;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
@@ -184,6 +184,9 @@
     background-color: #45a049;
 }
 
+#drawing-background {
+    background-color: #282C34;
+}
 /* -----------------------------------------------------------------------
  *  Style for the text on the help view
  * -----------------------------------------------------------------------
