@@ -31,7 +31,7 @@ These are the main languages I use or I want to use:
 * [RidMaze](RidMaze) ✅
 * [EzGit](EzGit) ✅
 * [Useful-C++](Useful-C++) ✅
-* [Code Editor](Code-Editor) ➖
+* [Oxide Editor](Oxide-Editor) ➖
 * [Marble-Sim](Marble-Sim) ➖
 * [Algori](Algori) ➖
 * [MvrSTL](MvrSTL) ❌
