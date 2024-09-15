@@ -1,71 +1,126 @@
-use gtk::{prelude::*, Box, Button, Label};
-use std::borrow::BorrowMut;
-use std::cell::RefCell;
-use std::rc::Rc;
+use gtk::{prelude::*, Box as gtkBox, Button, ComboBoxText, DrawingArea, Entry, Label};
+use rand::Rng;
 
-#[derive(Debug)]
-pub struct TreeNode {
-    pub value: i32,
-    pub left: Option<Rc<RefCell<TreeNode>>>,
-    pub right: Option<Rc<RefCell<TreeNode>>>,
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+struct Node<T> {
+    pub value: T,
+    pub left: Option<Box<Node<T>>>,
+    pub right: Option<Box<Node<T>>>,
 }
 
-impl TreeNode {
-    pub fn new(value: i32) -> Rc<RefCell<TreeNode>> {
-        Rc::new(RefCell::new(TreeNode {
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Bst<T> {
+    root: Option<Box<Node<T>>>,
+}
+
+impl<T> Default for Bst<T> {
+    fn default() -> Self {
+        Self { root: None }
+    }
+}
+
+impl<T> Bst<T> {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn from(value: T) -> Self {
+        let root = Box::new(Node {
             value,
             left: None,
             right: None,
-        }))
+        });
+
+        Self { root: Some(root) }
     }
 }
 
-pub struct BinaryTree {
-    pub root: Option<Rc<RefCell<TreeNode>>>,
-}
-
-impl BinaryTree {
-    pub fn new() -> Self {
-        BinaryTree { root: None }
+impl<T> Bst<T>
+where
+    T: Ord,
+{
+    pub fn insert(&mut self, new_val: T) {
+        let new_node = Box::new(Node {
+            value: new_val,
+            left: None,
+            right: None,
+        });
+        Self::push_node(new_node, &mut self.root);
     }
 
-    pub fn insert(&mut self, value: i32) {
-        let new_node = TreeNode::new(value);
-        if let Some(root) = &self.root {
-            self.insert_node(root.clone(), new_node);
-        } else {
-            self.root = Some(new_node);
-        }
-    }
-
-    fn insert_node(&mut self, node: Rc<RefCell<TreeNode>>, new_node: Rc<RefCell<TreeNode>>) {
-        if new_node.borrow().value < node.borrow().value {
-            if let Some(left) = node.borrow().left.clone() {
-                self.insert_node(left, new_node);
-            } else {
-                node.borrow_mut().left = Some(new_node);
+    fn push_node(new_node: Box<Node<T>>, current_node: &mut Option<Box<Node<T>>>) {
+        if let Some(node) = current_node {
+            use std::cmp::Ordering;
+            match node.value.cmp(&new_node.value) {
+                Ordering::Less | Ordering::Equal => Self::push_node(new_node, &mut node.left),
+                Ordering::Greater => Self::push_node(new_node, &mut node.right),
             }
-        } else if let Some(right) = node.borrow().right.clone() {
-            self.insert_node(right, new_node);
         } else {
-            node.borrow_mut().right = Some(new_node);
+            current_node.insert(new_node);
         }
     }
 }
 
-pub fn create_view(stack: &gtk::Stack) -> Box {
-    let view = Box::new(gtk::Orientation::Vertical, 10);
-    let label = Label::new(Some("This is the view for Array"));
+pub fn create_view(stack: &gtk::Stack) -> gtkBox {
+    let view = gtkBox::new(gtk::Orientation::Horizontal, 10);
     let stack_clone = stack.clone();
     let home_button = Button::with_label("Home");
     home_button.set_widget_name("home-button");
-
     home_button.connect_clicked(move |_| {
         stack_clone.set_visible_child_name("Home");
     });
 
-    view.append(&home_button);
-    view.append(&label);
+    let controls = gtkBox::new(gtk::Orientation::Vertical, 10);
+    let push_entry = Entry::new();
+    let push_label = Button::with_label("Insert");
+    push_label.set_widget_name("push-button");
+    let pop_label = Button::with_label("Delete");
+    pop_label.set_widget_name("pop-button");
+    let tree_label = Label::new(Some("Tree type"));
+    let tree_combo = ComboBoxText::new();
+    tree_combo.append_text("Binary Search Tree");
+    let select_button = Button::with_label("Select");
+
+    controls.append(&home_button);
+    controls.append(&push_entry);
+    controls.append(&push_label);
+    controls.append(&pop_label);
+    controls.append(&tree_label);
+    controls.append(&tree_combo);
+    controls.append(&select_button);
+
+    view.append(&controls);
+
+    let drawing_area = DrawingArea::new();
+    drawing_area.set_hexpand(true);
+    drawing_area.set_vexpand(true);
+
+    view.append(&drawing_area);
+
+    push_label.connect_clicked({
+        let drawing_area = drawing_area.clone();
+        move |_| {
+            let value: i32 = push_entry
+                .text()
+                .parse()
+                .unwrap_or(rand::thread_rng().gen_range(1..=100));
+            // Do it whenever a tree selected Bst::from(value);
+        }
+    });
+
+    select_button.connect_clicked({
+        let drawing_area = drawing_area.clone();
+        move |_| {
+            let tree_type = tree_combo
+                .active_text()
+                .unwrap_or_else(|| "Binary Search Tree".into())
+                .to_string();
+            let tree = match tree_type.as_str() {
+                "Binary Search Tree" => 1,
+                _ => 2,
+            };
+        }
+    });
 
     view
 }

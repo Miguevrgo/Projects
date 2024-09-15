@@ -254,12 +254,12 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     language_box.append(&language_combo);
     let help_button = Button::new();
     help_button.set_widget_name("help-button");
-    view.append(&controls);
 
     controls.append(&language_box);
     controls.append(&show_button);
     controls.append(&help_button);
 
+    view.append(&controls);
     let drawing_area = DrawingArea::new();
     drawing_area.set_vexpand(true);
     drawing_area.set_hexpand(true);
@@ -287,7 +287,6 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
                 } else {
                     cr.set_source_rgb(0.5, 0.5, 0.5);
                 }
-
                 cr.rectangle(x, y, element_size, element_size);
                 cr.fill().unwrap();
 
@@ -349,12 +348,15 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     });
 
     show_button.connect_clicked(move |_| {
-        let language = language_combo.active_text().unwrap().to_string();
+        let language = language_combo
+            .active_text()
+            .unwrap_or_else(|| "Rust".into())
+            .to_string();
         let code = match language.as_str() {
             "Rust" => RUST_VECTOR_CODE,
             "C++" => CPP_VECTOR_CODE,
             "C" => C_VECTOR_CODE,
-            _ => "",
+            _ => "Rust",
         };
         let buffer = highlight_code(code, &language);
         let dialog = Dialog::with_buttons(
