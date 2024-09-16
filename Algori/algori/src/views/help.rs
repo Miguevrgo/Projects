@@ -84,8 +84,7 @@ pub fn create_view_array(stack: &gtk::Stack) -> Box {
     subtitle_introduction.set_widget_name("help-subtitle");
 
     let introduction_content = Label::new(Some(
-        "Array is one of the most used and useful data structures, it can be defined
-as a collection of multiple elements under a single variable name. 
+        "Array is one of the most used and useful data structures, it can be defined as a collection of multiple elements under a single variable name. 
     ",
     ));
     introduction_content.set_widget_name("help-content");
@@ -128,6 +127,17 @@ reserving size for the array is a good practice, specially before for loops wher
     let subtitle_complexity = Label::new(Some("4. Complexity"));
     subtitle_complexity.set_widget_name("help-subtitle");
 
+    title_label.set_hexpand(true);
+    subtitle_introduction.set_hexpand(true);
+    introduction_content.set_hexpand(true);
+    subtitle_motivation.set_hexpand(true);
+    motivation_content.set_hexpand(true);
+    subtitle_description.set_hexpand(true);
+    description_content.set_hexpand(true);
+    formula_content.set_hexpand(true);
+    description_content_2.set_hexpand(true);
+    subtitle_complexity.set_hexpand(true);
+
     view.append(&home_button);
     view.append(&title_label);
     view.append(&subtitle_introduction);
@@ -138,6 +148,7 @@ reserving size for the array is a good practice, specially before for loops wher
     view.append(&description_content);
     view.append(&formula_content);
     view.append(&description_content_2);
+    view.append(&subtitle_complexity);
 
     let scrolled_window = ScrolledWindow::builder()
         .hscrollbar_policy(gtk::PolicyType::Automatic)

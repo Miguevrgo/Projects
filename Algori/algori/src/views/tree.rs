@@ -52,12 +52,64 @@ where
         if let Some(node) = current_node {
             use std::cmp::Ordering;
             match node.value.cmp(&new_node.value) {
-                Ordering::Less | Ordering::Equal => Self::push_node(new_node, &mut node.left),
-                Ordering::Greater => Self::push_node(new_node, &mut node.right),
+                Ordering::Less | Ordering::Equal => Self::push_node(new_node, &mut node.right),
+                Ordering::Greater => Self::push_node(new_node, &mut node.left),
             }
         } else {
             current_node.insert(new_node);
         }
+    }
+}
+
+fn draw_tree<T: std::fmt::Display>(tree: &Bst<T>, cr: &gtk::cairo::Context, width: f64) {
+    if let Some(ref root) = tree.root {
+        let x = width / 2.0;
+        let y = 50.0;
+        let offset = 200.0;
+        draw_node(root, cr, x, y, offset);
+    }
+}
+
+fn draw_node<T: std::fmt::Display>(
+    node: &Node<T>,
+    cr: &gtk::cairo::Context,
+    x: f64,
+    y: f64,
+    offset: f64,
+) {
+    cr.set_source_rgb(0.2, 0.6, 0.2);
+    cr.arc(x, y, 30.0, 0.0, 2.0 * std::f64::consts::PI);
+    cr.fill_preserve()
+        .expect("Unable to set background for node in Tree view");
+    cr.set_source_rgb(0.0, 0.0, 0.0);
+    cr.stroke().unwrap();
+
+    cr.set_source_rgb(1.0, 1.0, 1.0);
+    cr.set_font_size(22.0);
+    let text = node.value.to_string();
+    let extents = cr.text_extents(&text).expect("Unable to extent text");
+    cr.move_to(x - extents.width() / 2.0, y + extents.height() / 2.0);
+    cr.show_text(&text).expect("Unable to show text in node");
+
+    if let Some(ref left) = node.left {
+        let new_x = x - offset;
+        let new_y = y + 100.0;
+
+        cr.set_source_rgb(0.0, 0.0, 0.0);
+        cr.move_to(x - 25.0, y + 25.0);
+        cr.line_to(new_x, new_y);
+        cr.stroke().expect("Unable to stroke in Tree view");
+        draw_node(left, cr, new_x, new_y, offset);
+    }
+    if let Some(ref right) = node.right {
+        let new_x = x - offset;
+        let new_y = y + 100.0;
+
+        cr.set_source_rgb(0.0, 0.0, 0.0);
+        cr.move_to(x + 25.0, y + 25.0);
+        cr.line_to(new_x, new_y);
+        cr.stroke().expect("Unable to stroke in Tree view");
+        draw_node(right, cr, new_x, new_y, offset);
     }
 }
 
