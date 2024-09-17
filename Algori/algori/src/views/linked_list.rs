@@ -159,7 +159,6 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
                 current_x += node_width + spacing;
 
-                // Draw arrow
                 if current_x < width as f64 {
                     cr.set_source_rgb(1.0, 1.0, 1.0);
                     cr.move_to(current_x - spacing, height as f64 / 2.0);
@@ -209,4 +208,3 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
 
     view
 }
-
