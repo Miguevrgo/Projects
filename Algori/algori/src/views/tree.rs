@@ -199,17 +199,22 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
     view.append(&drawing_area);
 
     let tree = Rc::new(RefCell::new(Bst::new()));
+    let prev_value = Rc::new(RefCell::new(-1)); // TODO: Use a Vector( as a
+                                                // stack)for a full
+                                                // history of inserts
 
     push_label.connect_clicked({
         let drawing_area = drawing_area.clone();
         let tree = tree.clone();
         let push_entry = push_entry.clone();
+        let prev_value = Rc::clone(&prev_value);
         move |_| {
             let value: i32 = push_entry
                 .text()
                 .parse()
                 .unwrap_or(rand::thread_rng().gen_range(1..=100));
             tree.borrow_mut().insert(value);
+            *prev_value.borrow_mut() = value;
             drawing_area.queue_draw();
         }
     });
@@ -219,10 +224,7 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
         let tree = tree.clone();
         let push_entry = push_entry.clone();
         move |_| {
-            let value: i32 = push_entry
-                .text()
-                .parse()
-                .unwrap_or(rand::thread_rng().gen_range(1..=100));
+            let value: i32 = push_entry.text().parse().unwrap_or(*prev_value.borrow());
             tree.borrow_mut().delete(value);
             drawing_area.queue_draw();
         }
