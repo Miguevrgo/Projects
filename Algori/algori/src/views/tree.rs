@@ -199,10 +199,12 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
     view.append(&drawing_area);
 
     let tree = Rc::new(RefCell::new(Bst::new()));
+    let history = Rc::new(RefCell::new(Vec::new()));
 
     push_label.connect_clicked({
         let drawing_area = drawing_area.clone();
         let tree = tree.clone();
+        let history = history.clone();
         let push_entry = push_entry.clone();
         move |_| {
             let value: i32 = push_entry
@@ -210,6 +212,7 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
                 .parse()
                 .unwrap_or(rand::thread_rng().gen_range(1..=100));
             tree.borrow_mut().insert(value);
+            history.borrow_mut().push(value);
             drawing_area.queue_draw();
         }
     });
@@ -217,14 +220,14 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
     pop_label.connect_clicked({
         let drawing_area = drawing_area.clone();
         let tree = tree.clone();
+        let history = history.clone();
         let push_entry = push_entry.clone();
         move |_| {
-            let value: i32 = push_entry
-                .text()
-                .parse()
-                .unwrap_or(rand::thread_rng().gen_range(1..=100));
-            tree.borrow_mut().delete(value);
-            drawing_area.queue_draw();
+            let value: Option<i32> = push_entry.text().parse().ok().or_else(|| history.borrow_mut().pop());
+            if let Some(value) = value {
+                tree.borrow_mut().delete(value);
+                drawing_area.queue_draw();
+            }
         }
     });
 
