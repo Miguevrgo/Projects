@@ -30,8 +30,8 @@ These are the main languages I use or I want to use:
 * [Tree](Tree) ✅
 * [RidMaze](RidMaze) ✅
 * [EzGit](EzGit) ✅
-* [Useful-C++](Useful-C++) ✅
+* [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ➖
-* [Marble-Sim](Marble-Sim) ➖
+* [Marble Sim](Marble-Sim) ➖
 * [Algori](Algori) ➖
-* [MvrSTL](MvrSTL) ❌
+* [Oxide Kart](Oxide-Kart) ❌
