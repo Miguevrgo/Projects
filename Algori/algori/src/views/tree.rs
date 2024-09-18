@@ -206,14 +206,13 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
         let tree = tree.clone();
         let history = history.clone();
         let push_entry = push_entry.clone();
-        let prev_value = Rc::clone(&prev_value);
         move |_| {
             let value: i32 = push_entry
                 .text()
                 .parse()
                 .unwrap_or(rand::thread_rng().gen_range(1..=100));
             tree.borrow_mut().insert(value);
-            *prev_value.borrow_mut() = value;
+            history.borrow_mut().push(value);
             drawing_area.queue_draw();
         }
     });
@@ -224,9 +223,11 @@ pub fn create_view(stack: &gtk::Stack) -> gtk::Box {
         let history = history.clone();
         let push_entry = push_entry.clone();
         move |_| {
-            let value: i32 = push_entry.text().parse().unwrap_or(*prev_value.borrow());
-            tree.borrow_mut().delete(value);
-            drawing_area.queue_draw();
+            let value: Option<i32> = push_entry.text().parse().ok().or_else(|| history.borrow_mut().pop());
+            if let Some(value) = value {
+                tree.borrow_mut().delete(value);
+                drawing_area.queue_draw();
+            }
         }
     });
 
