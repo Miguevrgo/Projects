@@ -10,7 +10,7 @@ pub fn create_view_stack(stack: &gtk::Stack) -> Box {
     home_button.set_widget_name("back-button");
 
     home_button.connect_clicked(move |_| {
-        stack_clone.set_visible_child_name("Stack");
+        stack_clone.set_visible_child_name("Home");
     });
 
     let title_label = Label::new(Some("Stack"));
@@ -74,7 +74,7 @@ pub fn create_view_array(stack: &gtk::Stack) -> Box {
     home_button.set_widget_name("back-button");
 
     home_button.connect_clicked(move |_| {
-        stack_clone.set_visible_child_name("Stack");
+        stack_clone.set_visible_child_name("Home");
     });
 
     let title_label = Label::new(Some("Array"));
@@ -149,6 +149,282 @@ reserving size for the array is a good practice, specially before for loops wher
     view.append(&formula_content);
     view.append(&description_content_2);
     view.append(&subtitle_complexity);
+
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&view)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    let home_view = Box::new(gtk::Orientation::Vertical, 0);
+    home_view.append(&scrolled_window);
+
+    home_view
+}
+
+pub fn create_view_binary_search(stack: &gtk::Stack) -> Box {
+    let view = Box::new(Orientation::Vertical, 10);
+    view.set_widget_name("help-view");
+
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Back");
+    home_button.set_widget_name("back-button");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    let title_label = Label::new(Some("Binary Search"));
+    title_label.set_widget_name("help-title");
+
+    let subtitle_introduction = Label::new(Some(" 1. Introduction"));
+    subtitle_introduction.set_widget_name("help-subtitle");
+
+    let introduction_content = Label::new(Some(
+        "Binary Search is an efficient algorithm to find the position of a target value in a sorted array.",
+    ));
+    introduction_content.set_widget_name("help-content");
+
+    let subtitle_motivation = Label::new(Some("2. Motivation"));
+    subtitle_motivation.set_widget_name("help-subtitle");
+
+    let motivation_content = Label::new(Some(
+        "Binary Search reduces the search space by half with each iteration, 
+        making it faster than linear search for large arrays.",
+    ));
+    motivation_content.set_widget_name("help-content");
+
+    let subtitle_description = Label::new(Some("3. Description"));
+    subtitle_description.set_widget_name("help-subtitle");
+
+    let description_content = Label::new(Some(
+        "Binary Search works by comparing the target value to the middle element 
+        of the array and adjusting the search space accordingly.",
+    ));
+    description_content.set_widget_name("help-content");
+
+    let complexity_label = Label::new(Some("4. Complexity: O(log n)"));
+    complexity_label.set_widget_name("help-complexity");
+
+    view.append(&home_button);
+    view.append(&title_label);
+    view.append(&subtitle_introduction);
+    view.append(&introduction_content);
+    view.append(&subtitle_motivation);
+    view.append(&motivation_content);
+    view.append(&subtitle_description);
+    view.append(&description_content);
+    view.append(&complexity_label);
+
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&view)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    let home_view = Box::new(gtk::Orientation::Vertical, 0);
+    home_view.append(&scrolled_window);
+
+    home_view
+}
+
+pub fn create_view_bit_manipulation(stack: &gtk::Stack) -> Box {
+    let view = Box::new(Orientation::Vertical, 10);
+    view.set_widget_name("help-view");
+
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Back");
+    home_button.set_widget_name("back-button");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    let title_label = Label::new(Some("Bit Manipulation"));
+    title_label.set_widget_name("help-title");
+
+    let subtitle_introduction = Label::new(Some(" 1. Introduction"));
+    subtitle_introduction.set_widget_name("help-subtitle");
+
+    let introduction_content = Label::new(Some(
+        "Bit Manipulation involves manipulating individual bits of data. It is often used in low-level programming and performance-critical applications.",
+    ));
+    introduction_content.set_widget_name("help-content");
+
+    let subtitle_motivation = Label::new(Some("2. Motivation"));
+    subtitle_motivation.set_widget_name("help-subtitle");
+
+    let motivation_content = Label::new(Some(
+        "Using bit manipulation can lead to performance optimizations and 
+        reduce the memory overhead in certain algorithms.",
+    ));
+    motivation_content.set_widget_name("help-content");
+
+    let subtitle_description = Label::new(Some("3. Description"));
+    subtitle_description.set_widget_name("help-subtitle");
+
+    let description_content = Label::new(Some("Bit Manipulation operations include AND, OR, XOR, shifts, and 
+        more. They are used for tasks like setting or clearing a bit, checking the value of a bit, and bitwise operations."));
+    description_content.set_widget_name("help-content");
+
+    let complexity_label = Label::new(Some(
+        "4. Complexity: Constant time for individual bit operations",
+    ));
+    complexity_label.set_widget_name("help-complexity");
+
+    view.append(&home_button);
+    view.append(&title_label);
+    view.append(&subtitle_introduction);
+    view.append(&introduction_content);
+    view.append(&subtitle_motivation);
+    view.append(&motivation_content);
+    view.append(&subtitle_description);
+    view.append(&description_content);
+    view.append(&complexity_label);
+
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&view)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    let home_view = Box::new(gtk::Orientation::Vertical, 0);
+    home_view.append(&scrolled_window);
+
+    home_view
+}
+
+pub fn create_view_dijkstra(stack: &gtk::Stack) -> Box {
+    let view = Box::new(Orientation::Vertical, 10);
+    view.set_widget_name("help-view");
+
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Back");
+    home_button.set_widget_name("back-button");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    let title_label = Label::new(Some("Dijkstra's Algorithm"));
+    title_label.set_widget_name("help-title");
+
+    let subtitle_introduction = Label::new(Some(" 1. Introduction"));
+    subtitle_introduction.set_widget_name("help-subtitle");
+
+    let introduction_content = Label::new(Some(
+        "Dijkstra's Algorithm is used to find the shortest path between nodes in a graph, which may represent, for example, road networks.",
+    ));
+    introduction_content.set_widget_name("help-content");
+
+    let subtitle_motivation = Label::new(Some("2. Motivation"));
+    subtitle_motivation.set_widget_name("help-subtitle");
+
+    let motivation_content = Label::new(Some(
+        "Finding the shortest path in a graph has applications in many fields such as 
+        navigation systems, networking, and game development.",
+    ));
+    motivation_content.set_widget_name("help-content");
+
+    let subtitle_description = Label::new(Some("3. Description"));
+    subtitle_description.set_widget_name("help-subtitle");
+
+    let description_content = Label::new(Some(
+        "Dijkstra's Algorithm starts at the source node and explores the shortest path 
+        to each neighboring node, updating the shortest paths iteratively.",
+    ));
+    description_content.set_widget_name("help-content");
+
+    let complexity_label = Label::new(Some(
+        "4. Complexity: O(V^2) or O(E log V) with priority queue",
+    ));
+    complexity_label.set_widget_name("help-complexity");
+
+    view.append(&home_button);
+    view.append(&title_label);
+    view.append(&subtitle_introduction);
+    view.append(&introduction_content);
+    view.append(&subtitle_motivation);
+    view.append(&motivation_content);
+    view.append(&subtitle_description);
+    view.append(&description_content);
+    view.append(&complexity_label);
+
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&view)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    let home_view = Box::new(gtk::Orientation::Vertical, 0);
+    home_view.append(&scrolled_window);
+
+    home_view
+}
+
+pub fn create_view_graph(stack: &gtk::Stack) -> Box {
+    let view = Box::new(Orientation::Vertical, 10);
+    view.set_widget_name("help-view");
+
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Back");
+    home_button.set_widget_name("back-button");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    let title_label = Label::new(Some("Graph Data Structure"));
+    title_label.set_widget_name("help-title");
+
+    let subtitle_introduction = Label::new(Some(" 1. Introduction"));
+    subtitle_introduction.set_widget_name("help-subtitle");
+
+    let introduction_content = Label::new(Some(
+        "A Graph is a collection of nodes (vertices) and edges connecting pairs of nodes. Graphs are used to model relationships between objects.",
+    ));
+    introduction_content.set_widget_name("help-content");
+
+    let subtitle_motivation = Label::new(Some("2. Motivation"));
+    subtitle_motivation.set_widget_name("help-subtitle");
+
+    let motivation_content = Label::new(Some("Graphs are used in many fields such as social networks, web pages, transportation systems, 
+        and biology to model relationships and flows."));
+    motivation_content.set_widget_name("help-content");
+
+    let subtitle_description = Label::new(Some("3. Description"));
+    subtitle_description.set_widget_name("help-subtitle");
+
+    let description_content = Label::new(Some("Graphs can be directed or undirected, and can also be weighted, where each edge has a weight 
+        or cost associated with traversing it. Common operations include traversal and searching algorithms like BFS and DFS."));
+    description_content.set_widget_name("help-content");
+
+    let complexity_label = Label::new(Some(
+        "4. Complexity: Depends on the algorithm, e.g., O(V + E) for BFS/DFS",
+    ));
+    complexity_label.set_widget_name("help-complexity");
+
+    view.append(&home_button);
+    view.append(&title_label);
+    view.append(&subtitle_introduction);
+    view.append(&introduction_content);
+    view.append(&subtitle_motivation);
+    view.append(&motivation_content);
+    view.append(&subtitle_description);
+    view.append(&description_content);
+    view.append(&complexity_label);
 
     let scrolled_window = ScrolledWindow::builder()
         .hscrollbar_policy(gtk::PolicyType::Automatic)
