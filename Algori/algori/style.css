@@ -150,6 +150,7 @@
     margin-left: 100px;
     margin-right: 100px;
     background-color: #0000FF;
+    font-size: 28px;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
@@ -186,6 +187,7 @@
 
 #drawing-background {
     background-color: #282C34;
+    padding-top: 50px;
 }
 /* -----------------------------------------------------------------------
  *  Style for the text on the help view

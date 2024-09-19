@@ -27,17 +27,20 @@ pub fn create_view(stack: &gtk::Stack) -> Box {
     });
 
     let controls = Box::new(Orientation::Vertical, 10);
-    controls.append(&home_button);
 
     let enqueue_entry = Entry::new();
     let enqueue_button = Button::with_label("Enqueue");
-    enqueue_button.set_widget_name("enqueue-button");
     let dequeue_button = Button::with_label("Dequeue");
-    dequeue_button.set_widget_name("dequeue-button");
+    let help_button = Button::new();
+    enqueue_button.set_widget_name("push-button");
+    dequeue_button.set_widget_name("pop-button");
+    help_button.set_widget_name("help-button");
 
+    controls.append(&home_button);
     controls.append(&enqueue_entry);
     controls.append(&enqueue_button);
     controls.append(&dequeue_button);
+    controls.append(&help_button); //TODO: connect_clicked
     view.append(&controls);
 
     let queue_container = Box::new(Orientation::Vertical, 10);
