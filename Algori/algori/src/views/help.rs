@@ -1,6 +1,54 @@
-use gtk::{
-    prelude::*, Box, Button, Label, Orientation, ScrolledWindow, TextBuffer, TextTagTable, TextView,
-};
+use gtk::{prelude::*, Box, Button, Orientation, ScrolledWindow, TextView, TextBuffer, TextTagTable, Label, WrapMode};
+
+pub fn create_view_binary_search(stack: &gtk::Stack) -> Box {
+    let view = Box::new(Orientation::Vertical, 10);
+    view.set_widget_name("help-view");
+
+    let stack_clone = stack.clone();
+    let home_button = Button::with_label("Back");
+    home_button.set_widget_name("back-button");
+
+    home_button.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("Home");
+    });
+
+    let pango_markup_content = r#"
+<span font_family='Arial' size='xx-large' weight='bold' foreground='#1E90FF'>Binary Search</span>
+<span font_family='Arial' size='x-large' weight='bold' foreground='#4682B4'>1. Introduction</span>
+<span font_family='Arial' foreground='#000000'>Binary Search is an efficient algorithm to find the position of a target value in a sorted array.</span>
+<span font_family='Arial' size='x-large' weight='bold' foreground='#4682B4'>2. Motivation</span>
+<span font_family='Arial' foreground='#000000'>Binary Search reduces the search space by half with each iteration, making it faster than linear search for large arrays.</span>
+<span font_family='Arial' size='x-large' weight='bold' foreground='#4682B4'>3. Description</span>
+<span font_family='Arial' foreground='#000000'>Binary Search works by comparing the target value to the middle element of the array and adjusting the search space accordingly.</span>
+<span font_family='Arial' size='x-large' weight='bold' foreground='#4682B4'>4. Complexity</span>
+<span font_family='Arial' foreground='#000000'>O(log n)</span>
+"#;
+
+    let text_buffer = TextBuffer::new(Some(&TextTagTable::new()));
+    let mut start_iter = text_buffer.start_iter();
+    text_buffer.insert_markup(&mut start_iter, pango_markup_content);
+
+    let text_view = TextView::new();
+    text_view.set_buffer(Some(&text_buffer));
+    text_view.set_wrap_mode(WrapMode::Word);
+    text_view.set_editable(false);
+    text_view.set_widget_name("help-content");
+
+    let scrolled_window = ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Automatic)
+        .child(&text_view)
+        .build();
+
+    scrolled_window.set_vexpand(true);
+    scrolled_window.set_hexpand(true);
+
+    view.append(&home_button);
+    view.append(&scrolled_window);
+
+    view
+}
+
 
 pub fn create_view_stack(stack: &gtk::Stack) -> Box {
     let view = Box::new(Orientation::Vertical, 10);
@@ -165,74 +213,7 @@ reserving size for the array is a good practice, specially before for loops wher
     home_view
 }
 
-pub fn create_view_binary_search(stack: &gtk::Stack) -> Box {
-    let view = Box::new(Orientation::Vertical, 10);
-    view.set_widget_name("help-view");
 
-    let stack_clone = stack.clone();
-    let home_button = Button::with_label("Back");
-    home_button.set_widget_name("back-button");
-
-    home_button.connect_clicked(move |_| {
-        stack_clone.set_visible_child_name("Home");
-    });
-
-    let title_label = Label::new(Some("Binary Search"));
-    title_label.set_widget_name("help-title");
-
-    let subtitle_introduction = Label::new(Some(" 1. Introduction"));
-    subtitle_introduction.set_widget_name("help-subtitle");
-
-    let introduction_content = Label::new(Some(
-        "Binary Search is an efficient algorithm to find the position of a target value in a sorted array.",
-    ));
-    introduction_content.set_widget_name("help-content");
-
-    let subtitle_motivation = Label::new(Some("2. Motivation"));
-    subtitle_motivation.set_widget_name("help-subtitle");
-
-    let motivation_content = Label::new(Some(
-        "Binary Search reduces the search space by half with each iteration, 
-        making it faster than linear search for large arrays.",
-    ));
-    motivation_content.set_widget_name("help-content");
-
-    let subtitle_description = Label::new(Some("3. Description"));
-    subtitle_description.set_widget_name("help-subtitle");
-
-    let description_content = Label::new(Some(
-        "Binary Search works by comparing the target value to the middle element 
-        of the array and adjusting the search space accordingly.",
-    ));
-    description_content.set_widget_name("help-content");
-
-    let complexity_label = Label::new(Some("4. Complexity: O(log n)"));
-    complexity_label.set_widget_name("help-complexity");
-
-    view.append(&home_button);
-    view.append(&title_label);
-    view.append(&subtitle_introduction);
-    view.append(&introduction_content);
-    view.append(&subtitle_motivation);
-    view.append(&motivation_content);
-    view.append(&subtitle_description);
-    view.append(&description_content);
-    view.append(&complexity_label);
-
-    let scrolled_window = ScrolledWindow::builder()
-        .hscrollbar_policy(gtk::PolicyType::Automatic)
-        .vscrollbar_policy(gtk::PolicyType::Automatic)
-        .child(&view)
-        .build();
-
-    scrolled_window.set_vexpand(true);
-    scrolled_window.set_hexpand(true);
-
-    let home_view = Box::new(gtk::Orientation::Vertical, 0);
-    home_view.append(&scrolled_window);
-
-    home_view
-}
 
 pub fn create_view_bit_manipulation(stack: &gtk::Stack) -> Box {
     let view = Box::new(Orientation::Vertical, 10);
