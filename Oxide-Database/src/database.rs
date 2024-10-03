@@ -1,4 +1,3 @@
-use bincode::Error;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -17,7 +16,7 @@ impl fmt::Display for Person {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "Name: {}\n Surname: {}\n DNI: \n {}, Age: {}",
+            "\nName: {}\nSurname: {}\nDNI: {}\nAge: {}",
             self.name, self.surname, self.dni, self.age
         )
     }
