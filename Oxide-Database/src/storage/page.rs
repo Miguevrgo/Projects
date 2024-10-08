@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
+
 const PAGE_SIZE: usize = 4096;
 
-#[allow(dead_code)] //TODO: Remove
+#[derive(Serialize, Deserialize)]
 pub struct Page {
     data: [u8; PAGE_SIZE],
 }
@@ -16,12 +19,11 @@ impl Page {
 
     /// This method writes the buffer content to the page,
     /// Will panic if there is not enough space //TODO: Overflow pages
-    pub fn write(&mut self, offset: usize, buf: &[u8]) {
-        if offset + buf.len() < PAGE_SIZE {
-            self.data[offset..(offset + buf.len())].copy_from_slice(buf);
-        } else {
-            panic!("Error: Not enough size within the page for the buffer");
-        }
+    pub fn write_to_file(self, path: &str) -> std::io::Result<()> {
+        let mut file = std::fs::File::create(path)?;
+        let encoded: Vec<u8> = bincode::serialize(&self).unwrap();
+        file.write_all(&encoded)?;
+        Ok(())
     }
 
     /// This method reads [`length`] bytes from the [`offset`] provided
