@@ -1,36 +1,73 @@
-use std::io::{self, Write};
+use std::{io::Write, process::exit};
 
-mod database;
-mod storage;
+enum StatementType {
+    Insert,
+    Select,
+}
 
-use crate::database::{Database, Person};
+struct Statement {
+    s_type: StatementType,
+}
 
 fn main() {
-    let mut db: Database = Database::load("data").unwrap();
-
     clear_screen();
     println!(
         "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
     );
     loop {
-        println!("[1] ~ Insert Person");
-        println!("[2] ~ Delete Person");
-        println!("[3] ~ Find Person");
-        println!("[4] ~ Clear Screen");
-        println!("[5] ~ Exit");
-
         let choice = read_input("➤ ");
 
-        match choice.as_str() {
-            "1" => insert_person(&mut db),
-            "2" => delete_person(&mut db),
-            "3" => find_person(&mut db),
-            "4" => clear_screen(),
-            _ => break,
-        };
-    }
+        if choice.starts_with('.') {
+            match parse_commmand(&choice) {
+                Ok(_) => continue,
+                Err(err_msg) => {
+                    println!("{err_msg}");
+                    continue;
+                }
+            }
+        }
 
-    db.save().unwrap();
+        let mut statement: Statement = Statement {
+            s_type: StatementType::Select,
+        };
+
+        match prepare_statement(&choice, &mut statement) {
+            Ok(_) => execute_statement(&statement),
+            Err(err) => {
+                println!("{err}");
+            }
+        }
+    }
+}
+
+fn parse_commmand(command: &str) -> Result<(), String> {
+    match command {
+        ".exit" => exit(0),
+        _ => Err(format!("Error: unrecognized command '{command}'")),
+    }
+}
+
+fn prepare_statement(choice: &str, statement: &mut Statement) -> Result<(), String> {
+    match choice {
+        cmd if cmd.starts_with("insert") => {
+            statement.s_type = StatementType::Insert;
+            Ok(())
+        }
+        "select" => {
+            statement.s_type = StatementType::Select;
+            Ok(())
+        }
+        _ => Err(format!(
+            "Error: unrecognized keyword at start of '{choice}'"
+        )),
+    }
+}
+
+fn execute_statement(statement: &Statement) {
+    match statement.s_type {
+        StatementType::Insert => println!("This is where insert occurs TODO"),
+        StatementType::Select => println!("This is where select occurs TODO"),
+    }
 }
 
 fn clear_screen() {
@@ -43,36 +80,4 @@ fn read_input(prompt: &str) -> String {
     let mut option = String::new();
     std::io::stdin().read_line(&mut option).unwrap();
     option.trim().to_string()
-}
-
-fn insert_person(database: &mut Database) {
-    io::stdout().flush().unwrap();
-    let dni = read_input("DNI: ");
-    io::stdout().flush().unwrap();
-    let name = read_input("Name: ");
-    io::stdout().flush().unwrap();
-    let surname = read_input("Surname: ");
-    io::stdout().flush().unwrap();
-    let age: u32 = read_input("Age: ").parse().expect("Invalid age");
-
-    database.insert(Person {
-        dni,
-        name,
-        surname,
-        age,
-    });
-}
-
-fn delete_person(database: &mut Database) {
-    let dni = read_input("Insert DNI to delete: ");
-    database.delete(&dni);
-}
-
-fn find_person(database: &mut Database) {
-    let dni = read_input("DNI: ");
-    if let Some(person) = database.get(&dni) {
-        println!("{person}");
-    } else {
-        println!("Person with DNI: {} Not found", dni);
-    }
 }
