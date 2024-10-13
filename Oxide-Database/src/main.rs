@@ -1,12 +1,27 @@
 use std::{io::Write, process::exit};
 
+const COLUMN_USERNAME_SIZE: usize = 64;
+const COLUMN_EMAIL_SIZE: usize = 128;
+
 enum StatementType {
     Insert,
     Select,
 }
 
+struct Row {
+    id: u32,
+    username: [u8; COLUMN_USERNAME_SIZE],
+    email: [u8; COLUMN_EMAIL_SIZE],
+}
+
+struct Table {
+    num_rows: u32,
+    pages: Vec<Option<Vec<u8>>>,
+}
+
 struct Statement {
     s_type: StatementType,
+    row: Option<Row>,
 }
 
 fn main() {
@@ -29,6 +44,7 @@ fn main() {
 
         let mut statement: Statement = Statement {
             s_type: StatementType::Select,
+            row: None,
         };
 
         match prepare_statement(&choice, &mut statement) {
@@ -51,6 +67,9 @@ fn prepare_statement(choice: &str, statement: &mut Statement) -> Result<(), Stri
     match choice {
         cmd if cmd.starts_with("insert") => {
             statement.s_type = StatementType::Insert;
+            let mut arguments = choice.split_whitespace();
+            statement.row.id = arguments.next().unwrap().parse().unwrap();
+            statement.row.username = arguments.next().unwrap().chars().collect();
             Ok(())
         }
         "select" => {
