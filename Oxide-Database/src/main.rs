@@ -1,5 +1,4 @@
-use std::fmt::{self, format};
-use std::process::Output;
+use std::fmt;
 use std::{io::Write, process::exit};
 
 const COLUMN_USERNAME_SIZE: usize = 32;
@@ -58,10 +57,6 @@ impl Page {
         Page {
             content: [0; PAGE_SIZE],
         }
-    }
-
-    fn content(&self) -> &[u8] {
-        &self.content
     }
 }
 
@@ -147,14 +142,53 @@ impl Table {
 
     fn write_to_file(&mut self) -> std::io::Result<()> {
         let path = self.file.clone();
+        let mut output = std::fs::File::create(path)?;
 
-        let mut output = std::fs::File::create(path).expect("Error opening file: {path}");
-        let mut buffer: Vec<u8> = Vec::new();
-        for page in self.pages.iter().flatten() {
-            buffer.extend_from_slice(page.content());
+        for row_num in 0..self.num_rows {
+            let row = self.deserialize_row(row_num);
+            let username = String::from_utf8_lossy(&row.username)
+                .trim_end_matches('\0')
+                .to_string();
+            let email = String::from_utf8_lossy(&row.email)
+                .trim_end_matches('\0')
+                .to_string();
+            writeln!(output, "{},{},{}", row.id, username, email)?;
         }
 
-        output.write_all(&buffer)
+        Ok(())
+    }
+
+    fn read_from_file(&mut self) -> std::io::Result<()> {
+        let path = self.file.clone();
+        let file_contents = std::fs::read_to_string(path)?;
+
+        for line in file_contents.lines() {
+            let parts: Vec<&str> = line.split(',').collect();
+            if parts.len() != 3 {
+                continue;
+            }
+
+            let id = parts[0].parse::<u32>().unwrap();
+            let mut username = [0u8; COLUMN_USERNAME_SIZE];
+            let mut email = [0u8; COLUMN_EMAIL_SIZE];
+
+            let username_bytes = parts[1].as_bytes();
+            let email_bytes = parts[2].as_bytes();
+
+            username[..username_bytes.len()].copy_from_slice(username_bytes);
+            email[..email_bytes.len()].copy_from_slice(email_bytes);
+
+            let row = Row {
+                id,
+                username,
+                email,
+            };
+
+            self.serialize_row(&row);
+            self.num_rows += 1;
+        }
+
+        Ok(())
     }
 }
 
@@ -163,7 +197,11 @@ fn main() {
     println!(
         "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
     );
-    let mut current_table = Table::new("Table1");
+    let mut current_table = Table::new("Table1.txt");
+    if std::fs::exists(current_table.file.clone()).unwrap() {
+        current_table.read_from_file().expect("Error opening file");
+    }
+
     loop {
         let choice = read_input("➤ ");
 
