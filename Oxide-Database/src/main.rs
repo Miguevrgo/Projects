@@ -1,5 +1,9 @@
 use std::fmt;
+use std::fs::File;
+use std::os::unix::prelude::FileExt;
 use std::{io::Write, process::exit};
+
+use bincode::deserialize;
 
 const COLUMN_USERNAME_SIZE: usize = 32;
 const COLUMN_EMAIL_SIZE: usize = 64;
@@ -48,6 +52,11 @@ impl fmt::Display for Row {
     }
 }
 
+struct Node {
+    key: u32,
+    page: usize,
+}
+
 struct Page {
     content: [u8; PAGE_SIZE],
 }
@@ -60,58 +69,52 @@ impl Page {
     }
 }
 
+/// Represents a Table of the database, contains the following fields:
+/// - index_file: Name of the file containing index of each key in the table
+///     implemented as a B-Tree
+/// - entries_file: Name of the file containing the data of the table
+///     data is organized in fixed-size rows so direct indexing is possible
+/// - num_rows: The number of rows in the table
+/// - pages: A vector of pages that contains the data of the table //TODO: Delete this and use entries_file
 struct Table {
-    file: String,
+    index_file: String,
+    entries_file: String,
     num_rows: usize,
+    index_tree: Vec<Node>,
     pages: Vec<Option<Page>>,
 }
 
 impl Table {
     fn new(name: &str) -> Self {
         Table {
-            file: name.to_string(),
+            index_file: name.to_string() + "_index.txt",
+            entries_file: name.to_string() + "_data.txt",
             num_rows: 0,
+            index_tree: Vec::new(),
             pages: Vec::new(),
         }
     }
 
-    fn row_slot(&mut self, row_num: usize) -> &mut [u8] {
+    fn row_slot(&mut self, row_num: usize) -> u64 {
         let page_num = row_num / ROWS_PER_PAGE;
         let row_offset = row_num % ROWS_PER_PAGE;
-        let byte_offset = row_offset * ROW_SIZE;
-
-        while self.pages.len() <= page_num {
-            self.pages.push(None);
-        }
-
-        if self.pages[page_num].is_none() {
-            self.pages[page_num] = Some(Page::new());
-        }
-
-        self.pages[page_num].as_mut().unwrap().content[byte_offset..byte_offset + ROW_SIZE].as_mut()
+        (row_offset * ROW_SIZE + page_num * PAGE_SIZE) as u64
     }
 
-    fn serialize_row(&mut self, row: &Row) {
-        let slot = self.row_slot(self.num_rows);
-        slot[0..ID_SIZE].copy_from_slice(&row.id.to_le_bytes());
-        slot[ID_SIZE..ID_SIZE + USERNAME_SIZE].copy_from_slice(&row.username);
-        slot[ID_SIZE + USERNAME_SIZE..ID_SIZE + USERNAME_SIZE + EMAIL_SIZE]
-            .copy_from_slice(&row.email);
-    }
+    /// Converts a row to an &[u8]
+    fn serialize_row() {}
 
-    fn deserialize_row(&mut self, row_num: usize) -> Row {
-        let slot = self.row_slot(row_num);
-
+    fn deserialize_row(&self, content: &[u8]) -> Row {
         let mut id_bytes = [0u8; ID_SIZE];
-        id_bytes.copy_from_slice(&slot[..ID_SIZE]);
+        id_bytes.copy_from_slice(&content[..ID_SIZE]);
         let id = u32::from_le_bytes(id_bytes);
 
         let mut username = [0u8; COLUMN_USERNAME_SIZE];
-        username.copy_from_slice(&slot[ID_SIZE..ID_SIZE + COLUMN_USERNAME_SIZE]);
+        username.copy_from_slice(&content[ID_SIZE..ID_SIZE + COLUMN_USERNAME_SIZE]);
 
         let mut email = [0u8; COLUMN_EMAIL_SIZE];
         email.copy_from_slice(
-            &slot[ID_SIZE + COLUMN_USERNAME_SIZE
+            &content[ID_SIZE + COLUMN_USERNAME_SIZE
                 ..ID_SIZE + COLUMN_USERNAME_SIZE + COLUMN_EMAIL_SIZE],
         );
 
@@ -127,68 +130,35 @@ impl Table {
             StatementType::Insert => {
                 let row_to_insert = &statement.row;
 
-                self.serialize_row(row_to_insert);
+                self.write_to_offset(self.row_slot(self.num_rows), row);
                 self.num_rows += 1;
             }
             StatementType::Select => {
                 let mut row: Row;
                 for row_num in 0..self.num_rows {
-                    row = self.deserialize_row(row_num);
+                    row = self.read_from_offset((ROW_SIZE * row_num) as u64);
                     println!("{row}");
                 }
             }
         }
     }
 
-    fn write_to_file(&mut self) -> std::io::Result<()> {
-        let path = self.file.clone();
-        let mut output = std::fs::File::create(path)?;
+    fn write_to_offset(&mut self, offset: u64, data: &[u8]) -> std::io::Result<()> {
+        let path = self.entries_file.clone();
+        let file = std::fs::OpenOptions::new().append(true).open(path)?;
 
-        for row_num in 0..self.num_rows {
-            let row = self.deserialize_row(row_num);
-            let username = String::from_utf8_lossy(&row.username)
-                .trim_end_matches('\0')
-                .to_string();
-            let email = String::from_utf8_lossy(&row.email)
-                .trim_end_matches('\0')
-                .to_string();
-            writeln!(output, "{},{},{}", row.id, username, email)?;
-        }
-
+        //TODO: Scan in index for memory empty after delete
+        file.write_at(data, offset)?;
         Ok(())
     }
 
-    fn read_from_file(&mut self) -> std::io::Result<()> {
-        let path = self.file.clone();
-        let file_contents = std::fs::read_to_string(path)?;
+    fn read_from_offset(&self, offset: u64) -> Row {
+        let path = self.entries_file.clone();
+        let file = std::fs::OpenOptions::new().write(false).open(path).unwrap();
 
-        for line in file_contents.lines() {
-            let parts: Vec<&str> = line.split(',').collect();
-            if parts.len() != 3 {
-                continue;
-            }
-
-            let id = parts[0].parse::<u32>().unwrap();
-            let mut username = [0u8; COLUMN_USERNAME_SIZE];
-            let mut email = [0u8; COLUMN_EMAIL_SIZE];
-
-            let username_bytes = parts[1].as_bytes();
-            let email_bytes = parts[2].as_bytes();
-
-            username[..username_bytes.len()].copy_from_slice(username_bytes);
-            email[..email_bytes.len()].copy_from_slice(email_bytes);
-
-            let row = Row {
-                id,
-                username,
-                email,
-            };
-
-            self.serialize_row(&row);
-            self.num_rows += 1;
-        }
-
-        Ok(())
+        let mut buf = [0u8; ROW_SIZE];
+        file.read_at(&mut buf, offset).unwrap();
+        self.deserialize_row(&buf)
     }
 }
 
@@ -198,7 +168,7 @@ fn main() {
         "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
     );
     let mut current_table = Table::new("Table1.txt");
-    if std::fs::exists(current_table.file.clone()).unwrap() {
+    if std::fs::exists(current_table.entries_file.clone()).unwrap() {
         current_table.read_from_file().expect("Error opening file");
     }
 
