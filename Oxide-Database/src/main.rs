@@ -1,9 +1,6 @@
 use std::fmt;
-use std::fs::File;
 use std::os::unix::prelude::FileExt;
 use std::{io::Write, process::exit};
-
-use bincode::deserialize;
 
 const COLUMN_USERNAME_SIZE: usize = 32;
 const COLUMN_EMAIL_SIZE: usize = 64;
@@ -81,7 +78,6 @@ struct Table {
     entries_file: String,
     num_rows: usize,
     index_tree: Vec<Node>,
-    pages: Vec<Option<Page>>,
 }
 
 impl Table {
@@ -91,18 +87,8 @@ impl Table {
             entries_file: name.to_string() + "_data.txt",
             num_rows: 0,
             index_tree: Vec::new(),
-            pages: Vec::new(),
         }
     }
-
-    fn row_slot(&mut self, row_num: usize) -> u64 {
-        let page_num = row_num / ROWS_PER_PAGE;
-        let row_offset = row_num % ROWS_PER_PAGE;
-        (row_offset * ROW_SIZE + page_num * PAGE_SIZE) as u64
-    }
-
-    /// Converts a row to an &[u8]
-    fn serialize_row() {}
 
     fn deserialize_row(&self, content: &[u8]) -> Row {
         let mut id_bytes = [0u8; ID_SIZE];
@@ -125,13 +111,21 @@ impl Table {
         }
     }
 
+    fn serialize_row(&self, row: &Row) -> [u8; ROW_SIZE] {
+        let mut serialized_row: [u8; ROW_SIZE] = [0u8; ROW_SIZE];
+        serialized_row[..ID_SIZE].copy_from_slice(&row.id.to_le_bytes());
+        serialized_row[ID_SIZE..ID_SIZE + USERNAME_SIZE].copy_from_slice(&row.username);
+        serialized_row[ID_SIZE + USERNAME_SIZE..ID_SIZE + USERNAME_SIZE + EMAIL_SIZE]
+            .copy_from_slice(&row.email);
+
+        serialized_row
+    }
+
     fn execute_statement(&mut self, statement: &Statement) {
         match statement.s_type {
             StatementType::Insert => {
                 let row_to_insert = &statement.row;
-
-                self.write_to_offset(self.row_slot(self.num_rows), row);
-                self.num_rows += 1;
+                self.insert_row(row_to_insert);
             }
             StatementType::Select => {
                 let mut row: Row;
@@ -143,7 +137,14 @@ impl Table {
         }
     }
 
-    fn write_to_offset(&mut self, offset: u64, data: &[u8]) -> std::io::Result<()> {
+    fn insert_row(&mut self, row: &Row) {
+        let row_to_insert: [u8; ROW_SIZE] = self.serialize_row(row);
+        self.write_to_offset((self.num_rows * ROW_SIZE) as u64, &row_to_insert)
+            .unwrap();
+        self.num_rows += 1;
+    }
+
+    fn write_to_offset(&self, offset: u64, data: &[u8]) -> std::io::Result<()> {
         let path = self.entries_file.clone();
         let file = std::fs::OpenOptions::new().append(true).open(path)?;
 
@@ -162,42 +163,9 @@ impl Table {
     }
 }
 
-fn main() {
-    clear_screen();
-    println!(
-        "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
-    );
-    let mut current_table = Table::new("Table1.txt");
-    if std::fs::exists(current_table.entries_file.clone()).unwrap() {
-        current_table.read_from_file().expect("Error opening file");
-    }
-
-    loop {
-        let choice = read_input("➤ ");
-
-        if choice.starts_with('.') {
-            match parse_commmand(&choice, &mut current_table) {
-                Ok(_) => continue,
-                Err(err_msg) => {
-                    println!("{err_msg}");
-                    continue;
-                }
-            }
-        }
-
-        match prepare_statement(&choice) {
-            Ok(statement) => current_table.execute_statement(&statement),
-            Err(err) => {
-                println!("{err}");
-            }
-        }
-    }
-}
-
-fn parse_commmand(command: &str, table: &mut Table) -> Result<(), String> {
+fn parse_commmand(command: &str) -> Result<(), String> {
     match command {
         ".exit" => {
-            table.write_to_file().unwrap();
             exit(0);
         }
         _ => Err(format!("Error: unrecognized command '{command}'")),
@@ -267,4 +235,33 @@ fn read_input(prompt: &str) -> String {
     let mut option = String::new();
     std::io::stdin().read_line(&mut option).unwrap();
     option.trim().to_string()
+}
+
+fn main() {
+    clear_screen();
+    println!(
+    "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
+);
+    let mut current_table = Table::new("Table1.txt");
+
+    loop {
+        let choice = read_input("➤ ");
+
+        if choice.starts_with('.') {
+            match parse_commmand(&choice) {
+                Ok(_) => continue,
+                Err(err_msg) => {
+                    println!("{err_msg}");
+                    continue;
+                }
+            }
+        }
+
+        match prepare_statement(&choice) {
+            Ok(statement) => current_table.execute_statement(&statement),
+            Err(err) => {
+                println!("{err}");
+            }
+        }
+    }
 }
