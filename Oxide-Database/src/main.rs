@@ -142,6 +142,10 @@ impl Table {
         self.write_to_offset((self.num_rows * ROW_SIZE) as u64, &row_to_insert)
             .unwrap();
         self.num_rows += 1;
+        self.index_tree.push(Node {
+            key: row.id,
+            page: self.num_rows / ROWS_PER_PAGE,
+        })
     }
 
     fn write_to_offset(&self, offset: u64, data: &[u8]) -> std::io::Result<()> {
