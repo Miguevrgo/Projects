@@ -1,3 +1,4 @@
+use core::panic;
 use std::fmt;
 use std::os::unix::prelude::FileExt;
 use std::{io::Write, process::exit};
@@ -82,12 +83,28 @@ struct Table {
 
 impl Table {
     fn new(name: &str) -> Self {
-        Table {
+        let mut table = Table {
             index_file: name.to_string() + "_index.txt",
             entries_file: name.to_string() + "_data.txt",
             num_rows: 0,
             index_tree: Vec::new(),
-        }
+        };
+
+        table.load_metadata().unwrap_or(());
+        table
+    }
+
+    fn load_metadata(&mut self) -> std::io::Result<()> {
+        let file = match std::fs::File::open(&self.index_file) {
+            Ok(file) => file,
+            Err(_) => return Ok(()),
+        };
+
+        let mut num_rows_bytes = [0u8; std::mem::size_of::<usize>()];
+        file.read_exact_at(&mut num_rows_bytes, 0)?;
+        self.num_rows = usize::from_le_bytes(num_rows_bytes);
+
+        Ok(())
     }
 
     fn deserialize_row(&self, content: &[u8]) -> Row {
@@ -145,12 +162,28 @@ impl Table {
         self.index_tree.push(Node {
             key: row.id,
             page: self.num_rows / ROWS_PER_PAGE,
-        })
+        });
+
+        self.save_num_rows().unwrap();
+    }
+
+    fn save_num_rows(&self) -> std::io::Result<()> {
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(&self.index_file)?;
+
+        file.write_at(&self.num_rows.to_le_bytes(), 0)?;
+        Ok(())
     }
 
     fn write_to_offset(&self, offset: u64, data: &[u8]) -> std::io::Result<()> {
         let path = self.entries_file.clone();
-        let file = std::fs::OpenOptions::new().append(true).open(path)?;
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
 
         //TODO: Scan in index for memory empty after delete
         file.write_at(data, offset)?;
@@ -159,10 +192,26 @@ impl Table {
 
     fn read_from_offset(&self, offset: u64) -> Row {
         let path = self.entries_file.clone();
-        let file = std::fs::OpenOptions::new().write(false).open(path).unwrap();
+        let file = std::fs::OpenOptions::new().read(true).open(path).unwrap();
 
         let mut buf = [0u8; ROW_SIZE];
-        file.read_at(&mut buf, offset).unwrap();
+        match file.read_at(&mut buf, offset) {
+            Ok(bytes_read) => {
+                if bytes_read < ROW_SIZE {
+                    panic!(
+                        "Error: Tried to read an incomplete row from file: {}",
+                        self.entries_file
+                    )
+                }
+            }
+            Err(e) => {
+                panic!(
+                    "Error trying to read from file {}: {}",
+                    self.entries_file, e
+                )
+            }
+        }
+
         self.deserialize_row(&buf)
     }
 }
@@ -246,7 +295,7 @@ fn main() {
     println!(
     "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
 );
-    let mut current_table = Table::new("Table1.txt");
+    let mut current_table = Table::new("Table1");
 
     loop {
         let choice = read_input("➤ ");
