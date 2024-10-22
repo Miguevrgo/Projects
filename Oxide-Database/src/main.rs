@@ -1,3 +1,5 @@
+use database::Database;
+
 use crate::table::*; // TODO: Refactor so that it is not necessary when dealing with Database
 use std::io::Write;
 use std::process::exit;
@@ -85,7 +87,7 @@ fn main() {
     println!(
     "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
 );
-    let mut current_table = Table::new("Table1");
+    let mut database = Database::new();
 
     loop {
         let choice = read_input("➤ ");
@@ -101,7 +103,7 @@ fn main() {
         }
 
         match prepare_statement(&choice) {
-            Ok(statement) => current_table.execute_statement(&statement),
+            Ok(statement) => database.execute_statement(&statement),
             Err(err) => {
                 println!("{err}");
             }
