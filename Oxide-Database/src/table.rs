@@ -139,19 +139,11 @@ impl Table {
         serialized_row
     }
 
-    pub fn execute_statement(&mut self, statement: &Statement) {
-        match statement.s_type {
-            StatementType::Insert => {
-                let row_to_insert = &statement.row;
-                self.insert_row(row_to_insert);
-            }
-            StatementType::Select => {
-                let mut row: Row;
-                for row_num in 0..self.num_rows {
-                    row = self.read_from_offset((ROW_SIZE * row_num) as u64);
-                    println!("{row}");
-                }
-            }
+    pub fn execute_select(&self) {
+        let mut row: Row;
+        for row_num in 0..self.num_rows {
+            row = self.read_from_offset((ROW_SIZE * row_num) as u64);
+            println!("{row}");
         }
     }
 
