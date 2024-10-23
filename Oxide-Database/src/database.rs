@@ -2,6 +2,7 @@ use crate::cache::Cache;
 use crate::log::Log;
 use crate::table::*;
 use std::fs::File;
+use std::io::Write;
 use std::io::{BufRead, BufReader};
 
 pub struct Database {
@@ -25,6 +26,15 @@ impl Database {
         }
 
         self.tables.push(Table::new(name));
+        Ok(())
+    }
+
+    pub fn save(&self, file: &str) -> std::io::Result<()> {
+        let mut file = File::create(file)?;
+        for table in self.tables.iter() {
+            file.write_all(table.name.as_bytes())?;
+            file.write_all(b" ")?;
+        }
         Ok(())
     }
 
@@ -76,8 +86,8 @@ impl Database {
                     ));
                 }
                 let mut email = [0; COLUMN_EMAIL_SIZE];
-                username[..parts[2].len()].copy_from_slice(parts[2].as_bytes());
-                email[..parts[3].len()].copy_from_slice(parts[3].as_bytes());
+                username[..parts[3].len()].copy_from_slice(parts[3].as_bytes());
+                email[..parts[4].len()].copy_from_slice(parts[4].as_bytes());
                 //TODO: Find Table and insert_row
                 table.insert_row(&Row {
                     id,
@@ -90,14 +100,24 @@ impl Database {
                     return Err("Syntax error. Expected: select <table>".to_string());
                 }
 
-                let table_name = parts[1];
+                let table_input = parts[1];
+                let mut tables: Vec<&str> = Vec::new();
 
-                if table.name {} //TODO
+                if table_input == "*" {
+                    //TODO: Append all
+                } else {
+                    tables.push(table_input);
+                }
 
-                let mut row: Row;
-                for row_num in 0..self.num_rows {
-                    row = self.read_from_offset((ROW_SIZE * row_num) as u64);
-                    println!("{row}");
+                for table_name in tables {
+                    match self
+                        .tables
+                        .iter_mut()
+                        .find(|table| table.name == table_name)
+                    {
+                        Some(pos) => pos.execute_select(),
+                        None => return Err(format!("Error: Table {table_name} does not exist")),
+                    };
                 }
             }
         }

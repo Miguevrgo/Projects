@@ -2,12 +2,18 @@ use database::Database;
 
 use crate::table::*; // TODO: Refactor so that it is not necessary when dealing with Database
 use std::io::Write;
-use std::process::exit;
 
 mod cache;
 mod database;
 mod log;
 mod table;
+
+const DATA_FILE: &str = "tables.txt";
+
+pub enum CommandType {
+    Exit,
+    Clear,
+}
 
 fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
@@ -21,12 +27,11 @@ fn read_input(prompt: &str) -> String {
     option.trim().to_string()
 }
 
-fn parse_commmand(command: &str) -> Result<(), String> {
+fn parse_commmand(command: &str) -> Result<CommandType, String> {
     match command {
-        ".exit" => {
-            exit(0);
-        }
-        _ => Err(format!("Error: unrecognized command '{command}'")),
+        ".exit" => Ok(CommandType::Exit),
+        ".clear" => Ok(CommandType::Clear),
+        _ => Err(format!("Error: unrecognized command: {command}")),
     }
 }
 
@@ -50,17 +55,19 @@ fn main() {
     "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
 );
     let mut database = Database::new();
+    database.load(DATA_FILE).unwrap();
 
     loop {
         let choice = read_input("➤ ");
 
         if choice.starts_with('.') {
             match parse_commmand(&choice) {
-                Ok(_) => continue,
-                Err(err_msg) => {
-                    println!("{err_msg}");
-                    continue;
+                Ok(CommandType::Exit) => {
+                    database.save(DATA_FILE).unwrap();
+                    std::process::exit(0);
                 }
+                Ok(CommandType::Clear) => clear_screen(),
+                Err(err) => eprintln!("{err}"),
             }
         }
 
