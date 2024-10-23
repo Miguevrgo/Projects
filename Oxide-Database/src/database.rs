@@ -101,22 +101,19 @@ impl Database {
                 }
 
                 let table_input = parts[1];
-                let mut tables: Vec<&str> = Vec::new();
 
                 if table_input == "*" {
-                    //TODO: Append all
+                    for table in self.tables.iter_mut() {
+                        table.execute_select();
+                    }
                 } else {
-                    tables.push(table_input);
-                }
-
-                for table_name in tables {
                     match self
                         .tables
                         .iter_mut()
-                        .find(|table| table.name == table_name)
+                        .find(|table| table.name == table_input)
                     {
                         Some(pos) => pos.execute_select(),
-                        None => return Err(format!("Error: Table {table_name} does not exist")),
+                        None => return Err(format!("Error: Table {table_input} does not exist")),
                     };
                 }
             }

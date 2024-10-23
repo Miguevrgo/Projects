@@ -69,6 +69,7 @@ fn main() {
                 Ok(CommandType::Clear) => clear_screen(),
                 Err(err) => eprintln!("{err}"),
             }
+            continue;
         }
 
         match prepare_statement(&choice) {
