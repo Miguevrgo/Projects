@@ -156,7 +156,7 @@ impl Table {
     }
 
     // TODO: Check for previous key to avoid repetition
-    fn insert_row(&mut self, row: &Row) {
+    pub fn insert_row(&mut self, row: &Row) {
         let row_to_insert: [u8; ROW_SIZE] = self.serialize_row(row);
         self.write_to_offset((self.num_rows * ROW_SIZE) as u64, &row_to_insert)
             .unwrap();
