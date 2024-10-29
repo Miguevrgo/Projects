@@ -8,7 +8,7 @@ mod database;
 mod log;
 mod table;
 
-const DATA_FILE: &str = "tables.txt";
+const DATABASE_DIR: &str = "./data/tables.txt";
 
 pub enum CommandType {
     Exit,
@@ -55,7 +55,7 @@ fn main() {
     "╔════════════════════════════╗\n║  Welcome to Oxide Database ║\n╚════════════════════════════╝"
 );
     let mut database = Database::new();
-    database.load(DATA_FILE).unwrap();
+    database.load(DATABASE_DIR).unwrap();
 
     loop {
         let choice = read_input("➤ ");
@@ -63,7 +63,7 @@ fn main() {
         if choice.starts_with('.') {
             match parse_commmand(&choice) {
                 Ok(CommandType::Exit) => {
-                    database.save(DATA_FILE).unwrap();
+                    database.save(DATABASE_DIR).unwrap();
                     std::process::exit(0);
                 }
                 Ok(CommandType::Clear) => clear_screen(),

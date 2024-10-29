@@ -35,4 +35,4 @@ Cargo.lock
 *.pdb
 .cache/
 *.cache
-
+Oxide-Database/data/
