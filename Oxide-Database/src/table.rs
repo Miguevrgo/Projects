@@ -10,6 +10,7 @@ const ROWS_PER_PAGE: usize = PAGE_SIZE / ROW_SIZE;
 const ID_SIZE: usize = std::mem::size_of::<u32>();
 const USERNAME_SIZE: usize = std::mem::size_of::<[u8; COLUMN_USERNAME_SIZE]>();
 const EMAIL_SIZE: usize = std::mem::size_of::<[u8; COLUMN_EMAIL_SIZE]>();
+const DATABASE_DIR: &str = "./data/";
 
 pub enum StatementType {
     Insert,
@@ -72,7 +73,7 @@ impl Page {
 /// - entries_file: Name of the file containing the data of the table
 ///     data is organized in fixed-size rows so direct indexing is possible
 /// - num_rows: The number of rows in the table
-/// - pages: A vector of pages that contains the data of the table //TODO: Delete this and use entries_file
+/// - index_tree: Tree containing indexes of each key in memory
 pub struct Table {
     pub name: String,
     index_file: String,
@@ -85,8 +86,8 @@ impl Table {
     pub fn new(name: &str) -> Self {
         let mut table = Table {
             name: name.to_string(),
-            index_file: name.to_string() + "_index.txt",
-            entries_file: name.to_string() + "_data.txt",
+            index_file: DATABASE_DIR.to_owned() + name + "_index.txt",
+            entries_file: DATABASE_DIR.to_owned() + name + "_data.txt",
             num_rows: 0,
             index_tree: Vec::new(),
         };
