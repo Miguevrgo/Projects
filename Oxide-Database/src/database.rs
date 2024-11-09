@@ -112,7 +112,7 @@ impl Database {
                         .iter_mut()
                         .find(|table| table.name == table_input)
                     {
-                        Some(pos) => pos.execute_select(),
+                        Some(table) => table.execute_select(), //TODO: Search in cache
                         None => return Err(format!("Error: Table {table_input} does not exist")),
                     };
                 }

@@ -55,7 +55,8 @@ struct Node {
     page: usize,
 }
 
-struct Page {
+#[derive(Clone, Copy)]
+pub struct Page {
     content: [u8; PAGE_SIZE],
 }
 
