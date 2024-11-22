@@ -66,6 +66,7 @@ class _MainAppState extends State<MainApp> {
     return Scaffold(
         body: _pages[_selectedIndex],
         bottomNavigationBar: AppBottomNav(
+          currentTheme: themeNotifier.value,
           currentIndex: _selectedIndex,
           onItemTapped: _onItemTapped,
         ));
