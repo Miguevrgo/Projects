@@ -24,6 +24,7 @@ These are the main languages I use or I want to use:
 * C++20
 * Rust
 * Python
+* Dart (Flutter)
 	
 ## Projects
 * [Spell-Checker](Spell-Checker) ✅
@@ -31,7 +32,8 @@ These are the main languages I use or I want to use:
 * [RidMaze](RidMaze) ✅
 * [EzGit](EzGit) ✅
 * [Useful C++](Useful-C++) ✅
-* [Oxide Editor](Oxide-Editor) ➖
-* [Marble Sim](Marble-Sim) ➖
+* [Oxide Editor](Oxide-Editor) ✅
 * [Algori](Algori) ➖
+* [Oxide-Algori](Oxide-Algori) ➖
+* [Marble Sim](Marble-Sim) ➖
 * [Oxide Tower Defense](Oxide-Tower-Defense) ❌
