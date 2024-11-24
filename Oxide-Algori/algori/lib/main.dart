@@ -1,4 +1,5 @@
 import 'package:algori/pages/settings_page.dart';
+import 'package:algori/user_preferences.dart';
 import 'package:flutter/material.dart';
 
 // Views
@@ -6,11 +7,17 @@ import 'pages/home_page.dart';
 // Navigation bar
 import 'app_bottom_nav.dart';
 
-void main() {
+ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized;
+
+  final preferences = UserPreferences();
+  final isDarkTheme = await preferences.isDarkTheme;
+  themeNotifier.value = isDarkTheme ? ThemeMode.dark : ThemeMode.light;
+
   runApp(MyApp());
 }
-
-ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 class MyApp extends StatelessWidget {
   @override
