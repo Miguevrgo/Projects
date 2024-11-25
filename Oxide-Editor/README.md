@@ -1,5 +1,7 @@
 # Oxide Editor
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Miguevrgo/Projects/master/Oxide-Editor/oxide-editor.png" alt="Oxide Editor" />
+</p>
 Oxide Editor is a lightweight and efficient text editor, inspired by the simplicity and functionality of modern editors like LazyVim. It is written in [Rust](https://www.rust-lang.org/), ensuring fast performance and robust safety. Oxide Editor uses a **GapBuffer** data structure, optimized for editing operations such as inserting and deleting text with minimal performance impact.
 
 ## Features
