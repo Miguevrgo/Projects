@@ -1,5 +1,7 @@
 # Ridmaze
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Miguevrgo/Projects/master/Ridmaze/ridmaze.png" alt="Ridmaze" />
+</p>
 ## Objective
 
 The aim of this project is to develop a modern C++ 2D Game using SFML
