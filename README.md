@@ -33,7 +33,8 @@ These are the main languages I use or I want to use:
 * [EzGit](EzGit) ✅
 * [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ✅
-* [Algori](Algori) ➖
+* [Algori](Algori) ✅
 * [Oxide-Algori](Oxide-Algori) ➖
 * [Marble Sim](Marble-Sim) ➖
+* [owm](Owm) ❌
 * [Oxide Tower Defense](Oxide-Tower-Defense) ❌
