@@ -34,6 +34,7 @@ These are the main languages I use or I want to use:
 * [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ✅
 * [Algori](Algori) ✅
+* [Oxide Network Engine](ONE) ➖
 * [Oxide-Algori](Oxide-Algori) ➖
 * [Marble Sim](Marble-Sim) ➖
 * [owm](Owm) ❌
