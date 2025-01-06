@@ -3,7 +3,6 @@ use std::{
     fs,
     io::{BufRead, BufReader, Write},
     net::{TcpListener, TcpStream},
-    thread,
     time::Duration,
 };
 
