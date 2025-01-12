@@ -52,6 +52,10 @@ impl ThreadPool {
         }
     }
 
+    /// Executes provided function in parallel by sending it to a worker thread
+    ///
+    /// The argument is a closure that captures the environment
+    ///
     pub fn execute<F>(&self, f: F)
     where
         F: FnOnce() + Send + 'static,
