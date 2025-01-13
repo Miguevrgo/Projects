@@ -1,6 +1,10 @@
-use std::{io, net::Ipv4Addr};
-
 use crate::state::TcpState;
+use rand::random;
+use socket2::{Domain, Protocol, Socket, Type};
+use std::{
+    io,
+    net::{Ipv4Addr, SocketAddrV4},
+};
 
 /// A TCP header follows the internet header, supplying information
 /// specific to the TCP protocol, structure has been assigned according
@@ -19,10 +23,45 @@ pub struct TcpHeader {
     urgent_pointer: u16,
 }
 
+impl TcpHeader {
+    fn from(
+        s_port: u16,
+        d_port: u16,
+        seq: u32,
+        ack: u32,
+        o_r_c: u16,
+        window: u16,
+        u_pointer: u16,
+    ) -> TcpHeader {
+        TcpHeader {
+            source_port: s_port,
+            destination_port: d_port,
+            seq_number: seq,
+            ack_number: ack,
+            offset_reserv_control: o_r_c,
+            window,
+            checksum: 0,
+            urgent_pointer: u_pointer,
+        }
+    }
+
+    fn checksum() -> u16 {
+        unimplemented!()
+    }
+
+    fn compose_offset_reserv_control(offset: u8, flags: u8) -> u16 {
+        ((offset as u16) << 12) | (flags as u16)
+    }
+}
+
 pub struct TcpStream {
     state: TcpState,
-    address: Ipv4Addr,
-    port: u16,
+    local_address: Ipv4Addr,
+    local_port: u16,
+    remote_address: Option<Ipv4Addr>,
+    remote_port: Option<u16>,
+    ack_number: u32,
+    seq_number: u32,
 }
 
 impl TcpStream {
@@ -40,16 +79,55 @@ impl TcpStream {
 
         Ok(TcpStream {
             state: TcpState::Closed,
-            address: addr_ip,
-            port: addr_port,
+            local_address: addr_ip,
+            local_port: addr_port,
+            remote_address: None,
+            remote_port: None,
+            seq_number: 0,
+            ack_number: 0,
         })
     }
 
-    pub fn connect(&mut self) {
+    pub fn connect(&mut self, r_port: u16, r_address: Ipv4Addr) -> io::Result<()> {
         if self.state != TcpState::Closed {
             panic!("Implement logic (RFC 793 says something about this in strange ways :O )")
         }
-        //TODO: Three way handshake
+
+        let socket = Socket::new(Domain::IPV4, Type::RAW, Some(Protocol::TCP))?;
+        socket.set_reuse_address(true)?;
+        let local_socket = SocketAddrV4::new(self.local_address, self.local_port);
+        socket.bind(&local_socket.into())?;
+
+        self.seq_number = rand::random::<u32>();
+        self.remote_port = Some(r_port);
+        self.remote_address = Some(r_address);
+        let flags = 0b00010; // SYN Flag
+        let header = TcpHeader::from(
+            self.local_port,
+            self.remote_port.unwrap(),
+            self.seq_number,
+            self.ack_number,
+            TcpHeader::compose_offset_reserv_control(0, flags),
+            8192,
+            0,
+        );
+
+        let tcp_segment = self.serialize_header(&header)?;
+        //TODO:
+        Ok(())
+    }
+
+    fn serialize_header(&self, header: &TcpHeader) -> io::Result<Vec<u8>> {
+        let mut bytes = Vec::with_capacity(20); // 20 bytes para un encabezado TCP estándar
+        bytes.extend_from_slice(&header.source_port.to_be_bytes());
+        bytes.extend_from_slice(&header.destination_port.to_be_bytes());
+        bytes.extend_from_slice(&header.seq_number.to_be_bytes());
+        bytes.extend_from_slice(&header.ack_number.to_be_bytes());
+        bytes.extend_from_slice(&header.offset_reserv_control.to_be_bytes());
+        bytes.extend_from_slice(&header.window.to_be_bytes());
+        bytes.extend_from_slice(&header.checksum.to_be_bytes());
+        bytes.extend_from_slice(&header.urgent_pointer.to_be_bytes());
+        Ok(bytes)
     }
 }
 
@@ -58,6 +136,6 @@ fn connect() {
     let stream = TcpStream::new("192.168.1.1:80");
     assert!(stream.is_ok());
     let stream = stream.unwrap();
-    assert_eq!(Ok(stream.address), "192.168.1.1".parse());
-    assert_eq!(stream.port, 80);
+    assert_eq!(Ok(stream.local_address), "192.168.1.1".parse());
+    assert_eq!(stream.local_port, 80);
 }
