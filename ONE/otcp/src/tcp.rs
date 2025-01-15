@@ -40,7 +40,7 @@ impl TcpHeader {
             ack_number: ack,
             offset_reserv_control: o_r_c,
             window,
-            checksum: 0,
+            checksum: Self::checksum(),
             urgent_pointer: u_pointer,
         }
     }
@@ -113,12 +113,13 @@ impl TcpStream {
         );
 
         let tcp_segment = self.serialize_header(&header)?;
-        //TODO:
+        socket.send_to(&tcp_segment, &SocketAddrV4::new(r_address, r_port).into())?;
+        self.state = TcpState::SynSent;
         Ok(())
     }
 
     fn serialize_header(&self, header: &TcpHeader) -> io::Result<Vec<u8>> {
-        let mut bytes = Vec::with_capacity(20); // 20 bytes para un encabezado TCP estándar
+        let mut bytes = Vec::with_capacity(20);
         bytes.extend_from_slice(&header.source_port.to_be_bytes());
         bytes.extend_from_slice(&header.destination_port.to_be_bytes());
         bytes.extend_from_slice(&header.seq_number.to_be_bytes());
