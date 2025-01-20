@@ -6,6 +6,17 @@ use std::{
     net::{Ipv4Addr, SocketAddrV4},
 };
 
+bitflags::bitflags! {
+    pub struct TcpFlags: u8 {
+        const FIN = 0x01;
+        const SYN = 0x02;
+        const RST = 0x04;
+        const PSH = 0x08;
+        const ACK = 0x10;
+        const URG = 0x20;
+    }
+}
+
 /// A TCP header follows the internet header, supplying information
 /// specific to the TCP protocol, structure has been assigned according
 /// to TCP 793, with the exact bits for each field, to achieve this
@@ -17,7 +28,9 @@ pub struct TcpHeader {
     destination_port: u16,
     seq_number: u32,
     ack_number: u32,
-    offset_reserv_control: u16,
+    reserved: u8,
+    offset: u8,
+    control: TcpFlags,
     window: u16,
     checksum: u16,
     urgent_pointer: u16,
@@ -29,7 +42,8 @@ impl TcpHeader {
         d_port: u16,
         seq: u32,
         ack: u32,
-        o_r_c: u16,
+        offset: u8,
+        control: TcpFlags,
         window: u16,
         u_pointer: u16,
     ) -> TcpHeader {
@@ -38,7 +52,9 @@ impl TcpHeader {
             destination_port: d_port,
             seq_number: seq,
             ack_number: ack,
-            offset_reserv_control: o_r_c,
+            offset,
+            control,
+            reserved: 0,
             window,
             checksum: Self::checksum(),
             urgent_pointer: u_pointer,
@@ -47,10 +63,6 @@ impl TcpHeader {
 
     fn checksum() -> u16 {
         unimplemented!()
-    }
-
-    fn compose_offset_reserv_control(offset: u8, flags: u8) -> u16 {
-        ((offset as u16) << 12) | (flags as u16)
     }
 }
 
@@ -101,13 +113,14 @@ impl TcpStream {
         self.seq_number = rand::random::<u32>();
         self.remote_port = Some(r_port);
         self.remote_address = Some(r_address);
-        let flags = 0b00010; // SYN Flag
+        let flags = TcpFlags::SYN; // Usando TcpFlags::SYN
         let header = TcpHeader::from(
             self.local_port,
             self.remote_port.unwrap(),
             self.seq_number,
             self.ack_number,
-            TcpHeader::compose_offset_reserv_control(0, flags),
+            5, // Offset
+            flags,
             8192,
             0,
         );
@@ -115,6 +128,9 @@ impl TcpStream {
         let tcp_segment = self.serialize_header(&header)?;
         socket.send_to(&tcp_segment, &SocketAddrV4::new(r_address, r_port).into())?;
         self.state = TcpState::SynSent;
+        // SYN sent, Next step in standard three way handshake is to receive an SYN + ACK
+        let mut buf = [0u8; 1024];
+        let (size, _) = socket.recv_from(&mut buf)?;
         Ok(())
     }
 
@@ -124,7 +140,8 @@ impl TcpStream {
         bytes.extend_from_slice(&header.destination_port.to_be_bytes());
         bytes.extend_from_slice(&header.seq_number.to_be_bytes());
         bytes.extend_from_slice(&header.ack_number.to_be_bytes());
-        bytes.extend_from_slice(&header.offset_reserv_control.to_be_bytes());
+        bytes.extend_from_slice(&header.offset.to_be_bytes());
+        bytes.extend_from_slice(&[header.control.bits()]);
         bytes.extend_from_slice(&header.window.to_be_bytes());
         bytes.extend_from_slice(&header.checksum.to_be_bytes());
         bytes.extend_from_slice(&header.urgent_pointer.to_be_bytes());
