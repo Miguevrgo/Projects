@@ -1,5 +1,4 @@
 use crate::state::TcpState;
-use rand::random;
 use socket2::{Domain, Protocol, Socket, Type};
 use std::{
     io,
@@ -56,13 +55,65 @@ impl TcpHeader {
             control,
             reserved: 0,
             window,
-            checksum: Self::checksum(),
+            checksum: 0,
             urgent_pointer: u_pointer,
         }
     }
 
-    fn checksum() -> u16 {
-        unimplemented!()
+    fn checksum(&self, src_ip: Ipv4Addr, dest_ip: Ipv4Addr) -> u16 {
+        let mut buf = Vec::with_capacity(32);
+
+        // Pseudo-header (RFC 793)
+        buf.extend_from_slice(&src_ip.octets());
+        buf.extend_from_slice(&dest_ip.octets());
+        buf.push(0); // Reserved
+        buf.push(6); // TCP
+        buf.extend_from_slice(&(20u16).to_be_bytes()); // Longitud TCP
+
+        buf.extend_from_slice(&self.source_port.to_be_bytes());
+        buf.extend_from_slice(&self.destination_port.to_be_bytes());
+        buf.extend_from_slice(&self.seq_number.to_be_bytes());
+        buf.extend_from_slice(&self.ack_number.to_be_bytes());
+        buf.push((self.offset << 4) | (self.reserved << 2));
+        buf.push(self.control.bits());
+        buf.extend_from_slice(&self.window.to_be_bytes());
+        buf.extend_from_slice(&[0, 0]); // Checksum
+        buf.extend_from_slice(&self.urgent_pointer.to_be_bytes());
+
+        // Calculate checksum
+        let mut sum = 0u32;
+        for chunk in buf.chunks(2) {
+            let word = u16::from_be_bytes([chunk[0], chunk.get(1).copied().unwrap_or(0)]);
+            sum += u32::from(word);
+        }
+
+        while sum >> 16 != 0 {
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        }
+
+        !sum as u16
+    }
+
+    fn parse(data: &[u8]) -> io::Result<Self> {
+        if data.len() < 20 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "TCP Header too short",
+            ));
+        }
+
+        Ok(TcpHeader {
+            source_port: u16::from_be_bytes([data[0], data[1]]),
+            destination_port: u16::from_be_bytes([data[2], data[3]]),
+            seq_number: u32::from_be_bytes([data[4], data[5], data[6], data[7]]),
+            ack_number: u32::from_be_bytes([data[8], data[9], data[10], data[11]]),
+            offset: data[12] >> 4,
+            reserved: (data[12] & 0x0F) >> 2, // 4 bits (offset) + 6 bits reservados
+            control: TcpFlags::from_bits(data[13]).unwrap(),
+            window: u16::from_be_bytes([data[14], data[15]]),
+            checksum: u16::from_be_bytes([data[16], data[17]]),
+            urgent_pointer: u16::from_be_bytes([data[18], data[19]]),
+        })
     }
 }
 
@@ -129,8 +180,40 @@ impl TcpStream {
         socket.send_to(&tcp_segment, &SocketAddrV4::new(r_address, r_port).into())?;
         self.state = TcpState::SynSent;
         // SYN sent, Next step in standard three way handshake is to receive an SYN + ACK
-        let mut buf = [0u8; 1024];
+        let mut buf = [std::mem::MaybeUninit::uninit(); 1024];
         let (size, _) = socket.recv_from(&mut buf)?;
+        let response = unsafe { std::slice::from_raw_parts(buf.as_ptr() as *const u8, size) };
+
+        let syn_ack_header = TcpHeader::parse(response)?;
+
+        if !syn_ack_header
+            .control
+            .contains(TcpFlags::SYN | TcpFlags::ACK)
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::ConnectionReset,
+                "Respuesta inválida",
+            ));
+        }
+
+        self.ack_number = syn_ack_header.seq_number.wrapping_add(1);
+        self.seq_number = self.seq_number.wrapping_add(1);
+
+        let ack_header = TcpHeader::from(
+            self.local_port,
+            r_port,
+            self.seq_number,
+            self.ack_number,
+            5,
+            TcpFlags::ACK,
+            8192,
+            0,
+        );
+
+        let ack_segment = self.serialize_header(&ack_header)?;
+        socket.send_to(&ack_segment, &SocketAddrV4::new(r_address, r_port).into())?;
+
+        self.state = TcpState::Established;
         Ok(())
     }
 
