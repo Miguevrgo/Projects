@@ -3,8 +3,8 @@ use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Player {
-    pub pos_x: i16,
-    pub pos_y: i16,
+    pub pos_x: usize,
+    pub pos_y: usize,
     pub inventory: Vec<Item>,
 }
 
@@ -28,10 +28,10 @@ impl Player {
     }
 
     /// TODO: Implement is_valid_position
-    pub fn move_by(&mut self, x_axis: i16, y_axis: i16) {
+    pub fn move_by(&mut self, x_axis: usize, y_axis: usize) {
         ///TODO: Delete this function, and implement it correctly elsewhere
         let is_valid_position =
-            |x: i16, y: i16| -> bool { (0..10).contains(&x) && (0..10).contains(&y) };
+            |x: usize, y: usize| -> bool { (0..10).contains(&x) && (0..10).contains(&y) };
         if is_valid_position(self.pos_x + x_axis, self.pos_y + y_axis) {
             self.pos_x += x_axis;
             self.pos_y += y_axis;
