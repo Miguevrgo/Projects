@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 mod components;
-mod resources;
+mod entities;
 mod systems;
 
 fn main() {
