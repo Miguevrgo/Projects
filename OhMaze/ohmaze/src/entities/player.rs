@@ -1,4 +1,4 @@
-use crate::components::item::Item;
+use crate::entities::item::Item;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -21,7 +21,7 @@ impl Player {
         self.inventory.push(item);
     }
 
-    pub fn has_key(&self, key_id: &u8) -> bool {
+    pub fn has_key(&self, key_id: &usize) -> bool {
         self.inventory
             .iter()
             .any(|item| matches!(item, Item::Key(id) if id == key_id))
