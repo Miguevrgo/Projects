@@ -40,7 +40,8 @@ impl Map {
                 let tile = match ch {
                     'F' => TileType::Empty,
                     'D' => TileType::Door,
-                    'S' => TileType::Stairs,
+                    'S' => TileType::UpStairs,
+                    's' => TileType::DownStairs,
                     'W' => TileType::Wall,
                     'I' => TileType::Item,
                     'P' => TileType::Player,
@@ -59,12 +60,27 @@ impl Map {
         }
     }
 
-    pub fn valid_pos(&self, pos_x: usize, pos_y: usize, key: bool) -> bool {
+    pub fn valid_pos(&mut self, pos_x: usize, pos_y: usize, key: bool) -> bool {
         match self.map[self.current_level][pos_x][pos_y] {
             TileType::Wall => false,
             TileType::Item => true, // Handle
             TileType::Door => key,  // Only valid if key
+            TileType::UpStairs => {
+                self.switch_level(true);
+                true
+            }
+            TileType::DownStairs => {
+                self.switch_level(false);
+                false
+            }
             _ => unreachable!(),
         }
+    }
+
+    /// TODO: In order to allow a stair to be in a different position in each level some kind of
+    /// movement of player shall be allowed or maybe the player is just rendered where the P in the
+    /// map is which I think is not very efficient
+    fn switch_level(&mut self, going_up: bool) {
+        self.current_level += going_up as usize;
     }
 }

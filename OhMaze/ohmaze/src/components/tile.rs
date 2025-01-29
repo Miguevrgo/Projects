@@ -6,7 +6,8 @@ pub enum TileType {
     Item,
     Player,
     Enemy,
-    Stairs,
+    UpStairs,
+    DownStairs,
 }
 
 #[derive(Debug, Clone, Copy)]
