@@ -27,14 +27,8 @@ impl Player {
             .any(|item| matches!(item, Item::Key(id) if id == key_id))
     }
 
-    /// TODO: Implement is_valid_position
     pub fn move_by(&mut self, x_axis: usize, y_axis: usize) {
-        ///TODO: Delete this function, and implement it correctly elsewhere
-        let is_valid_position =
-            |x: usize, y: usize| -> bool { (0..10).contains(&x) && (0..10).contains(&y) };
-        if is_valid_position(self.pos_x + x_axis, self.pos_y + y_axis) {
-            self.pos_x += x_axis;
-            self.pos_y += y_axis;
-        }
+        self.pos_x += x_axis;
+        self.pos_y += y_axis;
     }
 }
