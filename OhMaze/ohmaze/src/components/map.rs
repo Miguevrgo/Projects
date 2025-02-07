@@ -1,7 +1,11 @@
+use bevy::prelude::Resource;
+
 use crate::components::tile::*;
 
+#[derive(Resource)]
 pub struct Map {
     map: Vec<Vec<Vec<TileType>>>,
+    pub player_pos: (usize, usize),
     pub current_level: usize,
 }
 
@@ -54,8 +58,19 @@ impl Map {
             level.push(row);
         }
 
+        let mut player_pos = (0, 0);
+
+        for i in 0..level.len() {
+            for j in 0..level[i].len() {
+                if level[i][j] == TileType::Player {
+                    player_pos = (i, j);
+                }
+            }
+        }
+
         Map {
             map,
+            player_pos,
             current_level: 0,
         }
     }
@@ -82,5 +97,32 @@ impl Map {
     /// map is which I think is not very efficient
     fn switch_level(&mut self, going_up: bool) {
         self.current_level += going_up as usize;
+    }
+
+    pub fn move_player(&mut self, dx: isize, dy: isize, key: bool) {
+        let (x, y) = self.player_pos;
+
+        let new_x = x as isize + dx;
+        let new_y = y as isize + dy;
+
+        if new_x >= 0
+            && new_y >= 0
+            && (new_x as usize) < self.map[self.current_level].len()
+            && (new_y as usize) < self.map[self.current_level][new_x as usize].len()
+            && self.valid_pos(new_x as usize, new_y as usize, key)
+        {
+            self.map[self.current_level][x][y] = TileType::Empty;
+            self.map[self.current_level][new_x as usize][new_y as usize] = TileType::Player;
+            self.player_pos = (new_x as usize, new_y as usize);
+        }
+    }
+
+    pub fn render_map(&self) {
+        for tile in self.map[self.current_level].iter() {
+            for t in tile.iter() {
+                print!("{t}");
+            }
+            println!();
+        }
     }
 }

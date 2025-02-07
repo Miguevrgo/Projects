@@ -1,29 +1,26 @@
 use crate::components::map::Map;
-use crate::entities::player::*;
+use crate::entities::player::Player;
 use bevy::prelude::*;
 
-pub fn handle_movement(input: Res<ButtonInput<KeyCode>>, player: &mut Player, map: &Map) {
-    let (mut dx, mut dy) = (0, 0);
+pub fn handle_movement(
+    input: Res<ButtonInput<KeyCode>>,
+    mut map: ResMut<Map>,
+    player: Res<Player>,
+) {
+    let mut dx: isize = 0;
+    let mut dy: isize = 0;
 
-    if input.just_pressed(KeyCode::KeyW) {
-        dy += 1;
-    } else if input.just_pressed(KeyCode::KeyS) {
-        dy -= 1;
-    } else if input.just_pressed(KeyCode::KeyA) {
-        dx -= 1;
-    } else if input.just_pressed(KeyCode::KeyD) {
-        dx += 1;
+    if input.pressed(KeyCode::KeyW) {
+        dx = -1;
+    } else if input.pressed(KeyCode::KeyS) {
+        dx = 1;
+    } else if input.pressed(KeyCode::KeyA) {
+        dy = -1;
+    } else if input.pressed(KeyCode::KeyD) {
+        dy = 1;
     }
-
-    let new_x = player.pos_x as isize + dx;
-    let new_y = player.pos_y as isize + dy;
-
-    if new_x >= 0 && new_y >= 0 {
-        let new_x = new_x as usize;
-        let new_y = new_y as usize;
-
-        if map.valid_pos(new_x, new_y, player.has_key(&map.current_level)) {
-            player.move_by(dx as usize, dy as usize);
-        }
+    let has_key = player.has_key(&map.current_level);
+    if dx != 0 || dy != 0 {
+        map.move_player(dx, dy, has_key);
     }
 }
