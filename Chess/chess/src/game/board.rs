@@ -47,6 +47,25 @@ impl Board {
         }
     }
 
+    fn pawn_possible_moves(&self, pos_x: usize, pos_y: usize) -> Vec<(usize, usize)> {
+        let mut possible_moves = Vec::new();
+        if pos_y < 8 && self.board[pos_x][pos_y + 1] == Piece::EM {
+            possible_moves.push((pos_x, pos_y + 1));
+        }
+        if pos_y == 1 && self.board[pos_x][pos_y + 2] == Piece::EM {
+            possible_moves.push((pos_x, pos_y + 2));
+        }
+        // TODO: Same color?
+        if pos_x > 0 && pos_y < 8 && self.board[pos_x - 1][pos_y + 1] != Piece::EM {
+            possible_moves.push((pos_x - 1, pos_y + 1));
+        }
+        if pos_x < 8 && pos_y < 8 && self.board[pos_x + 1][pos_y + 1] != Piece::EM {
+            possible_moves.push((pos_x + 1, pos_y + 1));
+        }
+
+        possible_moves
+    }
+
     pub fn draw(self) {
         for row in self.board {
             for square in row {
