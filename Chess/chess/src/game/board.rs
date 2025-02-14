@@ -1,77 +1,52 @@
-use crate::game::piece::Piece;
+use crate::game::piece::*;
 
-/// A two dimensional array of pieces, starting easy first
+/// A board consists on 64 squares where each one contains one piece (where empty is considered)
+/// a piece, as there are 7 possible pieces, each one with a color, we can fit each piece in 4
+/// bits, as we want 8 pieces per row and 8 rows, we need an array of 8 u32 values
 pub struct Board {
-    board: [[Piece; 8]; 8],
+    board: [u32; 8],
 }
 
 impl Board {
+    /// Creates a board with default pieces positions, white is on top because top represents
+    /// the first position on the array which matches the 1 and 2 rows where white are always
+    /// located
     pub fn new() -> Self {
         use Piece::*;
         Board {
             board: [
-                [BR, BN, BB, BQ, BK, BB, BN, BR],
-                [BP, BP, BP, BP, BP, BP, BP, BP],
-                [EM, EM, EM, EM, EM, EM, EM, EM],
-                [EM, EM, EM, EM, EM, EM, EM, EM],
-                [EM, EM, EM, EM, EM, EM, EM, EM],
-                [EM, EM, EM, EM, EM, EM, EM, EM],
-                [WP, WP, WP, WP, WP, WP, WP, WP],
-                [WR, WN, WB, WQ, WK, WB, WN, WR],
+                Self::create_row(Color::White, &[Pawn; 8]),
+                Self::create_row(
+                    Color::White,
+                    &[Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook],
+                ),
+                Self::create_row(Color::White, &[Empty; 8]),
+                Self::create_row(Color::White, &[Empty; 8]),
+                Self::create_row(Color::White, &[Empty; 8]),
+                Self::create_row(Color::White, &[Empty; 8]),
+                Self::create_row(
+                    Color::Black,
+                    &[Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook],
+                ),
+                Self::create_row(Color::Black, &[Pawn; 8]),
             ],
         }
     }
 
-    /// Moves given piece to the new position, checking whether the move is valid or not,
-    /// returning whether the move has been performed or it was invalid
-    pub fn move_piece(
-        &self,
-        pos_x: usize,
-        pos_y: usize,
-        new_x: usize,
-        new_y: usize,
-        white: bool,
-    ) -> bool {
-        if self.board[pos_x][pos_y] == Piece::EM {
-            false
-        } else {
-            match (&self.board[pos_x][pos_y], white) {
-                (Piece::WP, true) | (Piece::BP, false) => todo!(),
-                (Piece::WB, true) | (Piece::BB, false) => todo!(),
-                (Piece::WN, true) | (Piece::BN, false) => todo!(),
-                (Piece::WR, true) | (Piece::BR, false) => todo!(),
-                (Piece::WQ, true) | (Piece::BQ, false) => todo!(),
-                (Piece::WK, true) | (Piece::BK, false) => todo!(),
-                _ => false,
-            }
-        }
-    }
-
-    fn pawn_possible_moves(&self, pos_x: usize, pos_y: usize) -> Vec<(usize, usize)> {
-        let mut possible_moves = Vec::new();
-        if pos_y < 8 && self.board[pos_x][pos_y + 1] == Piece::EM {
-            possible_moves.push((pos_x, pos_y + 1));
-        }
-        if pos_y == 1 && self.board[pos_x][pos_y + 2] == Piece::EM {
-            possible_moves.push((pos_x, pos_y + 2));
-        }
-        // TODO: Same color?
-        if pos_x > 0 && pos_y < 8 && self.board[pos_x - 1][pos_y + 1] != Piece::EM {
-            possible_moves.push((pos_x - 1, pos_y + 1));
-        }
-        if pos_x < 8 && pos_y < 8 && self.board[pos_x + 1][pos_y + 1] != Piece::EM {
-            possible_moves.push((pos_x + 1, pos_y + 1));
+    /// Creates an u32 value representing a row of 8 pieces given their color which
+    /// is stored in most significant bit of each piece and the piece which are stored
+    /// in the same order as the one in pieces
+    fn create_row(color: Color, pieces: &[Piece]) -> u32 {
+        let mut row = 0;
+        for (i, piece) in pieces.iter().enumerate() {
+            let piece_value = (color as u32) << 3 | *piece as u32;
+            row |= piece_value << (i << 2);
         }
 
-        possible_moves
+        row
     }
 
     pub fn draw(self) {
-        for row in self.board {
-            for square in row {
-                print!("{square}");
-            }
-            println!()
-        }
+        unimplemented!();
     }
 }
