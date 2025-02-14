@@ -14,12 +14,4 @@ impl Game {
             log: String::new(),
         }
     }
-
-    pub fn player_move(&self, pos_x: usize, pos_y: usize, new_x: usize, new_y: usize) -> bool {
-        if self.turn % 2 == 0 {
-            self.board.move_piece(pos_x, pos_y, new_x, new_y, true) // White
-        } else {
-            self.board.move_piece(pos_x, pos_y, new_x, new_y, false) // Black
-        }
-    }
 }
