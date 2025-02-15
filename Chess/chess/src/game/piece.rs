@@ -27,18 +27,20 @@ impl Piece {
     }
 }
 
-#[derive(Clone, Copy)]
-pub enum Color {
+/// Represents both possible piece colours black and white in chess, for an empty
+/// square, *white* colour is arbitrarily considered
+#[derive(Clone, Copy, PartialEq)]
+pub enum Colour {
     White = 0b0,
     Black = 0b1,
 }
 
-impl Color {
+impl Colour {
     pub fn from(value: u8) -> Self {
         match value {
-            0b0 => Color::White,
-            0b1 => Color::Black,
-            _ => panic!("Invalid color: {}", value),
+            0b0 => Colour::White,
+            0b1 => Colour::Black,
+            _ => panic!("Invalid colour: {}", value),
         }
     }
 }
