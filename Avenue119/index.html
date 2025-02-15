@@ -3,29 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💈Avenue 119</title>
+    <title>Avenue 119</title>
     <link rel="icon" href="img/logo.webp" type="image/webp">
-    <!-- Fuente Roboto de Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              roboto: ['Roboto', 'sans-serif'],
-            },
-          },
-        },
-      };
-    </script>
+    <style>
+        /* Estilos personalizados */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1A1A1A;
+            color: #FFFFFF;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .bg-dark {
+            background-color: #1A1A1A;
+        }
+        .bg-secondary {
+            background-color: #262626;
+        }
+        .text-primary {
+            color: #76ABAE;
+        }
+        .text-secondary {
+            color: #CCCCCC;
+        }
+        .btn-primary {
+            background-color: #0D47A1;
+            color: #FFFFFF;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1565C0;
+        }
+    </style>
 </head>
 <body>
 
 <header>
 <nav class="bg-[#1A1A1A] fixed w-full z-20 top-0 start-0 border-b border-[#262626]">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-    <a href="img/logo.webp" class="flex items-center space-x-3 rtl:space-x-reverse">
+    <a href="index.html" class="flex items-center space-x-3 rtl:space-x-reverse">
       <img src="img/logo.webp" class="h-8" alt="Logo Avenue119">
       <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">Avenue119</span>
     </a>
