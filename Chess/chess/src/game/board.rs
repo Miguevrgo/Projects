@@ -15,20 +15,20 @@ impl Board {
         use Piece::*;
         Board {
             board: [
-                Self::create_row(Colour::White, &[Pawn; 8]),
                 Self::create_row(
                     Colour::White,
                     &[Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook],
                 ),
+                Self::create_row(Colour::White, &[Pawn; 8]),
                 Self::create_row(Colour::White, &[Empty; 8]),
                 Self::create_row(Colour::White, &[Empty; 8]),
                 Self::create_row(Colour::White, &[Empty; 8]),
                 Self::create_row(Colour::White, &[Empty; 8]),
+                Self::create_row(Colour::Black, &[Pawn; 8]),
                 Self::create_row(
                     Colour::Black,
                     &[Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook],
                 ),
-                Self::create_row(Colour::Black, &[Pawn; 8]),
             ],
         }
     }
@@ -47,13 +47,13 @@ impl Board {
     }
 
     /// Gets the piece and colour in the given position, starting in 0 for
-    /// both row and col, ensuring pos_x and pos_y in [0,7]x[0,7]
-    pub fn get_piece(&self, pos_x: usize, pos_y: usize) -> (Colour, Piece) {
-        assert!((0..=7).contains(&pos_x) && ((0..=7).contains(&pos_y)));
+    /// both row and col, ensuring row and col in [0,7]x[0,7]
+    pub fn get_piece(&self, row: usize, col: usize) -> (Colour, Piece) {
+        assert!((0..=7).contains(&row) && ((0..=7).contains(&col)));
 
-        let row = self.board[pos_x];
+        let board_row = self.board[row];
 
-        let bits = row >> (pos_y * 4) & 0b1111;
+        let bits = board_row >> (col * 4) & 0b1111;
         let colour = Colour::from((bits >> 3) as u8);
         let piece = Piece::from((bits & 0b0111) as u8);
 
@@ -62,27 +62,54 @@ impl Board {
 
     /// Sets a piece in given new position checking bounds, does not check whether the move
     /// is valid or not
-    pub fn set_piece(&mut self, pos_x: usize, pos_y: usize, colour: Colour, piece: Piece) {
-        assert!((0..=7).contains(&pos_x) && ((0..=7).contains(&pos_y)));
+    pub fn set_piece(&mut self, row: usize, col: usize, colour: Colour, piece: Piece) {
+        assert!((0..=7).contains(&row) && ((0..=7).contains(&col)));
         let piece_bits = (colour as u32) << 3 | (piece as u32);
-        let mask: u32 = !(0b1111 << (pos_y * 4));
-        self.board[pos_x] &= mask;
-        self.board[pos_x] |= piece_bits << (pos_y * 4);
+        let mask: u32 = !(0b1111 << (col * 4));
+        self.board[row] &= mask;
+        self.board[row] |= piece_bits << (col * 4);
     }
 
     /// Moves a piece from old position to new given one, not checking whether or not the given
     /// piece was valid, it returns whether or not the move was a capture (not checking whether the
     /// capture is valid, it just checks whether the new position was occupied by a non empty piece)
-    pub fn move_piece(&mut self, pos_x: usize, pos_y: usize, new_x: usize, new_y: usize) -> bool {
-        let (colour, piece) = Self::get_piece(self, pos_x, pos_y);
-        Self::set_piece(self, pos_x, pos_y, Colour::White, Piece::Empty);
-        let capture = Self::get_piece(self, new_x, new_y) != (Colour::White, Piece::Empty);
-        Self::set_piece(self, new_x, new_y, colour, piece);
+    pub fn move_piece(&mut self, row: usize, col: usize, new_r: usize, new_c: usize) -> bool {
+        let (colour, piece) = Self::get_piece(self, row, col);
+        Self::set_piece(self, row, col, Colour::White, Piece::Empty);
+        let capture = Self::get_piece(self, row, col) != (Colour::White, Piece::Empty);
+        Self::set_piece(self, new_r, new_c, colour, piece);
 
         capture
     }
 
-    pub fn draw(self) {
-        unimplemented!();
+    /// Draws the board in terminal inside a square getting each of the pieces in each
+    /// position
+    pub fn draw(&self) {
+        let symbols = [
+            (' ', ' '), // Empty
+            ('♙', '♟'), // Pawn
+            ('♗', '♝'), // Bishop
+            ('♘', '♞'), // Knight
+            ('♖', '♜'), // Rook
+            ('♔', '♚'), // King
+            ('♕', '♛'), // Queen
+        ];
+
+        println!("  a b c d e f g h");
+        println!(" ┌────────────────┐");
+        for row in (0..8).rev() {
+            print!("{}│", row + 1);
+            for col in 0..8 {
+                let (colour, piece) = self.get_piece(row, col);
+                let symbol = if colour == Colour::White {
+                    symbols[piece as usize].0
+                } else {
+                    symbols[piece as usize].1
+                };
+                print!("{symbol} ",);
+            }
+            println!("│");
+        }
+        println!(" └────────────────┘");
     }
 }

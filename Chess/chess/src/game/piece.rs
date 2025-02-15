@@ -44,24 +44,3 @@ impl Colour {
         }
     }
 }
-
-//TODO: Use this in board, considering color
-// impl fmt::Display for Piece {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match *self {
-//             Piece::EM => write!(f, " "),
-//             Piece::WP => write!(f, "♙"),
-//             Piece::WB => write!(f, "♗"),
-//             Piece::WN => write!(f, "♘"),
-//             Piece::WR => write!(f, "♖"),
-//             Piece::WQ => write!(f, "♕"),
-//             Piece::WK => write!(f, "♔"),
-//             Piece::BP => write!(f, "♟"),
-//             Piece::BB => write!(f, "♝"),
-//             Piece::BN => write!(f, "♞"),
-//             Piece::BR => write!(f, "♜"),
-//             Piece::BQ => write!(f, "♛"),
-//             Piece::BK => write!(f, "♚"),
-//         }
-//     }
-// }
