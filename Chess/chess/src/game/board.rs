@@ -46,6 +46,18 @@ impl Board {
         row
     }
 
+    /// Gets the piece and color in the given position, starting in 0 for
+    /// both row and col
+    pub fn get_piece(&self, pos_x: usize, pos_y: usize) -> (Color, Piece) {
+        let row = self.board[pos_x];
+
+        let bits = row >> (pos_y * 4) & 0b1111;
+        let color = Color::from((bits >> 3) as u8);
+        let piece = Piece::from((bits & 0b0111) as u8);
+
+        (color, piece)
+    }
+
     pub fn draw(self) {
         unimplemented!();
     }
