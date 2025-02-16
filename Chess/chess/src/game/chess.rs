@@ -128,6 +128,60 @@ impl Game {
         valid_moves
     }
 
+    fn rook_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+        let mut valid_moves = Vec::new();
+
+        // Left
+        for c in (0..col).rev() {
+            let (piece_colour, piece) = self.board.get_piece(row, c);
+            if piece != Piece::Empty {
+                if piece_colour != colour {
+                    valid_moves.push((row, c));
+                }
+                break;
+            }
+            valid_moves.push((row, c));
+        }
+
+        // Right
+        for c in (col + 1)..8 {
+            let (piece_colour, piece) = self.board.get_piece(row, c);
+            if piece != Piece::Empty {
+                if piece_colour != colour {
+                    valid_moves.push((row, c));
+                }
+                break;
+            }
+            valid_moves.push((row, c));
+        }
+
+        // Up
+        for r in (0..row).rev() {
+            let (piece_colour, piece) = self.board.get_piece(r, col);
+            if piece != Piece::Empty {
+                if piece_colour != colour {
+                    valid_moves.push((r, col));
+                }
+                break;
+            }
+            valid_moves.push((r, col));
+        }
+
+        // Down
+        for r in (row + 1)..8 {
+            let (piece_colour, piece) = self.board.get_piece(r, col);
+            if piece != Piece::Empty {
+                if piece_colour != colour {
+                    valid_moves.push((r, col));
+                }
+                break;
+            }
+            valid_moves.push((r, col));
+        }
+
+        valid_moves
+    }
+
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
         self.log += &format!("Move from {row} {col} to {new_row} {new_col}");
     }
