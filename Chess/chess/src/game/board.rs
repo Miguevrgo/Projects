@@ -9,6 +9,7 @@ use crate::game::piece::*;
 pub struct Board {
     board: [u32; 8],
     pub cursor: (usize, usize),
+    pub selected_cursor: (usize, usize),
 }
 
 impl Board {
@@ -35,6 +36,7 @@ impl Board {
                 ),
             ],
             cursor: (0, 0),
+            selected_cursor: (0, 0),
         }
     }
 
@@ -88,20 +90,33 @@ impl Board {
     }
 
     /// Moves the cursor one position in the given direction. If the cursor is at
-    /// the edge of the board, it wraps around to the opposite side.
-    pub fn move_cursor(&mut self, dir: Direction) {
+    /// the edge of the board, it wraps around to the opposite side. If selected
+    /// is true, it only moves selected cursor
+    pub fn move_cursor(&mut self, dir: &Direction, selected: bool) {
         match dir {
             Direction::Up => {
-                self.cursor.0 = (self.cursor.0 + 1) % 8;
+                if !selected {
+                    self.cursor.0 = (self.cursor.0 + 1) % 8;
+                }
+                self.selected_cursor.0 = (self.selected_cursor.0 + 1) % 8;
             }
             Direction::Down => {
-                self.cursor.0 = (self.cursor.0 + 7) % 8;
+                if !selected {
+                    self.cursor.0 = (self.cursor.0 + 7) % 8;
+                }
+                self.selected_cursor.0 = (self.selected_cursor.0 + 7) % 8;
             }
             Direction::Right => {
-                self.cursor.1 = (self.cursor.1 + 1) % 8;
+                if !selected {
+                    self.cursor.1 = (self.cursor.1 + 1) % 8;
+                }
+                self.selected_cursor.1 = (self.selected_cursor.1 + 1) % 8;
             }
             Direction::Left => {
-                self.cursor.1 = (self.cursor.1 + 7) % 8;
+                if !selected {
+                    self.cursor.1 = (self.cursor.1 + 7) % 8;
+                }
+                self.selected_cursor.1 = (self.selected_cursor.1 + 7) % 8;
             }
             _ => (),
         }
@@ -133,6 +148,8 @@ impl Board {
                 };
                 if self.cursor == (row, col) {
                     print!("\x1b[93m{symbol} \x1b[0m");
+                } else if self.selected_cursor == (row, col) {
+                    print!("\x1b[31m{symbol} \x1b[0m");
                 } else {
                     print!("{symbol} ",);
                 }
