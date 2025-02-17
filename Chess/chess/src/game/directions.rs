@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use crossterm::event::{self, Event, KeyCode};
 
 #[derive(PartialEq)]
 pub enum Direction {
@@ -10,21 +10,18 @@ pub enum Direction {
 }
 
 impl Direction {
-    /// Reads keyboard
-    pub fn input_key() -> Direction {
-        let mut stdin = io::stdin();
-        let mut buffer = [0; 1];
-
-        loop {
-            stdin.read_exact(&mut buffer).expect("Unable to read input");
-            match buffer[0] {
-                b'h' => return Direction::Left,
-                b'j' => return Direction::Down,
-                b'k' => return Direction::Up,
-                b'l' => return Direction::Right,
-                b'\n' => return Direction::Select,
-                _ => continue,
+    pub fn input_key() -> Option<Direction> {
+        if let Ok(Event::Key(event)) = event::read() {
+            match event.code {
+                KeyCode::Char('h') => Some(Direction::Left),
+                KeyCode::Char('j') => Some(Direction::Down),
+                KeyCode::Char('k') => Some(Direction::Up),
+                KeyCode::Char('l') => Some(Direction::Right),
+                KeyCode::Char(' ') => Some(Direction::Select),
+                _ => None,
             }
+        } else {
+            None
         }
     }
 }
