@@ -25,10 +25,19 @@ impl Game {
         let mut dir = Direction::Up;
         while dir != Direction::Select {
             dir = Direction::input_key();
-            self.board.move_cursor(dir);
+            self.board.move_cursor(&dir, false);
+            Self::draw(self);
+        }
+        dir = Direction::Up;
+        while dir != Direction::Select {
+            dir = Direction::input_key();
+            self.board.move_cursor(&dir, true);
+            Self::draw(self);
         }
 
-        let (new_row, new_col) = (2, 2);
+        let (row, col) = self.board.cursor;
+        let (new_row, new_col) = self.board.selected_cursor;
+
         let colour_turn = if self.turn % 2 == 0 {
             Colour::Black
         } else {
