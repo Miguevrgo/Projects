@@ -1,10 +1,14 @@
+use crate::game::directions::*;
 use crate::game::piece::*;
 
 /// A board consists on 64 squares where each one contains one piece (where empty is considered)
 /// a piece, as there are 7 possible pieces, each one with a colour, we can fit each piece in 4
 /// bits, as we want 8 pieces per row and 8 rows, we need an array of 8 u32 values
+///
+/// A cursor is used to keep track of the current selected piece so that it can be moved
 pub struct Board {
     board: [u32; 8],
+    pub cursor: (usize, usize),
 }
 
 impl Board {
@@ -30,6 +34,7 @@ impl Board {
                     &[Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook],
                 ),
             ],
+            cursor: (0, 0),
         }
     }
 
@@ -82,6 +87,26 @@ impl Board {
         capture
     }
 
+    /// Moves the cursor one position in the given direction. If the cursor is at
+    /// the edge of the board, it wraps around to the opposite side.
+    pub fn move_cursor(&mut self, dir: Direction) {
+        match dir {
+            Direction::Up => {
+                self.cursor.0 = (self.cursor.0 + 1) % 8;
+            }
+            Direction::Down => {
+                self.cursor.0 = (self.cursor.0 + 7) % 8;
+            }
+            Direction::Right => {
+                self.cursor.1 = (self.cursor.1 + 1) % 8;
+            }
+            Direction::Left => {
+                self.cursor.1 = (self.cursor.1 + 7) % 8;
+            }
+            _ => (),
+        }
+    }
+
     /// Draws the board in terminal inside a square getting each of the pieces in each
     /// position
     pub fn draw(&self) {
@@ -106,7 +131,11 @@ impl Board {
                 } else {
                     symbols[piece as usize].1
                 };
-                print!("{symbol} ",);
+                if self.cursor == (row, col) {
+                    print!("\x1b[93m{symbol} \x1b[0m");
+                } else {
+                    print!("{symbol} ",);
+                }
             }
             println!("│");
         }
