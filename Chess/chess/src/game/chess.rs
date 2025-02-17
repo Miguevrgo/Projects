@@ -1,5 +1,6 @@
 use super::piece::{Colour, Piece};
 use crate::game::board::Board;
+use crate::game::directions::*;
 
 pub struct Game {
     pub turn: u16, // Despite 5899 being the maximum number of moves possible
@@ -21,8 +22,12 @@ impl Game {
     }
 
     pub fn next_move(&mut self) {
-        // Read move (TODO)
-        let (row, col) = (1, 2);
+        let mut dir = Direction::Up;
+        while dir != Direction::Select {
+            dir = Direction::input_key();
+            self.board.move_cursor(dir);
+        }
+
         let (new_row, new_col) = (2, 2);
         let colour_turn = if self.turn % 2 == 0 {
             Colour::Black
@@ -65,7 +70,20 @@ impl Game {
             Piece::Pawn => {
                 Self::pawn_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
+            Piece::Rook => {
+                Self::rook_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
             _ => false,
+        }
+    }
+
+    fn king_checked(&mut self, valid_moves: &Vec<(usize, usize)>) {
+        for (row, col) in valid_moves {
+            if self.board.get_piece(*row, *col) == (Colour::White, Piece::King) {
+                self.is_white_check = true;
+            } else if self.board.get_piece(*row, *col) == (Colour::Black, Piece::King) {
+                self.is_black_check = true;
+            }
         }
     }
 
@@ -117,13 +135,7 @@ impl Game {
             }
         }
 
-        for (row, col) in &valid_moves {
-            if self.board.get_piece(*row, *col) == (Colour::White, Piece::King) {
-                self.is_white_check = true;
-            } else if self.board.get_piece(*row, *col) == (Colour::Black, Piece::King) {
-                self.is_black_check = true;
-            }
-        }
+        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
@@ -178,6 +190,8 @@ impl Game {
             }
             valid_moves.push((r, col));
         }
+
+        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
