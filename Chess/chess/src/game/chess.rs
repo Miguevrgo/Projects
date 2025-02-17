@@ -11,6 +11,8 @@ pub struct Game {
 }
 
 impl Game {
+    /// Creates a new game of chess, with a default board, empty log and white
+    /// to move, it also sets both kings out of check
     pub fn new() -> Self {
         Game {
             turn: 1,
@@ -21,51 +23,51 @@ impl Game {
         }
     }
 
+    /// Gets the next desired move as an input from the keyboard, in order for
+    /// a player to move, first a square has to be selected, then another set
+    /// of inputs determines where the player wants to move, if the move is not
+    /// valid, this method loops until a valid move is found
     pub fn next_move(&mut self) {
-        let mut dir = Direction::Up;
-        while dir != Direction::Select {
-            dir = Direction::input_key();
-            self.board.move_cursor(&dir, false);
-            Self::draw(self);
+        loop {
+            if let Some(dir) = Direction::input_key() {
+                if dir == Direction::Select {
+                    if self.board.selected.is_none() {
+                        self.board.selected = Some(self.board.cursor);
+                    } else {
+                        let (row, col) = self.board.selected.unwrap();
+                        let (new_row, new_col) = self.board.cursor;
+                        if self.valid_move(row, col, new_row, new_col) {
+                            self.board.move_piece(row, col, new_row, new_col);
+                            self.log_movement(row, col, new_row, new_col);
+                            self.turn += 1;
+                            self.board.selected = None;
+                            break;
+                        }
+                    }
+                } else {
+                    self.board.move_cursor(&dir);
+                }
+            }
+            self.draw();
         }
-        dir = Direction::Up;
-        while dir != Direction::Select {
-            dir = Direction::input_key();
-            self.board.move_cursor(&dir, true);
-            Self::draw(self);
-        }
-
-        let (row, col) = self.board.cursor;
-        let (new_row, new_col) = self.board.selected_cursor;
-
-        let colour_turn = if self.turn % 2 == 0 {
-            Colour::Black
-        } else {
-            Colour::White
-        };
-
-        if Self::valid_move(self, row, col, new_row, new_col, colour_turn) {
-            self.board.move_piece(row, col, new_row, new_col);
-            Self::log_movement(self, row, col, new_row, new_col);
-        }
-
-        self.turn += 1;
     }
 
-    fn valid_move(
-        &mut self,
-        row: usize,
-        col: usize,
-        new_row: usize,
-        new_col: usize,
-        colour_turn: Colour,
-    ) -> bool {
+    /// Returns whether or not a move is valid based on the piece to move and the new
+    /// position where it wants to move, to do so, it tests if movement is of the player
+    /// whose turn it is and if its piece can move that way in the context of the game
+    fn valid_move(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
         if !(0..=7).contains(&new_row) || !(0..=7).contains(&new_col) {
             return false;
         }
 
         let (colour, piece) = self.board.get_piece(row, col);
         let (dest_colour, dest_piece) = self.board.get_piece(new_row, new_col);
+        let colour_turn = if self.turn % 2 == 0 {
+            Colour::Black
+        } else {
+            Colour::White
+        };
+
         if colour != colour_turn
             || (dest_piece != Piece::Empty && dest_colour == colour)
             || piece == Piece::Empty
@@ -76,12 +78,12 @@ impl Game {
         }
 
         match piece {
-            Piece::Pawn => {
-                Self::pawn_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::Rook => {
-                Self::rook_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
+            Piece::Pawn => self
+                .pawn_valid_moves(row, col, colour)
+                .contains(&(new_row, new_col)),
+            Piece::Rook => self
+                .rook_valid_moves(row, col, colour)
+                .contains(&(new_row, new_col)),
             _ => false,
         }
     }
