@@ -6,8 +6,5 @@ fn main() {
     board.draw();
     loop {
         board.next_move();
-        if board.turn == 3 {
-            break;
-        }
     }
 }

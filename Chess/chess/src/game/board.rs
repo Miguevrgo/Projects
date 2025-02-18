@@ -115,8 +115,9 @@ impl Board {
             ('♕', '♛'), // Queen
         ];
 
-        println!("  a b c d e f g h");
-        println!(" ┌────────────────┐");
+        print!("\x1B[2J\x1B[1;1H");
+        println!("\r  a b c d e f g h\r");
+        println!(" ┌────────────────┐\r");
         for row in (0..8).rev() {
             print!("{}│", row + 1);
             for col in 0..8 {
@@ -127,15 +128,15 @@ impl Board {
                     symbols[piece as usize].1
                 };
                 if self.cursor == (row, col) {
-                    print!("\x1b[93m{symbol} \x1b[0m");
+                    print!("\x1b[41m{symbol} \x1b[0m");
                 } else if self.selected == Some((row, col)) {
-                    print!("\x1b[31m{symbol} \x1b[0m");
+                    print!("\x1b[102m{symbol} \x1b[0m");
                 } else {
                     print!("{symbol} ",);
                 }
             }
-            println!("│");
+            println!("│\r");
         }
-        println!(" └────────────────┘");
+        println!(" └────────────────┘\r");
     }
 }

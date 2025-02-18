@@ -41,7 +41,10 @@ impl Game {
                             self.log_movement(row, col, new_row, new_col);
                             self.turn += 1;
                             self.board.selected = None;
+                            self.draw();
                             break;
+                        } else {
+                            self.board.selected = None;
                         }
                     }
                 } else {
@@ -109,8 +112,10 @@ impl Game {
 
         match colour {
             Colour::White => {
-                valid_moves.push((row + 1, col));
-                if row == 1 {
+                if self.board.get_piece(row + 1, col).1 == Piece::Empty {
+                    valid_moves.push((row + 1, col));
+                }
+                if row == 1 && self.board.get_piece(row + 1, col).1 == Piece::Empty {
                     valid_moves.push((row + 2, col));
                 }
                 if col < 7 {
@@ -127,8 +132,10 @@ impl Game {
                 }
             }
             Colour::Black => {
-                valid_moves.push((row - 1, col));
-                if row == 6 {
+                if self.board.get_piece(row - 1, col).1 == Piece::Empty {
+                    valid_moves.push((row - 1, col));
+                }
+                if row == 6 && self.board.get_piece(row - 2, col).1 == Piece::Empty {
                     valid_moves.push((row - 2, col));
                 }
                 if col < 7 {
