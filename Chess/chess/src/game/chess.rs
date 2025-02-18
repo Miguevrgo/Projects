@@ -81,12 +81,15 @@ impl Game {
         }
 
         match piece {
-            Piece::Pawn => self
-                .pawn_valid_moves(row, col, colour)
-                .contains(&(new_row, new_col)),
-            Piece::Rook => self
-                .rook_valid_moves(row, col, colour)
-                .contains(&(new_row, new_col)),
+            Piece::Pawn => {
+                Self::pawn_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
+            Piece::Rook => {
+                Self::rook_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
+            Piece::Bishop => {
+                Self::bishop_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
             _ => false,
         }
     }
@@ -112,19 +115,24 @@ impl Game {
 
         match colour {
             Colour::White => {
-                if self.board.get_piece(row + 1, col).1 == Piece::Empty {
+                if row < 7 && self.board.get_piece(row + 1, col).1 == Piece::Empty {
                     valid_moves.push((row + 1, col));
                 }
-                if row == 1 && self.board.get_piece(row + 1, col).1 == Piece::Empty {
+
+                if row == 1
+                    && self.board.get_piece(row + 1, col).1 == Piece::Empty
+                    && self.board.get_piece(row + 2, col).1 == Piece::Empty
+                {
                     valid_moves.push((row + 2, col));
                 }
-                if col < 7 {
+
+                if col < 7 && row < 7 {
                     let diagonal = self.board.get_piece(row + 1, col + 1);
                     if diagonal.1 != Piece::Empty && diagonal.0 != colour {
                         valid_moves.push((row + 1, col + 1))
                     }
                 }
-                if col > 0 {
+                if col > 0 && row < 7 {
                     let diagonal = self.board.get_piece(row + 1, col - 1);
                     if diagonal.1 != Piece::Empty && diagonal.0 != colour {
                         valid_moves.push((row + 1, col - 1))
@@ -132,19 +140,24 @@ impl Game {
                 }
             }
             Colour::Black => {
-                if self.board.get_piece(row - 1, col).1 == Piece::Empty {
+                if row > 0 && self.board.get_piece(row - 1, col).1 == Piece::Empty {
                     valid_moves.push((row - 1, col));
                 }
-                if row == 6 && self.board.get_piece(row - 2, col).1 == Piece::Empty {
+
+                if row == 6
+                    && self.board.get_piece(row - 1, col).1 == Piece::Empty
+                    && self.board.get_piece(row - 2, col).1 == Piece::Empty
+                {
                     valid_moves.push((row - 2, col));
                 }
-                if col < 7 {
+
+                if col < 7 && row > 0 {
                     let diagonal = self.board.get_piece(row - 1, col + 1);
                     if diagonal.1 != Piece::Empty && diagonal.0 != colour {
                         valid_moves.push((row - 1, col + 1))
                     }
                 }
-                if col > 0 {
+                if col > 0 && row > 0 {
                     let diagonal = self.board.get_piece(row - 1, col - 1);
                     if diagonal.1 != Piece::Empty && diagonal.0 != colour {
                         valid_moves.push((row - 1, col - 1))
@@ -210,6 +223,42 @@ impl Game {
         }
 
         Self::king_checked(self, &valid_moves);
+
+        valid_moves
+    }
+
+    fn bishop_valid_moves(
+        &mut self,
+        row: usize,
+        col: usize,
+        colour: Colour,
+    ) -> Vec<(usize, usize)> {
+        let mut valid_moves = Vec::new();
+
+        for (dr, dc) in [(1, 1), (1, -1), (-1, 1), (-1, -1)] {
+            let mut r = row as isize;
+            let mut c = col as isize;
+            loop {
+                r += dr;
+                c += dc;
+
+                if !(0..=7).contains(&r) || !(0..=7).contains(&c) {
+                    break;
+                }
+
+                let pos_r = r as usize;
+                let pos_c = c as usize;
+
+                let (piece_colour, piece) = self.board.get_piece(pos_r, pos_c);
+                if piece != Piece::Empty {
+                    if piece_colour != colour {
+                        valid_moves.push((pos_r, pos_c));
+                    }
+                    break;
+                }
+                valid_moves.push((pos_r, pos_c));
+            }
+        }
 
         valid_moves
     }
