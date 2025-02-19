@@ -90,6 +90,9 @@ impl Game {
             Piece::Bishop => {
                 Self::bishop_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
+            Piece::Knight => {
+                Self::knight_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
             _ => false,
         }
     }
@@ -257,6 +260,51 @@ impl Game {
                     break;
                 }
                 valid_moves.push((pos_r, pos_c));
+            }
+        }
+
+        valid_moves
+    }
+
+    fn knight_valid_moves(
+        &mut self,
+        row: usize,
+        col: usize,
+        colour: Colour,
+    ) -> Vec<(usize, usize)> {
+        let mut valid_moves = Vec::new();
+
+        let jumps = [
+            // Top Jumps
+            (2, 1),
+            (2, -1),
+            // Right Jumps
+            (1, 2),
+            (-1, 2),
+            // Bottom Jumps
+            (-2, 1),
+            (-2, -1),
+            // Left Jumps
+            (-1, -2),
+            (1, -2),
+        ];
+
+        for jump in jumps {
+            let r = row as isize + jump.0;
+            let c = col as isize + jump.1;
+
+            if (0..=7).contains(&r) && (0..=7).contains(&c) {
+                let pos_r = r as usize;
+                let pos_c = c as usize;
+
+                let (piece_colour, piece) = self.board.get_piece(pos_r, pos_c);
+                if piece != Piece::Empty {
+                    if piece_colour != colour {
+                        valid_moves.push((pos_r, pos_c));
+                    }
+                } else {
+                    valid_moves.push((pos_r, pos_c));
+                }
             }
         }
 
