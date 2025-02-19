@@ -93,6 +93,9 @@ impl Game {
             Piece::Knight => {
                 Self::knight_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
+            Piece::Queen => {
+                Self::queen_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
+            }
             Piece::King => {
                 let valid_moves = Self::king_valid_moves(self, row, col, colour);
                 if valid_moves.is_empty() {
@@ -367,6 +370,48 @@ impl Game {
                 }
             }
         }
+
+        valid_moves
+    }
+
+    fn queen_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+        let mut valid_moves = Vec::new();
+
+        for (dr, dc) in [
+            (1, 0),
+            (1, 1),
+            (0, 1),
+            (-1, 1),
+            (-1, 0),
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+        ] {
+            let mut r = row as isize;
+            let mut c = col as isize;
+            loop {
+                r += dr;
+                c += dc;
+
+                if !(0..=7).contains(&r) || !(0..=7).contains(&c) {
+                    break;
+                }
+
+                let pos_r = r as usize;
+                let pos_c = c as usize;
+
+                let (piece_colour, piece) = self.board.get_piece(pos_r, pos_c);
+                if piece != Piece::Empty {
+                    if piece_colour != colour {
+                        valid_moves.push((pos_r, pos_c));
+                    }
+                    break;
+                }
+                valid_moves.push((pos_r, pos_c));
+            }
+        }
+
+        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
