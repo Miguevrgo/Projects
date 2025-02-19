@@ -93,6 +93,27 @@ impl Game {
             Piece::Knight => {
                 Self::knight_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
+            Piece::King => {
+                let valid_moves = Self::king_valid_moves(self, row, col, colour);
+                if valid_moves.is_empty() {
+                    match colour {
+                        Colour::White => {
+                            if self.is_white_check {
+                                Self::end_game(Colour::Black);
+                            }
+                            false
+                        }
+                        Colour::Black => {
+                            if self.is_black_check {
+                                Self::end_game(Colour::White);
+                            }
+                            false
+                        }
+                    }
+                } else {
+                    valid_moves.contains(&(new_row, new_col))
+                }
+            }
             _ => false,
         }
     }
@@ -262,6 +283,7 @@ impl Game {
                 valid_moves.push((pos_r, pos_c));
             }
         }
+        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
@@ -307,8 +329,51 @@ impl Game {
                 }
             }
         }
+        Self::king_checked(self, &valid_moves);
 
         valid_moves
+    }
+
+    /// TODO: Check if new position is attacked by some piece on the board
+    fn king_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+        let mut valid_moves = Vec::new();
+
+        let directions = [
+            (1, 0),   // Top
+            (1, 1),   // Top-Right
+            (0, 1),   // Right
+            (-1, 1),  // Bottom Right
+            (-1, 0),  // Bottom
+            (-1, -1), // Bottom Left
+            (0, -1),  // Left
+            (1, -1),  // Top Left
+        ];
+
+        for dir in directions {
+            let r = row as isize + dir.0;
+            let c = col as isize + dir.1;
+
+            if (0..=7).contains(&r) && (0..=7).contains(&c) {
+                let pos_r = r as usize;
+                let pos_c = c as usize;
+
+                let (piece_colour, piece) = self.board.get_piece(pos_r, pos_c);
+                if piece != Piece::Empty {
+                    if piece_colour != colour {
+                        valid_moves.push((pos_r, pos_c));
+                    }
+                } else {
+                    valid_moves.push((pos_r, pos_c));
+                }
+            }
+        }
+
+        valid_moves
+    }
+
+    ///TODO:
+    fn end_game(winner: Colour) {
+        unimplemented!()
     }
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
