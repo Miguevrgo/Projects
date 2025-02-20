@@ -38,6 +38,7 @@ impl Game {
                         let (new_row, new_col) = self.board.cursor;
                         if self.valid_move(row, col, new_row, new_col) {
                             self.board.move_piece(row, col, new_row, new_col);
+                            self.update_opponent_check();
                             self.log_movement(row, col, new_row, new_col);
                             self.turn += 1;
                             self.board.selected = None;
@@ -80,6 +81,10 @@ impl Game {
             return false;
         }
 
+        if !self.king_checked(row, col, new_row, new_col) {
+            return false;
+        }
+
         match piece {
             Piece::Pawn => {
                 Self::pawn_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
@@ -118,16 +123,6 @@ impl Game {
                 }
             }
             _ => false,
-        }
-    }
-
-    fn king_checked(&mut self, valid_moves: &Vec<(usize, usize)>) {
-        for (row, col) in valid_moves {
-            if self.board.get_piece(*row, *col) == (Colour::White, Piece::King) {
-                self.is_white_check = true;
-            } else if self.board.get_piece(*row, *col) == (Colour::Black, Piece::King) {
-                self.is_black_check = true;
-            }
         }
     }
 
@@ -193,8 +188,6 @@ impl Game {
             }
         }
 
-        Self::king_checked(self, &valid_moves);
-
         valid_moves
     }
 
@@ -249,8 +242,6 @@ impl Game {
             valid_moves.push((r, col));
         }
 
-        Self::king_checked(self, &valid_moves);
-
         valid_moves
     }
 
@@ -286,7 +277,6 @@ impl Game {
                 valid_moves.push((pos_r, pos_c));
             }
         }
-        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
@@ -332,7 +322,6 @@ impl Game {
                 }
             }
         }
-        Self::king_checked(self, &valid_moves);
 
         valid_moves
     }
@@ -411,8 +400,6 @@ impl Game {
             }
         }
 
-        Self::king_checked(self, &valid_moves);
-
         valid_moves
     }
 
@@ -423,6 +410,85 @@ impl Game {
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
         self.log += &format!("Move from {row} {col} to {new_row} {new_col}");
+    }
+
+    fn king_checked(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
+        let (original_piece_colour, original_piece) = self.board.get_piece(new_row, new_col);
+        self.board.move_piece(row, col, new_row, new_col);
+
+        let king_colour = if self.turn % 2 == 0 {
+            Colour::Black
+        } else {
+            Colour::White
+        };
+        let (king_row, king_col) = self.find_king(king_colour);
+
+        let is_checked = self.is_square_under_attack(king_row, king_col, king_colour);
+
+        self.board.move_piece(new_row, new_col, row, col);
+        self.board
+            .set_piece(new_row, new_col, original_piece_colour, original_piece);
+
+        if king_colour == Colour::White {
+            self.is_white_check = is_checked;
+        } else {
+            self.is_black_check = is_checked;
+        }
+
+        !is_checked
+    }
+
+    fn update_opponent_check(&mut self) {
+        let opponent_colour = if self.turn % 2 == 0 {
+            Colour::White
+        } else {
+            Colour::Black
+        };
+
+        let (king_row, king_col) = self.find_king(opponent_colour);
+
+        let is_checked = self.is_square_under_attack(king_row, king_col, opponent_colour);
+
+        if opponent_colour == Colour::White {
+            self.is_white_check = is_checked;
+        } else {
+            self.is_black_check = is_checked;
+        }
+    }
+
+    fn find_king(&self, colour: Colour) -> (usize, usize) {
+        for row in 0..8 {
+            for col in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(row, col);
+                if piece == Piece::King && piece_colour == colour {
+                    return (row, col);
+                }
+            }
+        }
+        panic!("King not found!");
+    }
+
+    fn is_square_under_attack(&mut self, row: usize, col: usize, colour: Colour) -> bool {
+        for r in 0..8 {
+            for c in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(r, c);
+                if piece_colour != colour && piece != Piece::Empty {
+                    let valid_moves = match piece {
+                        Piece::Pawn => self.pawn_valid_moves(r, c, piece_colour),
+                        Piece::Rook => self.rook_valid_moves(r, c, piece_colour),
+                        Piece::Bishop => self.bishop_valid_moves(r, c, piece_colour),
+                        Piece::Knight => self.knight_valid_moves(r, c, piece_colour),
+                        Piece::Queen => self.queen_valid_moves(r, c, piece_colour),
+                        Piece::King => self.king_valid_moves(r, c, piece_colour),
+                        _ => Vec::new(),
+                    };
+                    if valid_moves.contains(&(row, col)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
     }
 
     pub fn draw(&self) {
