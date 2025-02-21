@@ -75,13 +75,12 @@ impl Game {
         if colour != colour_turn
             || (dest_piece != Piece::Empty && dest_colour == colour)
             || piece == Piece::Empty
-            || (piece != Piece::King && colour_turn == Colour::White && self.is_white_check)
-            || (piece != Piece::King && colour_turn == Colour::Black && self.is_black_check)
+            || Self::king_checked(self, row, col, new_row, new_col)
         {
             return false;
         }
 
-        if !self.king_checked(row, col, new_row, new_col) {
+        if self.king_checked(row, col, new_row, new_col) {
             return false;
         }
 
@@ -429,13 +428,7 @@ impl Game {
         self.board
             .set_piece(new_row, new_col, original_piece_colour, original_piece);
 
-        if king_colour == Colour::White {
-            self.is_white_check = is_checked;
-        } else {
-            self.is_black_check = is_checked;
-        }
-
-        !is_checked
+        is_checked
     }
 
     fn update_opponent_check(&mut self) {
