@@ -106,13 +106,13 @@ impl Board {
     /// position
     pub fn draw(&self) {
         let symbols = [
-            (' ', ' '), // Empty
-            ('♙', '♟'), // Pawn
-            ('♗', '♝'), // Bishop
-            ('♘', '♞'), // Knight
-            ('♖', '♜'), // Rook
-            ('♔', '♚'), // King
-            ('♕', '♛'), // Queen
+            ' ', // Empty
+            '♟', // Pawn
+            '♝', // Bishop
+            '♞', // Knight
+            '♜', // Rook
+            '♚', // King
+            '♛', // Queen
         ];
 
         print!("\x1B[2J\x1B[1;1H");
@@ -122,18 +122,25 @@ impl Board {
             print!("{}│", row + 1);
             for col in 0..8 {
                 let (colour, piece) = self.get_piece(row, col);
-                let symbol = if colour == Colour::White {
-                    symbols[piece as usize].0
-                } else {
-                    symbols[piece as usize].1
-                };
-                if self.cursor == (row, col) {
-                    print!("\x1b[41m{symbol} \x1b[0m");
+                let symbol = symbols[piece as usize];
+
+                let bg_color = if self.cursor == (row, col) {
+                    "\x1b[41m" // Green
                 } else if self.selected == Some((row, col)) {
-                    print!("\x1b[102m{symbol} \x1b[0m");
+                    "\x1b[102m" // Red
+                } else if (row + col) % 2 == 0 {
+                    "\x1b[48;2;240;217;181m"
                 } else {
-                    print!("{symbol} ",);
-                }
+                    "\x1b[48;2;181;136;99m"
+                };
+
+                let piece_color = if colour == Colour::White {
+                    "\x1b[38;2;255;255;255m"
+                } else {
+                    "\x1b[38;2;0;0;0m"
+                };
+
+                print!("{bg_color}{piece_color}{symbol} \x1b[0m");
             }
             println!("│\r");
         }

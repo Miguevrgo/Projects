@@ -325,7 +325,6 @@ impl Game {
         valid_moves
     }
 
-    /// TODO: Check if new position is attacked by some piece on the board
     fn king_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
