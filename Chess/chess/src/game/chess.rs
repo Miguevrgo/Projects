@@ -1,11 +1,12 @@
 use super::piece::{Colour, Piece};
 use crate::game::board::Board;
 use crate::game::directions::*;
+use crate::game::moves::Move;
 
 pub struct Game {
     pub turn: u16, // Despite 5899 being the maximum number of moves possible
     board: Board,
-    log: String,
+    log: Vec<Move>,
     is_white_check: bool, // Is white king in check
     is_black_check: bool, // Is dark king in check
 }
@@ -17,7 +18,7 @@ impl Game {
         Game {
             turn: 1,
             board: Board::new(),
-            log: String::new(),
+            log: Vec::new(),
             is_white_check: false,
             is_black_check: false,
         }
@@ -407,7 +408,13 @@ impl Game {
     }
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
-        self.log += &format!("Move from {row} {col} to {new_row} {new_col}");
+        self.log.push(Move::from(
+            self.board.get_piece(row, col).1,
+            row,
+            col,
+            new_row,
+            new_col,
+        ))
     }
 
     fn king_checked(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
