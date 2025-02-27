@@ -48,15 +48,22 @@ impl Game {
                         let (row, col) = self.board.selected.unwrap();
                         let (new_row, new_col) = self.board.cursor;
                         if self.valid_move(row, col, new_row, new_col) {
-                            let (_, piece) = self.board.get_piece(row, col);
+                            let (colour, piece) = self.board.get_piece(row, col);
                             let was_empty =
                                 self.board.get_piece(new_row, new_col).1 == Piece::Empty;
                             self.board.move_piece(row, col, new_row, new_col);
-                            if piece == Piece::Pawn && was_empty && row != new_row && col != new_col
-                            {
-                                self.board
-                                    .set_piece(row, new_col, Colour::White, Piece::Empty);
+                            if piece == Piece::Pawn {
+                                if was_empty && row != new_row && col != new_col {
+                                    self.board
+                                        .set_piece(row, new_col, Colour::White, Piece::Empty);
+                                }
+                                if colour == Colour::White && new_row == 7
+                                    || colour == Colour::Black && new_row == 0
+                                {
+                                    self.board.set_piece(new_row, new_col, colour, Piece::Queen);
+                                }
                             }
+
                             self.update_opponent_check();
                             self.log_movement(row, col, new_row, new_col);
                             self.turn += 1;
