@@ -7,8 +7,10 @@ pub struct Game {
     pub turn: u16, // Despite 5899 being the maximum number of moves possible
     board: Board,
     log: Vec<Move>,
-    is_white_check: bool, // Is white king in check
-    is_black_check: bool, // Is dark king in check
+    is_white_check: bool,   // Is white king in check
+    is_black_check: bool,   // Is dark king in check
+    can_white_castle: bool, // TODO:
+    can_black_castle: bool, // TODO:
 }
 
 impl Game {
@@ -21,6 +23,8 @@ impl Game {
             log: Vec::new(),
             is_white_check: false,
             is_black_check: false,
+            can_white_castle: true,
+            can_black_castle: true,
         }
     }
 
@@ -38,7 +42,15 @@ impl Game {
                         let (row, col) = self.board.selected.unwrap();
                         let (new_row, new_col) = self.board.cursor;
                         if self.valid_move(row, col, new_row, new_col) {
+                            let (_, piece) = self.board.get_piece(row, col);
+                            let was_empty =
+                                self.board.get_piece(new_row, new_col).1 == Piece::Empty;
                             self.board.move_piece(row, col, new_row, new_col);
+                            if piece == Piece::Pawn && was_empty && row != new_row && col != new_col
+                            {
+                                self.board
+                                    .set_piece(row, new_col, Colour::White, Piece::Empty);
+                            }
                             self.update_opponent_check();
                             self.log_movement(row, col, new_row, new_col);
                             self.turn += 1;
@@ -128,7 +140,7 @@ impl Game {
 
     /// Returns a vector of the possible moves a given pawn in a position can do, these moves
     /// include going one position up or down always, two positions in starting positions and
-    /// diagonally if captured piece is of the opposite colour, TODO: En passant
+    /// diagonally if captured piece is of the opposite colour,
     /// TODO: A single is_valid_pawn_move could be used to simplify however for the sake of
     /// having a preview of the moves when clicking a piece, this method will be implemented
     /// TODO: There has to be a better approach for king checks
@@ -150,13 +162,19 @@ impl Game {
 
                 if col < 7 && row < 7 {
                     let diagonal = self.board.get_piece(row + 1, col + 1);
-                    if diagonal.1 != Piece::Empty && diagonal.0 != colour {
+                    if (diagonal.1 != Piece::Empty && diagonal.0 != colour)
+                        || (self.log.last().is_some_and(|m| m.is_en_passant())
+                            && self.board.get_piece(row, col + 1).1 == Piece::Pawn)
+                    {
                         valid_moves.push((row + 1, col + 1))
                     }
                 }
                 if col > 0 && row < 7 {
                     let diagonal = self.board.get_piece(row + 1, col - 1);
-                    if diagonal.1 != Piece::Empty && diagonal.0 != colour {
+                    if (diagonal.1 != Piece::Empty && diagonal.0 != colour)
+                        || (self.log.last().is_some_and(|m| m.is_en_passant())
+                            && self.board.get_piece(row, col - 1).1 == Piece::Pawn)
+                    {
                         valid_moves.push((row + 1, col - 1))
                     }
                 }
@@ -175,13 +193,19 @@ impl Game {
 
                 if col < 7 && row > 0 {
                     let diagonal = self.board.get_piece(row - 1, col + 1);
-                    if diagonal.1 != Piece::Empty && diagonal.0 != colour {
+                    if (diagonal.1 != Piece::Empty && diagonal.0 != colour)
+                        || (self.log.last().is_some_and(|m| m.is_en_passant())
+                            && self.board.get_piece(row, col + 1).1 == Piece::Pawn)
+                    {
                         valid_moves.push((row - 1, col + 1))
                     }
                 }
                 if col > 0 && row > 0 {
                     let diagonal = self.board.get_piece(row - 1, col - 1);
-                    if diagonal.1 != Piece::Empty && diagonal.0 != colour {
+                    if (diagonal.1 != Piece::Empty && diagonal.0 != colour)
+                        || (self.log.last().is_some_and(|m| m.is_en_passant())
+                            && self.board.get_piece(row, col - 1).1 == Piece::Pawn)
+                    {
                         valid_moves.push((row - 1, col - 1))
                     }
                 }
@@ -409,12 +433,12 @@ impl Game {
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
         self.log.push(Move::from(
-            self.board.get_piece(row, col).1,
+            self.board.get_piece(new_row, new_col).1,
             row,
             col,
             new_row,
             new_col,
-        ))
+        ));
     }
 
     fn king_checked(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
