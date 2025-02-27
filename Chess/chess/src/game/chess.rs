@@ -34,6 +34,12 @@ impl Game {
     /// valid, this method loops until a valid move is found
     pub fn next_move(&mut self) {
         loop {
+            if self.is_white_check && Self::is_checkmate(self, Colour::White) {
+                Self::end_game(Colour::Black);
+            }
+            if self.is_black_check && Self::is_checkmate(self, Colour::Black) {
+                Self::end_game(Colour::White);
+            }
             if let Some(dir) = Direction::input_key() {
                 if dir == Direction::Select {
                     if self.board.selected.is_none() {
@@ -90,10 +96,6 @@ impl Game {
             || piece == Piece::Empty
             || Self::king_checked(self, row, col, new_row, new_col)
         {
-            return false;
-        }
-
-        if self.king_checked(row, col, new_row, new_col) {
             return false;
         }
 
@@ -426,9 +428,35 @@ impl Game {
         valid_moves
     }
 
+    fn is_checkmate(&mut self, colour: Colour) -> bool {
+        for row in 0..8 {
+            for col in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(row, col);
+                if piece_colour == colour {
+                    let moves = match piece {
+                        Piece::Queen => Self::queen_valid_moves(self, row, col, colour),
+                        Piece::Rook => Self::rook_valid_moves(self, row, col, colour),
+                        Piece::Bishop => Self::bishop_valid_moves(self, row, col, colour),
+                        Piece::Knight => Self::knight_valid_moves(self, row, col, colour),
+                        Piece::Pawn => Self::pawn_valid_moves(self, row, col, colour),
+                        Piece::King => Self::king_valid_moves(self, row, col, colour),
+                        Piece::Empty => Vec::new(),
+                    };
+                    for valid_move in moves {
+                        let (new_row, new_col) = valid_move;
+                        if !self.king_checked(row, col, new_row, new_col) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        true
+    }
+
     ///TODO:
     fn end_game(winner: Colour) {
-        unimplemented!()
+        std::process::exit(0);
     }
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
