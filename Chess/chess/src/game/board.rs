@@ -46,7 +46,7 @@ impl Board {
     fn create_row(colour: Colour, pieces: &[Piece]) -> u32 {
         let mut row = 0;
         for (i, piece) in pieces.iter().enumerate() {
-            let piece_value = (colour as u32) << 3 | *piece as u32;
+            let piece_value = ((colour as u32) << 3) | *piece as u32;
             row |= piece_value << (i << 2);
         }
 
@@ -60,7 +60,7 @@ impl Board {
 
         let board_row = self.board[row];
 
-        let bits = board_row >> (col * 4) & 0b1111;
+        let bits = (board_row >> (col * 4)) & 0b1111;
         let colour = Colour::from((bits >> 3) as u8);
         let piece = Piece::from((bits & 0b0111) as u8);
 
@@ -71,7 +71,7 @@ impl Board {
     /// is valid or not
     pub fn set_piece(&mut self, row: usize, col: usize, colour: Colour, piece: Piece) {
         assert!((0..=7).contains(&row) && ((0..=7).contains(&col)));
-        let piece_bits = (colour as u32) << 3 | (piece as u32);
+        let piece_bits = ((colour as u32) << 3) | (piece as u32);
         let mask: u32 = !(0b1111 << (col * 4));
         self.board[row] &= mask;
         self.board[row] |= piece_bits << (col * 4);

@@ -7,10 +7,10 @@ pub struct Game {
     pub turn: u16, // Despite 5899 being the maximum number of moves possible
     board: Board,
     log: Vec<Move>,
-    is_white_check: bool,   // Is white king in check
-    is_black_check: bool,   // Is dark king in check
-    can_white_castle: bool, // TODO:
-    can_black_castle: bool, // TODO:
+    is_white_check: bool, // Is white king in check
+    is_black_check: bool, // Is dark king in check
+    game_over: bool,
+    winner: Option<Colour>,
 }
 
 impl Game {
@@ -23,9 +23,20 @@ impl Game {
             log: Vec::new(),
             is_white_check: false,
             is_black_check: false,
-            can_white_castle: true,
-            can_black_castle: true,
+            game_over: false,
+            winner: None,
         }
+    }
+
+    /// Draws and handles movements of a game of chess until the game is over,
+    /// when it is, it shows the game result
+    pub fn play(&mut self) {
+        self.board.draw();
+        while !self.game_over {
+            self.next_move();
+        }
+
+        self.show_game_result();
     }
 
     /// Gets the next desired move as an input from the keyboard, in order for
@@ -35,10 +46,12 @@ impl Game {
     pub fn next_move(&mut self) {
         loop {
             if self.is_white_check && Self::is_checkmate(self, Colour::White) {
-                Self::end_game(Colour::Black);
+                Self::end_game(self, Colour::Black);
+                return;
             }
             if self.is_black_check && Self::is_checkmate(self, Colour::Black) {
-                Self::end_game(Colour::White);
+                Self::end_game(self, Colour::White);
+                return;
             }
             if let Some(dir) = Direction::input_key() {
                 if dir == Direction::Select {
@@ -68,7 +81,7 @@ impl Game {
                             self.log_movement(row, col, new_row, new_col);
                             self.turn += 1;
                             self.board.selected = None;
-                            self.draw();
+                            self.board.draw();
                             break;
                         } else {
                             self.board.selected = None;
@@ -78,7 +91,7 @@ impl Game {
                     self.board.move_cursor(&dir);
                 }
             }
-            self.draw();
+            self.board.draw();
         }
     }
 
@@ -123,25 +136,7 @@ impl Game {
                 Self::queen_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
             Piece::King => {
-                let valid_moves = Self::king_valid_moves(self, row, col, colour);
-                if valid_moves.is_empty() {
-                    match colour {
-                        Colour::White => {
-                            if self.is_white_check {
-                                Self::end_game(Colour::Black);
-                            }
-                            false
-                        }
-                        Colour::Black => {
-                            if self.is_black_check {
-                                Self::end_game(Colour::White);
-                            }
-                            false
-                        }
-                    }
-                } else {
-                    valid_moves.contains(&(new_row, new_col))
-                }
+                Self::king_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
             }
             _ => false,
         }
@@ -150,9 +145,6 @@ impl Game {
     /// Returns a vector of the possible moves a given pawn in a position can do, these moves
     /// include going one position up or down always, two positions in starting positions and
     /// diagonally if captured piece is of the opposite colour,
-    /// TODO: A single is_valid_pawn_move could be used to simplify however for the sake of
-    /// having a preview of the moves when clicking a piece, this method will be implemented
-    /// TODO: There has to be a better approach for king checks
     fn pawn_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
@@ -461,9 +453,30 @@ impl Game {
         true
     }
 
-    ///TODO:
-    fn end_game(winner: Colour) {
-        std::process::exit(0);
+    fn show_game_result(&self) {
+        println!("\x1B[2J\x1B[1;1H"); // Clear screen
+        crossterm::terminal::disable_raw_mode().unwrap();
+        match self.winner {
+            Some(Colour::White) => println!("Checkmate! White wins!"),
+            Some(Colour::Black) => println!("Checkmate! Black wins!"),
+            None => println!("Game ended"),
+        }
+
+        println!("\nGame Log:");
+        for played_move in self.log.iter() {
+            println!("{played_move}\r")
+        }
+
+        println!("\nPress any key to return to menu...");
+        crossterm::terminal::enable_raw_mode().unwrap();
+        let _ = crossterm::event::read();
+        crossterm::terminal::disable_raw_mode().unwrap();
+    }
+
+    /// Sets variable game_over to true and winner to the colour of the winner
+    fn end_game(&mut self, winner: Colour) {
+        self.game_over = true;
+        self.winner = Some(winner);
     }
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
@@ -514,6 +527,7 @@ impl Game {
         }
     }
 
+    /// Returns the position of the given colour king, panics if there is a missing king
     fn find_king(&self, colour: Colour) -> (usize, usize) {
         for row in 0..8 {
             for col in 0..8 {
@@ -526,6 +540,8 @@ impl Game {
         panic!("King not found!");
     }
 
+    /// Checks if the given position is under attack, colour represents the colour of the piece
+    /// whose current situation wants to be known
     fn is_square_under_attack(&mut self, row: usize, col: usize, colour: Colour) -> bool {
         for r in 0..8 {
             for c in 0..8 {
@@ -547,12 +563,5 @@ impl Game {
             }
         }
         false
-    }
-
-    pub fn draw(&self) {
-        println!("Turn {}", self.turn);
-        println!();
-        self.board.draw();
-        println!();
     }
 }

@@ -1,10 +1,9 @@
 mod game;
+mod ui;
 use crate::game::chess::Game;
+use crate::ui::menu;
 
 fn main() {
-    let mut board = Game::new();
-    board.draw();
-    loop {
-        board.next_move();
-    }
+    let mut game = Game::new();
+    game.play();
 }
