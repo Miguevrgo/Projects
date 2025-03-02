@@ -35,7 +35,9 @@ impl Game {
     pub fn play(&mut self) {
         self.board.draw();
         while !self.game_over {
-            self.next_move();
+            if !self.next_move() {
+                return;
+            }
         }
 
         self.show_game_result();
@@ -44,57 +46,59 @@ impl Game {
     /// Gets the next desired move as an input from the keyboard, in order for
     /// a player to move, first a square has to be selected, then another set
     /// of inputs determines where the player wants to move, if the move is not
-    /// valid, this method loops until a valid move is found
-    pub fn next_move(&mut self) {
-        loop {
-            if self.is_white_check && Self::is_checkmate(self, Colour::White) {
-                Self::end_game(self, Colour::Black);
-                return;
-            }
-            if self.is_black_check && Self::is_checkmate(self, Colour::Black) {
-                Self::end_game(self, Colour::White);
-                return;
-            }
-            if let Some(dir) = Direction::input_key() {
-                if dir == Direction::Select {
-                    if self.board.selected.is_none() {
-                        self.board.selected = Some(self.board.cursor);
-                    } else {
-                        let (row, col) = self.board.selected.unwrap();
-                        let (new_row, new_col) = self.board.cursor;
-                        if self.valid_move(row, col, new_row, new_col) {
-                            let (colour, piece) = self.board.get_piece(row, col);
-                            let was_empty =
-                                self.board.get_piece(new_row, new_col).1 == Piece::Empty;
-                            self.board.move_piece(row, col, new_row, new_col);
-                            if piece == Piece::Pawn {
-                                if was_empty && row != new_row && col != new_col {
-                                    self.board
-                                        .set_piece(row, new_col, Colour::White, Piece::Empty);
-                                }
-                                if colour == Colour::White && new_row == 7
-                                    || colour == Colour::Black && new_row == 0
-                                {
-                                    self.board.set_piece(new_row, new_col, colour, Piece::Queen);
-                                }
-                            }
+    /// valid, this method loops until a valid move is found, returns false if
+    /// players want to pause
+    pub fn next_move(&mut self) -> bool {
+        if self.is_white_check && Self::is_checkmate(self, Colour::White) {
+            Self::end_game(self, Colour::Black);
+            return true;
+        }
+        if self.is_black_check && Self::is_checkmate(self, Colour::Black) {
+            Self::end_game(self, Colour::White);
+            return true;
+        }
 
-                            self.update_opponent_check();
-                            self.log_movement(row, col, new_row, new_col);
-                            self.turn += 1;
-                            self.board.selected = None;
-                            self.board.draw();
-                            break;
-                        } else {
-                            self.board.selected = None;
+        let dir = match Direction::input_key() {
+            Some(dir) => dir,
+            None => return false,
+        };
+        if dir == Direction::Select {
+            if self.board.selected.is_none() {
+                self.board.selected = Some(self.board.cursor);
+            } else {
+                let (row, col) = self.board.selected.unwrap();
+                let (new_row, new_col) = self.board.cursor;
+                if self.valid_move(row, col, new_row, new_col) {
+                    let (colour, piece) = self.board.get_piece(row, col);
+                    let was_empty = self.board.get_piece(new_row, new_col).1 == Piece::Empty;
+                    self.board.move_piece(row, col, new_row, new_col);
+                    if piece == Piece::Pawn {
+                        if was_empty && row != new_row && col != new_col {
+                            self.board
+                                .set_piece(row, new_col, Colour::White, Piece::Empty);
+                        }
+                        if colour == Colour::White && new_row == 7
+                            || colour == Colour::Black && new_row == 0
+                        {
+                            self.board.set_piece(new_row, new_col, colour, Piece::Queen);
                         }
                     }
+
+                    self.update_opponent_check();
+                    self.log_movement(row, col, new_row, new_col);
+                    self.turn += 1;
+                    self.board.selected = None;
+                    self.board.draw();
+                    return true;
                 } else {
-                    self.board.move_cursor(&dir);
+                    self.board.selected = None;
                 }
-            } // TODO: Pause (move loop to directions)
-            self.board.draw();
+            }
+        } else {
+            self.board.move_cursor(&dir);
         }
+        self.board.draw();
+        true
     }
 
     /// Returns whether or not a move is valid based on the piece to move and the new
