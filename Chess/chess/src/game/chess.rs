@@ -10,6 +10,7 @@ pub struct Game {
     is_white_check: bool, // Is white king in check
     is_black_check: bool, // Is dark king in check
     game_over: bool,
+    pause: bool,
     winner: Option<Colour>,
 }
 
@@ -24,6 +25,7 @@ impl Game {
             is_white_check: false,
             is_black_check: false,
             game_over: false,
+            pause: false,
             winner: None,
         }
     }
@@ -90,7 +92,7 @@ impl Game {
                 } else {
                     self.board.move_cursor(&dir);
                 }
-            }
+            } // TODO: Pause (move loop to directions)
             self.board.draw();
         }
     }
