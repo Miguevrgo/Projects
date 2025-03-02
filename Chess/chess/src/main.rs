@@ -1,9 +1,25 @@
 mod game;
 mod ui;
+
 use crate::game::chess::Game;
-use crate::ui::menu;
+use ui::menu::{show_menu, MenuOption};
 
 fn main() {
-    let mut game = Game::new();
-    game.play();
+    loop {
+        match show_menu() {
+            MenuOption::StartLocal => {
+                let mut game = Game::new();
+                game.play();
+            }
+            MenuOption::StartNetwork => {
+                unimplemented!();
+            }
+            MenuOption::StartComputer => {
+                unimplemented!();
+            }
+            MenuOption::Quit => {
+                break;
+            }
+        }
+    }
 }
