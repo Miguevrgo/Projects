@@ -3,6 +3,7 @@ use crate::game::board::Board;
 use crate::game::directions::Direction;
 use crate::game::moves::Move;
 
+/// Represents the possible states of a chess game, used to control flow and UI behavior
 #[derive(Clone, Copy, PartialEq)]
 enum GameState {
     New,
@@ -17,14 +18,18 @@ pub struct Game {
     log: Vec<Move>,
     white_king_pos: (usize, usize),
     black_king_pos: (usize, usize),
-    is_white_check: bool,
-    is_black_check: bool,
     state: GameState,
 }
 
 impl Game {
-    /// Creates a new game of chess, with a default board, empty log and white
-    /// to move, it also sets both kings out of check
+    /// Creates a new chess game with the standard starting position.
+    ///
+    /// - The turn starts at 1 (White's move).
+    /// - Kings are initialized at e1 (0, 4) for White and e8 (7, 4) for Black, per standard chess rules.
+    /// - The game begins in the `New` state.
+    ///
+    /// # Returns
+    /// A new `Game` instance ready to be played.
     pub fn new() -> Self {
         Game {
             turn: 1,
@@ -32,14 +37,21 @@ impl Game {
             log: Vec::new(),
             white_king_pos: (0, 4),
             black_king_pos: (7, 4),
-            is_white_check: false,
-            is_black_check: false,
             state: GameState::New,
         }
     }
 
-    /// Draws and handles movements of a game of chess until the game is over, or
-    /// paused, when it is over, it shows the game result
+    /// Runs the main game loop, rendering the board and processing moves until the game ends or is paused.
+    ///
+    /// - Transitions the game state from `New` to `InProgress` on the first call.
+    /// - Continues until checkmate, stalemate, or a player pauses the game.
+    /// - Displays the game result when the game ends.
+    ///
+    /// # Examples
+    /// ```rust
+    /// let mut game = Game::new();
+    /// game.play();
+    /// ```
     pub fn play(&mut self) {
         if self.state == GameState::New {
             self.state = GameState::InProgress;
@@ -57,11 +69,11 @@ impl Game {
         self.show_game_result();
     }
 
-    /// Gets the next desired move as an input from the keyboard, in order for
-    /// a player to move, first a square has to be selected, then another set
-    /// of inputs determines where the player wants to move, if the move is not
-    /// valid, this method loops until a valid move is found, returns false if
-    /// players want to pause
+    /// Processes the next move based on player input.
+    ///
+    /// - Checks for checkmate before proceeding.
+    /// - Reads keyboard input to move the cursor or select a piece.
+    /// - Returns `false` if the player chooses to pause the game, `true` otherwise.
     pub fn next_move(&mut self) -> bool {
         if self.is_checkmate(self.current_colour()) {
             self.end_game(self.opponent_colour());
@@ -81,6 +93,10 @@ impl Game {
         true
     }
 
+    /// Handles piece selection and movement when the player presses the "Select" key.
+    ///
+    /// - If no piece is selected, selects the piece under the cursor if it belongs to the current player.
+    /// - If a piece is already selected, attempts to move it to the cursor's position.
     fn handle_selection(&mut self) {
         match self.board.selected {
             None => {
@@ -93,15 +109,22 @@ impl Game {
             Some((row, col)) => {
                 let (new_row, new_col) = self.board.cursor;
                 if self.can_move(row, col, new_row, new_col) {
-                    self.board.selected = None;
+                    self.board.move_piece(row, col, new_row, new_col);
                     self.turn += 1;
-                } else {
-                    self.board.selected = None;
                 }
+                self.board.selected = None;
             }
         }
     }
 
+    /// Determines if a move from `(row, col)` to `(new_row, new_col)` is valid and executable.
+    ///
+    /// - Validates the move based on piece rules and game state.
+    /// - Handles special pawn moves (e.g., en passant, promotion) and king position updates.
+    /// - Logs the move if successful.
+    ///
+    /// # Returns
+    /// `true` if the move is valid and executed, `false` otherwise.
     fn can_move(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
         if !self.valid_move(row, col, new_row, new_col) {
             return false;
@@ -117,11 +140,11 @@ impl Game {
         }
 
         self.log_movement(row, col, new_row, new_col);
-        self.update_opponent_check();
 
         true
     }
 
+    /// Handles special moves such as en passant and promotion
     fn handle_pawn_special_moves(
         &mut self,
         row: usize,
@@ -141,30 +164,11 @@ impl Game {
         }
     }
 
-    //TODO: Not just a queen
-    fn promote(&mut self, new_row: usize, new_col: usize, colour: Colour) {
-        self.board.set_piece(new_row, new_col, colour, Piece::Queen);
-    }
-
-    fn current_colour(&self) -> Colour {
-        if self.turn % 2 == 1 {
-            Colour::White
-        } else {
-            Colour::Black
-        }
-    }
-
-    fn opponent_colour(&self) -> Colour {
-        if self.turn % 2 == 1 {
-            Colour::White
-        } else {
-            Colour::Black
-        }
-    }
-
-    /// Returns whether or not a move is valid based on the piece to move and the new
-    /// position where it wants to move, to do so, it tests if movement is of the player
-    /// whose turn it is and if its piece can move that way in the context of the game
+    /// Validates if a move is legal according to chess rules.
+    ///
+    /// - Ensures the move is made by the current player, does not capture a friendly piece,
+    ///   and does not leave the king in check.
+    /// - Returns `false` if the move is invalid or illegal.
     fn valid_move(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
         let (colour, piece) = self.board.get_piece(row, col);
         let (dest_colour, dest_piece) = self.board.get_piece(new_row, new_col);
@@ -173,6 +177,7 @@ impl Game {
         if colour != colour_turn
             || (dest_piece != Piece::Empty && dest_colour == colour)
             || piece == Piece::Empty
+            || self.would_cause_check(row, col, new_row, new_col)
         {
             return false;
         }
@@ -181,6 +186,10 @@ impl Game {
         valid_moves.contains(&(new_row, new_col))
     }
 
+    /// Retrieves a list of valid moves for a piece at the given position.
+    ///
+    /// # Returns
+    /// A vector of `(row, col)` tuples representing possible destinations.
     fn get_valid_moves(
         &mut self,
         row: usize,
@@ -197,6 +206,140 @@ impl Game {
             Piece::King => Self::king_valid_moves(self, row, col, colour),
             _ => Vec::new(),
         }
+    }
+
+    /// Promotes a pawn to a queen when it reaches the opponent's back rank.
+    ///
+    /// #TODO:
+    /// Allow promotion to other pieces (not just Queen).
+    fn promote(&mut self, new_row: usize, new_col: usize, colour: Colour) {
+        self.board.set_piece(new_row, new_col, colour, Piece::Queen);
+    }
+
+    /// Returns the colour of the player whose turn it is.
+    fn current_colour(&self) -> Colour {
+        if self.turn % 2 == 1 {
+            Colour::White
+        } else {
+            Colour::Black
+        }
+    }
+
+    /// Returns the colour of the opponent of the current player
+    fn opponent_colour(&self) -> Colour {
+        if self.turn % 2 == 1 {
+            Colour::White
+        } else {
+            Colour::Black
+        }
+    }
+
+    fn show_game_result(&self) {
+        println!("\x1B[2J\x1B[1;1H"); // Clear screen
+        crossterm::terminal::disable_raw_mode().unwrap();
+        match self.state {
+            GameState::Over(Some(Colour::White)) => println!("Checkmate! White wins!"),
+            GameState::Over(Some(Colour::Black)) => println!("Checkmate! Black wins!"),
+            GameState::Over(None) => println!("Game ended ~ Draw"),
+            _ => unreachable!(),
+        }
+
+        println!("\nGame Log:");
+        for played_move in self.log.iter() {
+            println!("{played_move}\r")
+        }
+
+        println!("\nPress any key to return to menu...");
+        crossterm::terminal::enable_raw_mode().unwrap();
+        let _ = crossterm::event::read();
+        crossterm::terminal::disable_raw_mode().unwrap();
+    }
+
+    //// Ends the game and sets the winner.
+    fn end_game(&mut self, winner: Colour) {
+        self.state = GameState::Over(Some(winner))
+    }
+
+    /// Logs a move to the game’s move history.
+    fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
+        self.log.push(Move::from(
+            self.board.get_piece(new_row, new_col).1,
+            row,
+            col,
+            new_row,
+            new_col,
+        ));
+    }
+
+    /// Checks if a move would put the current player’s king in check.
+    fn would_cause_check(
+        &mut self,
+        row: usize,
+        col: usize,
+        new_row: usize,
+        new_col: usize,
+    ) -> bool {
+        let (original_colour, original_piece) = self.board.get_piece(new_row, new_col);
+        let (_, piece) = self.board.get_piece(row, col);
+        self.board.move_piece(row, col, new_row, new_col);
+
+        let (king_row, king_col) = if piece != Piece::King {
+            if self.current_colour() == Colour::White {
+                self.white_king_pos
+            } else {
+                self.black_king_pos
+            }
+        } else {
+            (new_row, new_col)
+        };
+        let is_checked = self.is_square_under_attack(king_row, king_col, self.current_colour());
+
+        self.board.move_piece(new_row, new_col, row, col);
+        self.board
+            .set_piece(new_row, new_col, original_colour, original_piece);
+        is_checked
+    }
+
+    fn is_checkmate(&mut self, colour: Colour) -> bool {
+        for row in 0..8 {
+            for col in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(row, col);
+                if piece_colour == colour && piece != Piece::Empty {
+                    let moves = self.get_valid_moves(row, col, colour, piece);
+                    if moves
+                        .iter()
+                        .any(|&(r, c)| !self.would_cause_check(row, col, r, c))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
+
+    fn update_king_position(&mut self, colour: Colour, row: usize, col: usize) {
+        match colour {
+            Colour::White => self.white_king_pos = (row, col),
+            Colour::Black => self.black_king_pos = (row, col),
+        }
+    }
+
+    /// Checks if the given position is under attack, colour represents the colour of the piece
+    /// whose current situation wants to be known
+    fn is_square_under_attack(&mut self, row: usize, col: usize, colour: Colour) -> bool {
+        for r in 0..8 {
+            for c in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(r, c);
+                if piece_colour != colour && piece != Piece::Empty {
+                    let moves = self.get_valid_moves(r, c, piece_colour, piece);
+                    if moves.contains(&(row, col)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
     }
 
     /// Returns a vector of the possible moves a given pawn in a position can do, these moves
@@ -482,123 +625,5 @@ impl Game {
         }
 
         valid_moves
-    }
-
-    fn show_game_result(&self) {
-        println!("\x1B[2J\x1B[1;1H"); // Clear screen
-        crossterm::terminal::disable_raw_mode().unwrap();
-        match self.state {
-            GameState::Over(Some(Colour::White)) => println!("Checkmate! White wins!"),
-            GameState::Over(Some(Colour::Black)) => println!("Checkmate! Black wins!"),
-            GameState::Over(None) => println!("Game ended ~ Draw"),
-            _ => unreachable!(),
-        }
-
-        println!("\nGame Log:");
-        for played_move in self.log.iter() {
-            println!("{played_move}\r")
-        }
-
-        println!("\nPress any key to return to menu...");
-        crossterm::terminal::enable_raw_mode().unwrap();
-        let _ = crossterm::event::read();
-        crossterm::terminal::disable_raw_mode().unwrap();
-    }
-
-    /// Sets game state to Over and corresponding winner
-    fn end_game(&mut self, winner: Colour) {
-        self.state = GameState::Over(Some(winner))
-    }
-
-    fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
-        self.log.push(Move::from(
-            self.board.get_piece(new_row, new_col).1,
-            row,
-            col,
-            new_row,
-            new_col,
-        ));
-    }
-
-    fn would_cause_check(
-        &mut self,
-        row: usize,
-        col: usize,
-        new_row: usize,
-        new_col: usize,
-    ) -> bool {
-        let (original_colour, original_piece) = self.board.get_piece(new_row, new_col);
-        self.board.move_piece(row, col, new_row, new_col);
-
-        let king_pos = if self.current_colour() == Colour::White {
-            self.white_king_pos
-        } else {
-            self.black_king_pos
-        };
-        let is_checked = self.is_square_under_attack(king_pos.0, king_pos.1, self.current_colour());
-
-        self.board.move_piece(new_row, new_col, row, col);
-        self.board
-            .set_piece(new_row, new_col, original_colour, original_piece);
-        is_checked
-    }
-
-    fn is_checkmate(&mut self, colour: Colour) -> bool {
-        for row in 0..8 {
-            for col in 0..8 {
-                let (piece_colour, piece) = self.board.get_piece(row, col);
-                if piece_colour == colour && piece != Piece::Empty {
-                    let moves = self.get_valid_moves(row, col, colour, piece);
-                    if moves
-                        .iter()
-                        .any(|&(r, c)| !self.would_cause_check(row, col, r, c))
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-        true
-    }
-
-    fn update_opponent_check(&mut self) {
-        let opponent_colour = self.opponent_colour();
-        let (king_row, king_col) = if opponent_colour == Colour::White {
-            self.white_king_pos
-        } else {
-            self.black_king_pos
-        };
-
-        let is_checked = self.is_square_under_attack(king_row, king_col, opponent_colour);
-
-        if opponent_colour == Colour::White {
-            self.is_white_check = is_checked;
-        } else {
-            self.is_black_check = is_checked;
-        }
-    }
-
-    fn update_king_position(&mut self, colour: Colour, row: usize, col: usize) {
-        match colour {
-            Colour::White => self.white_king_pos = (row, col),
-            Colour::Black => self.black_king_pos = (row, col),
-        }
-    }
-
-    /// Checks if the given position is under attack, colour represents the colour of the piece
-    /// whose current situation wants to be known
-    fn is_square_under_attack(&mut self, row: usize, col: usize, colour: Colour) -> bool {
-        for r in 0..8 {
-            for c in 0..8 {
-                let (piece_colour, piece) = self.board.get_piece(r, c);
-                if piece_colour != colour && piece != Piece::Empty {
-                    let moves = self.get_valid_moves(r, c, piece_colour, piece);
-                    if moves.contains(&(row, col)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        false
     }
 }

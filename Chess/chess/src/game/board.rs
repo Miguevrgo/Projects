@@ -1,11 +1,21 @@
 use crate::game::directions::*;
 use crate::game::piece::*;
 
-/// A board consists on 64 squares where each one contains one piece (where empty is considered)
-/// a piece, as there are 7 possible pieces, each one with a colour, we can fit each piece in 4
-/// bits, as we want 8 pieces per row and 8 rows, we need an array of 8 u32 values
+/// Represents a chess board with 64 squares, each holding a piece.
 ///
-/// A cursor is used to keep track of the current selected piece so that it can be moved
+/// The board is implemented as an array of 8 `u32` values, where each `u32` represents a row.
+/// Each square uses 4 bits to encode a piece: 1 bit for the color (`Colour`) and 3 bits for the
+/// piece type (`Piece`). This allows efficient storage of 8 squares per row (32 bits total).
+/// The internal representation of a piece is as follows:
+///
+/// | Bit 3     | Bit 2     | Bit 1     | Bit 0     |
+/// |-----------|-----------|-----------|-----------|
+/// | Color     |      Piece Type (3 bits)          |
+///
+/// - **Bit 3**: Represents the color (0 = White, 1 = Black).
+/// - **Bits 2-0**: Represent the piece type (e.g., 000 = Empty, 001 = Pawn, etc.).
+///
+/// A cursor tracks the currently selected square for movement purposes.
 pub struct Board {
     board: [u32; 8],
     pub cursor: (usize, usize),
@@ -13,9 +23,14 @@ pub struct Board {
 }
 
 impl Board {
-    /// Creates a board with default pieces positions, white is on top because top represents
-    /// the first position on the array which matches the 1 and 2 rows where white are always
-    /// located
+    /// Creates a new chess board with pieces in their standard starting positions.
+    ///
+    /// White pieces are placed at the top (rows 0 and 1), and Black pieces at the bottom
+    /// (rows 6 and 7), matching standard chess notation where White starts on rows 1 and 2.
+    /// The cursor starts at (0, 0), and no piece is selected initially.
+    ///
+    /// # Returns
+    /// A new `Board` instance with the default chess setup.
     pub fn new() -> Self {
         use Piece::*;
         Board {
@@ -40,9 +55,18 @@ impl Board {
         }
     }
 
-    /// Creates an u32 value representing a row of 8 pieces given their colour which
-    /// is stored in most significant bit of each piece and the piece which are stored
-    /// in the same order as the one in pieces
+    /// Constructs a `u32` value representing a row of 8 pieces.
+    ///
+    /// Each piece occupies 4 bits: the most significant bit indicates the color (`Colour`),
+    /// and the remaining 3 bits represent the piece type (`Piece`). The pieces are packed
+    /// in order from left to right (column 0 to 7).
+    ///
+    /// # Parameters
+    /// - `colour`: The color of all pieces in the row.
+    /// - `pieces`: An array of 8 `Piece` values to place in the row.
+    ///
+    /// # Returns
+    /// A `u32` value encoding the row.
     fn create_row(colour: Colour, pieces: &[Piece]) -> u32 {
         let mut row = 0;
         for (i, piece) in pieces.iter().enumerate() {
@@ -53,8 +77,19 @@ impl Board {
         row
     }
 
-    /// Gets the piece and colour in the given position, starting in 0 for
-    /// both row and col, ensuring row and col in [0,7]x[0,7]
+    /// Retrieves the piece and its color at a given position on the board.
+    ///
+    /// Positions are zero-based, with (0, 0) being the top-left corner (a8 in chess notation).
+    ///
+    /// # Parameters
+    /// - `row`: The row index, must be in [0, 7].
+    /// - `col`: The column index, must be in [0, 7].
+    ///
+    /// # Returns
+    /// A tuple `(Colour, Piece)` representing the color and type of the piece at the position.
+    ///
+    /// # Panics
+    /// Panics if `row` or `col` is not in the range [0, 7].
     pub fn get_piece(&self, row: usize, col: usize) -> (Colour, Piece) {
         assert!((0..=7).contains(&row) && ((0..=7).contains(&col)));
 
@@ -67,8 +102,18 @@ impl Board {
         (colour, piece)
     }
 
-    /// Sets a piece in given new position checking bounds, does not check whether the move
-    /// is valid or not
+    /// Sets a piece at a specified position on the board.
+    ///
+    /// Overwrites the existing piece at the position without checking move validity.
+    ///
+    /// # Parameters
+    /// - `row`: The row index, must be in [0, 7].
+    /// - `col`: The column index, must be in [0, 7].
+    /// - `colour`: The color of the piece to set.
+    /// - `piece`: The type of piece to set.
+    ///
+    /// # Panics
+    /// Panics if `row` or `col` is not in the range [0, 7].
     pub fn set_piece(&mut self, row: usize, col: usize, colour: Colour, piece: Piece) {
         assert!((0..=7).contains(&row) && ((0..=7).contains(&col)));
         let piece_bits = ((colour as u32) << 3) | (piece as u32);
@@ -77,9 +122,19 @@ impl Board {
         self.board[row] |= piece_bits << (col * 4);
     }
 
-    /// Moves a piece from old position to new given one, not checking whether or not the given
-    /// piece was valid, it returns whether or not the move was a capture (not checking whether the
-    /// capture is valid, it just checks whether the new position was occupied by a non empty piece)
+    /// Moves a piece from one position to another on the board.
+    ///
+    /// Does not validate the move's legality (e.g., chess rules). The original position
+    /// is cleared to an empty white square after the move.
+    ///
+    /// # Parameters
+    /// - `row`: The starting row index, must be in [0, 7].
+    /// - `col`: The starting column index, must be in [0, 7].
+    /// - `new_r`: The destination row index, must be in [0, 7].
+    /// - `new_c`: The destination column index, must be in [0, 7].
+    ///
+    /// # Returns
+    /// `true` if the move resulted in a capture (destination was not empty), `false` otherwise.
     pub fn move_piece(&mut self, row: usize, col: usize, new_r: usize, new_c: usize) -> bool {
         let (colour, piece) = Self::get_piece(self, row, col);
         Self::set_piece(self, row, col, Colour::White, Piece::Empty);
@@ -89,9 +144,13 @@ impl Board {
         capture
     }
 
-    /// Moves the cursor one position in the given direction. If the cursor is at
-    /// the edge of the board, it wraps around to the opposite side. If selected,
-    /// it only moves selected cursor
+    /// Moves the cursor one position in the specified direction.
+    ///
+    /// If the cursor reaches the board's edge, it wraps around to the opposite side.
+    /// If a piece is selected, this only affects the cursor, not the selected piece.
+    ///
+    /// # Parameters
+    /// - `dir`: The direction to move the cursor (`Up`, `Down`, `Left`, `Right`, or `Select`).
     pub fn move_cursor(&mut self, dir: &Direction) {
         match dir {
             Direction::Up => self.cursor.0 = (self.cursor.0 + 1) % 8,
@@ -102,8 +161,13 @@ impl Board {
         }
     }
 
-    /// Draws the board in terminal inside a square getting each of the pieces in each
-    /// position
+    /// Renders the chess board to the terminal.
+    ///
+    /// Displays the board with pieces as Unicode symbols, using colors to indicate:
+    /// - Cursor position (green background).
+    /// - Selected piece (red background).
+    /// - Alternating square colors (light and dark brown).
+    /// - Piece colors (white or black).
     pub fn draw(&self) {
         let symbols = [
             ' ', // Empty
