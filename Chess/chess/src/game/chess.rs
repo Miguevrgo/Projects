@@ -1,17 +1,25 @@
 use super::piece::{Colour, Piece};
 use crate::game::board::Board;
-use crate::game::directions::*;
+use crate::game::directions::Direction;
 use crate::game::moves::Move;
 
+#[derive(Clone, Copy, PartialEq)]
+enum GameState {
+    New,
+    InProgress,
+    Paused,
+    Over(Option<Colour>), // Winner, if any
+}
+
 pub struct Game {
-    pub turn: u16, // Despite 5899 being the maximum number of moves possible
+    turn: u16, // Despite 5899 being the maximum number of moves possible
     board: Board,
     log: Vec<Move>,
-    is_white_check: bool, // Is white king in check
-    is_black_check: bool, // Is dark king in check
-    game_over: bool,
-    pause: bool,
-    winner: Option<Colour>,
+    white_king_pos: (usize, usize),
+    black_king_pos: (usize, usize),
+    is_white_check: bool,
+    is_black_check: bool,
+    state: GameState,
 }
 
 impl Game {
@@ -22,22 +30,28 @@ impl Game {
             turn: 1,
             board: Board::new(),
             log: Vec::new(),
+            white_king_pos: (0, 4),
+            black_king_pos: (7, 4),
             is_white_check: false,
             is_black_check: false,
-            game_over: false,
-            pause: false,
-            winner: None,
+            state: GameState::New,
         }
     }
 
-    /// Draws and handles movements of a game of chess until the game is over,
-    /// when it is, it shows the game result
+    /// Draws and handles movements of a game of chess until the game is over, or
+    /// paused, when it is over, it shows the game result
     pub fn play(&mut self) {
+        if self.state == GameState::New {
+            self.state = GameState::InProgress;
+        }
+
         self.board.draw();
-        while !self.game_over {
+        while self.state == GameState::InProgress {
             if !self.next_move() {
+                self.state = GameState::Paused;
                 return;
             }
+            self.board.draw();
         }
 
         self.show_game_result();
@@ -49,102 +63,139 @@ impl Game {
     /// valid, this method loops until a valid move is found, returns false if
     /// players want to pause
     pub fn next_move(&mut self) -> bool {
-        if self.is_white_check && Self::is_checkmate(self, Colour::White) {
-            Self::end_game(self, Colour::Black);
-            return true;
-        }
-        if self.is_black_check && Self::is_checkmate(self, Colour::Black) {
-            Self::end_game(self, Colour::White);
+        if self.is_checkmate(self.current_colour()) {
+            self.end_game(self.opponent_colour());
             return true;
         }
 
         let dir = match Direction::input_key() {
             Some(dir) => dir,
-            None => return false,
+            None => return false, // Pause
         };
-        if dir == Direction::Select {
-            if self.board.selected.is_none() {
-                self.board.selected = Some(self.board.cursor);
-            } else {
-                let (row, col) = self.board.selected.unwrap();
-                let (new_row, new_col) = self.board.cursor;
-                if self.valid_move(row, col, new_row, new_col) {
-                    let (colour, piece) = self.board.get_piece(row, col);
-                    let was_empty = self.board.get_piece(new_row, new_col).1 == Piece::Empty;
-                    self.board.move_piece(row, col, new_row, new_col);
-                    if piece == Piece::Pawn {
-                        if was_empty && row != new_row && col != new_col {
-                            self.board
-                                .set_piece(row, new_col, Colour::White, Piece::Empty);
-                        }
-                        if colour == Colour::White && new_row == 7
-                            || colour == Colour::Black && new_row == 0
-                        {
-                            self.board.set_piece(new_row, new_col, colour, Piece::Queen);
-                        }
-                    }
 
-                    self.update_opponent_check();
-                    self.log_movement(row, col, new_row, new_col);
-                    self.turn += 1;
+        match dir {
+            Direction::Select => self.handle_selection(),
+            _ => self.board.move_cursor(&dir),
+        }
+
+        true
+    }
+
+    fn handle_selection(&mut self) {
+        match self.board.selected {
+            None => {
+                let (row, col) = self.board.cursor;
+                if self.board.get_piece(row, col).0 == self.current_colour() {
+                    self.board.selected = Some((row, col));
+                }
+            }
+
+            Some((row, col)) => {
+                let (new_row, new_col) = self.board.cursor;
+                if self.can_move(row, col, new_row, new_col) {
                     self.board.selected = None;
-                    self.board.draw();
-                    return true;
+                    self.turn += 1;
                 } else {
                     self.board.selected = None;
                 }
             }
-        } else {
-            self.board.move_cursor(&dir);
         }
-        self.board.draw();
+    }
+
+    fn can_move(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
+        if !self.valid_move(row, col, new_row, new_col) {
+            return false;
+        }
+
+        let (colour, piece) = self.board.get_piece(row, col);
+        let was_empty = self.board.get_piece(new_row, new_col).1 == Piece::Empty;
+
+        if piece == Piece::Pawn {
+            self.handle_pawn_special_moves(row, col, new_row, new_col, colour, was_empty);
+        } else if piece == Piece::King {
+            self.update_king_position(colour, new_row, new_col);
+        }
+
+        self.log_movement(row, col, new_row, new_col);
+        self.update_opponent_check();
+
         true
+    }
+
+    fn handle_pawn_special_moves(
+        &mut self,
+        row: usize,
+        col: usize,
+        new_row: usize,
+        new_col: usize,
+        colour: Colour,
+        was_empty: bool,
+    ) {
+        if was_empty && row != new_row && col != new_col {
+            self.board
+                .set_piece(row, new_col, Colour::White, Piece::Empty);
+        }
+
+        if (colour == Colour::White && new_row == 7) || (colour == Colour::Black && new_row == 0) {
+            self.promote(new_row, new_col, colour);
+        }
+    }
+
+    //TODO: Not just a queen
+    fn promote(&mut self, new_row: usize, new_col: usize, colour: Colour) {
+        self.board.set_piece(new_row, new_col, colour, Piece::Queen);
+    }
+
+    fn current_colour(&self) -> Colour {
+        if self.turn % 2 == 1 {
+            Colour::White
+        } else {
+            Colour::Black
+        }
+    }
+
+    fn opponent_colour(&self) -> Colour {
+        if self.turn % 2 == 1 {
+            Colour::White
+        } else {
+            Colour::Black
+        }
     }
 
     /// Returns whether or not a move is valid based on the piece to move and the new
     /// position where it wants to move, to do so, it tests if movement is of the player
     /// whose turn it is and if its piece can move that way in the context of the game
     fn valid_move(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
-        if !(0..=7).contains(&new_row) || !(0..=7).contains(&new_col) {
-            return false;
-        }
-
         let (colour, piece) = self.board.get_piece(row, col);
         let (dest_colour, dest_piece) = self.board.get_piece(new_row, new_col);
-        let colour_turn = if self.turn % 2 == 0 {
-            Colour::Black
-        } else {
-            Colour::White
-        };
+        let colour_turn = self.current_colour();
 
         if colour != colour_turn
             || (dest_piece != Piece::Empty && dest_colour == colour)
             || piece == Piece::Empty
-            || Self::king_checked(self, row, col, new_row, new_col)
         {
             return false;
         }
 
+        let valid_moves = self.get_valid_moves(row, col, colour, piece);
+        valid_moves.contains(&(new_row, new_col))
+    }
+
+    fn get_valid_moves(
+        &mut self,
+        row: usize,
+        col: usize,
+        colour: Colour,
+        piece: Piece,
+    ) -> Vec<(usize, usize)> {
         match piece {
-            Piece::Pawn => {
-                Self::pawn_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::Rook => {
-                Self::rook_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::Bishop => {
-                Self::bishop_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::Knight => {
-                Self::knight_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::Queen => {
-                Self::queen_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            Piece::King => {
-                Self::king_valid_moves(self, row, col, colour).contains(&(new_row, new_col))
-            }
-            _ => false,
+            Piece::Pawn => Self::pawn_valid_moves(self, row, col, colour),
+            Piece::Rook => Self::rook_valid_moves(self, row, col, colour),
+            Piece::Bishop => Self::bishop_valid_moves(self, row, col, colour),
+            Piece::Knight => Self::knight_valid_moves(self, row, col, colour),
+            Piece::Queen => Self::queen_valid_moves(self, row, col, colour),
+            Piece::King => Self::king_valid_moves(self, row, col, colour),
+            _ => Vec::new(),
         }
     }
 
@@ -433,39 +484,14 @@ impl Game {
         valid_moves
     }
 
-    fn is_checkmate(&mut self, colour: Colour) -> bool {
-        for row in 0..8 {
-            for col in 0..8 {
-                let (piece_colour, piece) = self.board.get_piece(row, col);
-                if piece_colour == colour {
-                    let moves = match piece {
-                        Piece::Queen => Self::queen_valid_moves(self, row, col, colour),
-                        Piece::Rook => Self::rook_valid_moves(self, row, col, colour),
-                        Piece::Bishop => Self::bishop_valid_moves(self, row, col, colour),
-                        Piece::Knight => Self::knight_valid_moves(self, row, col, colour),
-                        Piece::Pawn => Self::pawn_valid_moves(self, row, col, colour),
-                        Piece::King => Self::king_valid_moves(self, row, col, colour),
-                        Piece::Empty => Vec::new(),
-                    };
-                    for valid_move in moves {
-                        let (new_row, new_col) = valid_move;
-                        if !self.king_checked(row, col, new_row, new_col) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        true
-    }
-
     fn show_game_result(&self) {
         println!("\x1B[2J\x1B[1;1H"); // Clear screen
         crossterm::terminal::disable_raw_mode().unwrap();
-        match self.winner {
-            Some(Colour::White) => println!("Checkmate! White wins!"),
-            Some(Colour::Black) => println!("Checkmate! Black wins!"),
-            None => println!("Game ended"),
+        match self.state {
+            GameState::Over(Some(Colour::White)) => println!("Checkmate! White wins!"),
+            GameState::Over(Some(Colour::Black)) => println!("Checkmate! Black wins!"),
+            GameState::Over(None) => println!("Game ended ~ Draw"),
+            _ => unreachable!(),
         }
 
         println!("\nGame Log:");
@@ -479,10 +505,9 @@ impl Game {
         crossterm::terminal::disable_raw_mode().unwrap();
     }
 
-    /// Sets variable game_over to true and winner to the colour of the winner
+    /// Sets game state to Over and corresponding winner
     fn end_game(&mut self, winner: Colour) {
-        self.game_over = true;
-        self.winner = Some(winner);
+        self.state = GameState::Over(Some(winner))
     }
 
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
@@ -495,34 +520,54 @@ impl Game {
         ));
     }
 
-    fn king_checked(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) -> bool {
-        let (original_piece_colour, original_piece) = self.board.get_piece(new_row, new_col);
+    fn would_cause_check(
+        &mut self,
+        row: usize,
+        col: usize,
+        new_row: usize,
+        new_col: usize,
+    ) -> bool {
+        let (original_colour, original_piece) = self.board.get_piece(new_row, new_col);
         self.board.move_piece(row, col, new_row, new_col);
 
-        let king_colour = if self.turn % 2 == 0 {
-            Colour::Black
+        let king_pos = if self.current_colour() == Colour::White {
+            self.white_king_pos
         } else {
-            Colour::White
+            self.black_king_pos
         };
-        let (king_row, king_col) = self.find_king(king_colour);
-
-        let is_checked = self.is_square_under_attack(king_row, king_col, king_colour);
+        let is_checked = self.is_square_under_attack(king_pos.0, king_pos.1, self.current_colour());
 
         self.board.move_piece(new_row, new_col, row, col);
         self.board
-            .set_piece(new_row, new_col, original_piece_colour, original_piece);
-
+            .set_piece(new_row, new_col, original_colour, original_piece);
         is_checked
     }
 
-    fn update_opponent_check(&mut self) {
-        let opponent_colour = if self.turn % 2 == 0 {
-            Colour::White
-        } else {
-            Colour::Black
-        };
+    fn is_checkmate(&mut self, colour: Colour) -> bool {
+        for row in 0..8 {
+            for col in 0..8 {
+                let (piece_colour, piece) = self.board.get_piece(row, col);
+                if piece_colour == colour && piece != Piece::Empty {
+                    let moves = self.get_valid_moves(row, col, colour, piece);
+                    if moves
+                        .iter()
+                        .any(|&(r, c)| !self.would_cause_check(row, col, r, c))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
 
-        let (king_row, king_col) = self.find_king(opponent_colour);
+    fn update_opponent_check(&mut self) {
+        let opponent_colour = self.opponent_colour();
+        let (king_row, king_col) = if opponent_colour == Colour::White {
+            self.white_king_pos
+        } else {
+            self.black_king_pos
+        };
 
         let is_checked = self.is_square_under_attack(king_row, king_col, opponent_colour);
 
@@ -533,17 +578,11 @@ impl Game {
         }
     }
 
-    /// Returns the position of the given colour king, panics if there is a missing king
-    fn find_king(&self, colour: Colour) -> (usize, usize) {
-        for row in 0..8 {
-            for col in 0..8 {
-                let (piece_colour, piece) = self.board.get_piece(row, col);
-                if piece == Piece::King && piece_colour == colour {
-                    return (row, col);
-                }
-            }
+    fn update_king_position(&mut self, colour: Colour, row: usize, col: usize) {
+        match colour {
+            Colour::White => self.white_king_pos = (row, col),
+            Colour::Black => self.black_king_pos = (row, col),
         }
-        panic!("King not found!");
     }
 
     /// Checks if the given position is under attack, colour represents the colour of the piece
@@ -553,16 +592,8 @@ impl Game {
             for c in 0..8 {
                 let (piece_colour, piece) = self.board.get_piece(r, c);
                 if piece_colour != colour && piece != Piece::Empty {
-                    let valid_moves = match piece {
-                        Piece::Pawn => self.pawn_valid_moves(r, c, piece_colour),
-                        Piece::Rook => self.rook_valid_moves(r, c, piece_colour),
-                        Piece::Bishop => self.bishop_valid_moves(r, c, piece_colour),
-                        Piece::Knight => self.knight_valid_moves(r, c, piece_colour),
-                        Piece::Queen => self.queen_valid_moves(r, c, piece_colour),
-                        Piece::King => self.king_valid_moves(r, c, piece_colour),
-                        _ => Vec::new(),
-                    };
-                    if valid_moves.contains(&(row, col)) {
+                    let moves = self.get_valid_moves(r, c, piece_colour, piece);
+                    if moves.contains(&(row, col)) {
                         return true;
                     }
                 }

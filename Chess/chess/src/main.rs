@@ -21,9 +21,7 @@ fn main() {
             MenuOption::Resume => {
                 game.play();
             }
-            MenuOption::Quit => {
-                break;
-            }
+            MenuOption::Quit => break,
         }
     }
 }
