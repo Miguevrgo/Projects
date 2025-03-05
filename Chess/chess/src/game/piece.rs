@@ -1,7 +1,7 @@
 /// Each piece type is represented in 3 bits, to distinguish color another
 /// bit is used before the type in each piece on the board, empty pieces
 /// will be considered white
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Piece {
     Empty = 0b000,
     Pawn = 0b001,

@@ -1,4 +1,5 @@
 use core::fmt;
+use std::process::exit;
 
 use crate::game::piece::*;
 
@@ -28,13 +29,14 @@ impl Move {
     }
 
     pub fn is_en_passant(&self) -> bool {
-        if self.piece == Piece::Pawn && self.prev_row.abs_diff(self.new_row) == 2 {
+        if self.prev_row.abs_diff(self.new_row) == 2 {
             return true;
         }
 
         false
     }
 }
+
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let letters = [

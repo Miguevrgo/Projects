@@ -263,7 +263,7 @@ impl Game {
     /// Logs a move to the game’s move history.
     fn log_movement(&mut self, row: usize, col: usize, new_row: usize, new_col: usize) {
         self.log.push(Move::from(
-            self.board.get_piece(new_row, new_col).1,
+            self.board.get_piece(row, col).1,
             row,
             col,
             new_row,
