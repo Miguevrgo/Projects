@@ -1,8 +1,8 @@
 use core::fmt;
-use std::process::exit;
 
 use crate::game::piece::*;
 
+#[derive(Debug)]
 pub struct Move {
     piece: Piece,
     prev_row: usize,

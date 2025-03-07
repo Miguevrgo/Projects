@@ -5,7 +5,7 @@ use crate::game::moves::Move;
 
 /// Represents the possible states of a chess game, used to control flow and UI behavior
 #[derive(Clone, Copy, PartialEq)]
-enum GameState {
+pub enum GameState {
     New,
     InProgress,
     Paused,
@@ -13,12 +13,12 @@ enum GameState {
 }
 
 pub struct Game {
-    turn: u16, // Despite 5899 being the maximum number of moves possible
+    pub turn: u16, // Despite 5899 being the maximum number of moves possible
     pub board: Board,
     log: Vec<Move>,
     white_king_pos: (usize, usize),
     black_king_pos: (usize, usize),
-    state: GameState,
+    pub state: GameState,
 }
 
 impl Game {
@@ -217,7 +217,7 @@ impl Game {
     }
 
     /// Returns the colour of the player whose turn it is.
-    fn current_colour(&self) -> Colour {
+    pub fn current_colour(&self) -> Colour {
         if self.turn % 2 == 1 {
             Colour::White
         } else {
@@ -325,9 +325,15 @@ impl Game {
         }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(&mut self) {
         self.board.draw();
-        println!("Eval: {}", crate::engine::evaluation::evaluate(self))
+        println!("Eval: {}", crate::engine::evaluation::evaluate(self));
+        //TODO: Fix
+        //     let depth = 5;
+        //     let (score, best_move) = crate::engine::search::negamax(self, depth, i32::MIN, i32::MAX);
+        //     if let Some(selected_move) = best_move {
+        //         println!("Best Move: {}", selected_move)
+        //     }
     }
 
     /// Checks if the given position is under attack, colour represents the colour of the piece
