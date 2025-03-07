@@ -14,7 +14,7 @@ enum GameState {
 
 pub struct Game {
     turn: u16, // Despite 5899 being the maximum number of moves possible
-    board: Board,
+    pub board: Board,
     log: Vec<Move>,
     white_king_pos: (usize, usize),
     black_king_pos: (usize, usize),
@@ -63,7 +63,7 @@ impl Game {
                 self.state = GameState::Paused;
                 return;
             }
-            self.board.draw();
+            self.draw();
         }
 
         self.show_game_result();
@@ -190,8 +190,8 @@ impl Game {
     ///
     /// # Returns
     /// A vector of `(row, col)` tuples representing possible destinations.
-    fn get_valid_moves(
-        &mut self,
+    pub fn get_valid_moves(
+        &self,
         row: usize,
         col: usize,
         colour: Colour,
@@ -325,9 +325,14 @@ impl Game {
         }
     }
 
+    pub fn draw(&self) {
+        self.board.draw();
+        println!("Eval: {}", crate::engine::evaluation::evaluate(self))
+    }
+
     /// Checks if the given position is under attack, colour represents the colour of the piece
     /// whose current situation wants to be known
-    fn is_square_under_attack(&mut self, row: usize, col: usize, colour: Colour) -> bool {
+    fn is_square_under_attack(&self, row: usize, col: usize, colour: Colour) -> bool {
         for r in 0..8 {
             for c in 0..8 {
                 let (piece_colour, piece) = self.board.get_piece(r, c);
@@ -345,7 +350,7 @@ impl Game {
     /// Returns a vector of the possible moves a given pawn in a position can do, these moves
     /// include going one position up or down always, two positions in starting positions and
     /// diagonally if captured piece is of the opposite colour,
-    fn pawn_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+    fn pawn_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         match colour {
@@ -416,7 +421,7 @@ impl Game {
         valid_moves
     }
 
-    fn rook_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+    fn rook_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         // Left
@@ -470,12 +475,7 @@ impl Game {
         valid_moves
     }
 
-    fn bishop_valid_moves(
-        &mut self,
-        row: usize,
-        col: usize,
-        colour: Colour,
-    ) -> Vec<(usize, usize)> {
+    fn bishop_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         for (dr, dc) in [(1, 1), (1, -1), (-1, 1), (-1, -1)] {
@@ -506,12 +506,7 @@ impl Game {
         valid_moves
     }
 
-    fn knight_valid_moves(
-        &mut self,
-        row: usize,
-        col: usize,
-        colour: Colour,
-    ) -> Vec<(usize, usize)> {
+    fn knight_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         let jumps = [
@@ -551,7 +546,7 @@ impl Game {
         valid_moves
     }
 
-    fn king_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+    fn king_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         let directions = [
@@ -587,7 +582,7 @@ impl Game {
         valid_moves
     }
 
-    fn queen_valid_moves(&mut self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
+    fn queen_valid_moves(&self, row: usize, col: usize, colour: Colour) -> Vec<(usize, usize)> {
         let mut valid_moves = Vec::new();
 
         for (dr, dc) in [

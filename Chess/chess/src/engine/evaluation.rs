@@ -1,8 +1,9 @@
-use crate::game::board::Board;
+use crate::game::chess::Game;
 use crate::game::piece::*;
 
-fn evaluate(board: &Board) -> i32 {
+pub fn evaluate(game: &Game) -> i32 {
     let mut score = 0;
+    let board = &game.board;
 
     let piece_values = [
         0,     // Empty
@@ -15,14 +16,14 @@ fn evaluate(board: &Board) -> i32 {
     ];
 
     let pawn_table_white: [[i32; 8]; 8] = [
-        [0, 0, 0, 0, 0, 0, 0, 0],         // Rank 8
-        [50, 50, 50, 50, 50, 50, 50, 50], // Rank 7 (promotion)
-        [30, 30, 40, 50, 50, 40, 30, 30], // Rank 6
-        [20, 20, 30, 40, 40, 30, 20, 20], // Rank 5
-        [10, 10, 20, 30, 30, 20, 10, 10], // Rank 4
-        [5, 5, 10, 20, 20, 10, 5, 5],     // Rank 3
-        [0, 0, 0, 0, 0, 0, 0, 0],         // Rank 2
         [0, 0, 0, 0, 0, 0, 0, 0],         // Rank 1
+        [0, 0, 0, 0, 0, 0, 0, 0],         // Rank 2
+        [5, 5, 10, 20, 20, 10, 5, 5],     // Rank 3
+        [10, 10, 20, 30, 30, 20, 10, 10], // Rank 4
+        [20, 20, 30, 40, 40, 30, 20, 20], // Rank 5
+        [30, 30, 40, 50, 50, 40, 30, 30], // Rank 6
+        [50, 50, 50, 50, 50, 50, 50, 50], // Rank 7 (promotion)
+        [0, 0, 0, 0, 0, 0, 0, 0],         // Rank 8
     ];
 
     let mut pawn_table_black = pawn_table_white;
@@ -47,11 +48,16 @@ fn evaluate(board: &Board) -> i32 {
             }
 
             score += if colour == Colour::White {
-                base_value + positional_bonus
+                base_value
+                    + positional_bonus
+                    + game.get_valid_moves(row, col, colour, piece).len() as i32
             } else {
-                -(base_value + positional_bonus)
+                -(base_value
+                    + positional_bonus
+                    + game.get_valid_moves(row, col, colour, piece).len() as i32)
             };
         }
     }
+
     score
 }
