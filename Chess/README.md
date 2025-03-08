@@ -7,7 +7,7 @@ The game can be played on a single computer, with two movement control options (
 ## Showcase
 ![Menu](https://github.com/Miguevrgo/Projects/main/Chess/menu.jpg?raw=true)
 
-![Game](https://github.com/Miguevrgo/Projects/main/Chess/game.jpg?raw=true)
+![Game](https://github.com/Miguevrgo/Projects/blob/main/Chess/game.jpg?raw=true)
 ## Board
 I spent a long time considering whether to use a bitboard design. Ultimately, I decided against it in order to develop my own alternative. While it may not be as efficient, it has been space-efficient enough while allowing me to learn. However, I do not rule out implementing both approaches in the future to explore bitboard representation.
 
