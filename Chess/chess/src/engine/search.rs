@@ -11,7 +11,7 @@ pub fn negamax(game: &mut Game, depth: u32, alpha: i32, beta: i32) -> (i32, Opti
 
     let mut alpha = alpha;
     let mut best_move = None;
-    let mut best_score = i32::MIN;
+    let mut best_score = -1000;
 
     for row in 0..8 {
         for col in 0..8 {
