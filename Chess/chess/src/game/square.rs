@@ -33,7 +33,7 @@ impl Square {
     pub fn jump(self, file_delta: i8, rank_delta: i8) -> Option<Self> {
         let file = (self.0 % 8) as i8 + file_delta;
         let rank = (self.0 / 8) as i8 - rank_delta;
-        if file >= 0 && file < 8 && rank >= 0 && rank < 8 {
+        if (0..8).contains(&file) && (0..8).contains(&rank) {
             Some(Self((rank * 8 + file) as u8))
         } else {
             None
