@@ -5,7 +5,7 @@ A chess game for the terminal, written in pure Rust. This project provides a sim
 The game can be played on a single computer, with two movement control options (arrow keys and Vim-like motions), against a computer, or even over a LAN between two different computers. A TCP-based client-server design has been chosen for network play.
 
 ## Showcase
-![Menu](https://github.com/Miguevrgo/Projects/blob/main/Chess/menu.jpg?raw=true)
+![Menu](https://github.com/Miguevrgo/Projects/blob/main/Chess/Menu.jpg?raw=true)
 
 ![Game](https://github.com/Miguevrgo/Projects/blob/main/Chess/game.jpg?raw=true)
 ## Board
