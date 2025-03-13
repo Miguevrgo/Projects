@@ -1,6 +1,11 @@
 use crate::game::piece::Colour;
 use crate::game::square::Square;
 
+/// A 64-bit representation of a chess board, where each bit corresponds to a square.
+/// A `1` indicates the presence of a piece, and a `0` indicates an empty square.
+///
+/// This struct is designed for efficient manipulation of chess positions using
+/// bitwise operations, designed so that the LSB correponds to A8 and MSB to H1
 #[derive(PartialEq, Eq, PartialOrd, Clone, Copy, Debug, Default, Hash)]
 pub struct BitBoard(pub u64);
 
@@ -65,25 +70,68 @@ impl std::ops::BitXorAssign for BitBoard {
 }
 
 impl BitBoard {
+    /// An empty bitboard with no pieces (all bits set to 0).
     pub const EMPTY: Self = Self(0);
+    /// A fully occupied bitboard (all bits set to 1).
     pub const FULL: Self = Self(0xFFFFFFFFFFFFFFFF);
 
+    /// Starting ranks for pawns: White (rank 2) and Black (rank 7).
     pub const START_RANKS: [Self; 2] = [Self(0x00FF000000000000), Self(0x000000000000FF00)];
+    /// Ranks where en passant can occur: White (rank 5) and Black (rank 4).
     pub const EP_RANKS: [Self; 2] = [Self(0x00000000FF000000), Self(0x000000FF00000000)];
+    /// Ranks where promotion can occur: White (rank 7) and Black (rank 2).
     pub const PROMO_RANKS: [Self; 2] = [Self(0x000000000000FF00), Self(0x00FF000000000000)];
 
+    /// Checks if a specific square contains a piece.
+    ///
+    /// # Arguments
+    ///
+    /// * `square` - The square to check.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the square is occupied, `false` otherwise.
     pub fn get_bit(self, square: Square) -> bool {
         self.0 & (1u64 << square.index()) != 0
     }
 
+    /// Sets the bit at the given square, indicating a piece is present.
+    ///
+    ///
+    /// # Arguments
+    ///
+    /// * `square` - The square where the bit will be set.
+    ///
+    /// # Returns
+    ///
+    /// A new `BitBoard` with the specified bit set.
     pub fn set_bit(self, square: Square) -> Self {
         Self(self.0 | (1u64 << square.index()))
     }
 
+    /// Clears the bit at the given square, indicating the piece is removed.
+    ///
+    /// # Arguments
+    ///
+    /// * `square` - The square where the bit will be cleared.
+    ///
+    /// # Returns
+    ///
+    /// A new `BitBoard` with the specified bit cleared.
     pub fn pop_bit(self, square: Square) -> Self {
         Self(self.0 & !(1u64 << square.index()))
     }
 
+    /// Shifts the bitboard forward one rank based on the player's color.
+    /// For White, this shifts up (right shift); for Black, down (left shift).
+    ///
+    /// # Arguments
+    ///
+    /// * `side` - The color determining the direction of the shift.
+    ///
+    /// # Returns
+    ///
+    /// A new `BitBoard` shifted forward.
     pub fn forward(self, side: Colour) -> Self {
         match side {
             Colour::White => Self(self.0 >> 8),
@@ -91,10 +139,24 @@ impl BitBoard {
         }
     }
 
+    /// Counts the number of occupied squares in the bitboard.
+    ///
+    /// # Returns
+    ///
+    /// The number of bits set to 1.
     pub fn count_bits(self) -> u32 {
         self.0.count_ones()
     }
 
+    /// Returns the square corresponding to the least significant bit (LSB).
+    ///
+    /// # Returns
+    ///
+    /// The `Square` of the rightmost set bit.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the bitboard is empty (no bits set).
     pub fn lsb(self) -> Square {
         Square::new(self.0.trailing_zeros() as usize)
     }

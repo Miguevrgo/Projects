@@ -1,5 +1,5 @@
-/// Each piece is represented by its most significant bits while the color is given by the
-/// LSB so that white pieces end with 0 and black pieces 1
+/// Represents a chess piece, with its type encoded in the most significant bits
+/// and its color in the least significant bit (0 for White, 1 for Black).
 #[repr(u8)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Hash)]
 pub enum Piece {
@@ -17,7 +17,15 @@ pub enum Piece {
     BK = 11,
 }
 
+// Mapping of pieces to their FEN characters.
+#[rustfmt::skip]
+const PIECE_CHAR: [char; 12] = [
+    'P', 'p', 'N', 'n', 'B', 'b',
+    'R', 'r', 'Q', 'q', 'K', 'k',
+];
+
 impl Piece {
+    /// Array of all possible pieces
     pub const ALL: [Self; 12] = [
         Piece::WP,
         Piece::BP,
@@ -33,6 +41,30 @@ impl Piece {
         Piece::BK,
     ];
 
+    /// Creates a `Piece` from an index into `Self::ALL`.
+    fn from(index: usize) -> Self {
+        Self::ALL[index]
+    }
+
+    /// Converts a FEN character into a `Piece`.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The FEN character (e.g., 'P' for White Pawn, 'k' for Black King).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the character is not a valid FEN piece representation.
+    pub fn from_fen(value: char) -> Self {
+        Self::from(
+            PIECE_CHAR
+                .iter()
+                .position(|&ch| ch == value)
+                .expect("Not found FEN char"),
+        )
+    }
+
+    /// Returns the piece type index, ignoring color (e.g., both WP and BP return 0).
     pub const fn index(self) -> usize {
         self as usize / 2
     }
