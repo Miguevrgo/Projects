@@ -39,7 +39,7 @@ impl Board {
         let colour = piece.colour() as usize;
 
         self.sides[colour].set_bit(square);
-        self.pieces[square.index()].set_bit(square);
+        self.pieces[piece.index()].set_bit(square);
         self.piece_map[square.index()] = Some(piece);
     }
 
@@ -52,7 +52,7 @@ impl Board {
         self.piece_map[square.index()] = None;
     }
 
-    fn default() -> Self {
+    pub fn default() -> Self {
         Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
@@ -65,7 +65,7 @@ impl Board {
 
         let board_layout = fen[0];
         let mut board = Board::new();
-        let (mut row, mut col): (u8, u8) = (0, 8);
+        let (mut row, mut col): (u8, u8) = (7, 0);
         let mut tokens = 0;
 
         for token in board_layout.chars() {
@@ -76,6 +76,7 @@ impl Board {
                     }
 
                     row -= 1;
+                    col = 0;
                     tokens = 0;
                 }
                 '1'..='8' => {
@@ -93,10 +94,6 @@ impl Board {
                     tokens += 1;
                 }
             }
-        }
-
-        if tokens != 8 {
-            panic!("Invalid number of positions in FEN")
         }
 
         board.side = match fen[1] {
