@@ -2,6 +2,7 @@ use super::square::Square;
 use crate::game::{
     bitboard::BitBoard,
     castle::CastlingRights,
+    moves::Move,
     piece::{Colour, Piece},
 };
 
@@ -50,6 +51,11 @@ impl Board {
         self.sides[colour].pop_bit(square);
         self.pieces[piece as usize].pop_bit(square);
         self.piece_map[square.index()] = None;
+    }
+
+    pub fn make_move(&mut self, m: Move) {
+        self.halfmoves += 1;
+        unimplemented!();
     }
 
     pub fn default() -> Self {

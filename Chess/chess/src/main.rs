@@ -4,5 +4,8 @@ use crate::game::board::Board;
 
 fn main() {
     let board = Board::default();
-    board.draw()
+    loop {
+        board.draw();
+        std::thread::sleep(std::time::Duration::from_secs(500));
+    }
 }
