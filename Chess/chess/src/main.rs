@@ -3,5 +3,6 @@ mod game;
 use crate::game::board::Board;
 
 fn main() {
-    let mut board = Board::default();
+    let board = Board::default();
+    board.draw()
 }

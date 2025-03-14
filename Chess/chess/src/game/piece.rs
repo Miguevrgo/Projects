@@ -109,18 +109,12 @@ impl Piece {
 impl std::fmt::Display for Piece {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let symbol = match self {
-            Piece::WP => '♟',
-            Piece::WN => '♞',
-            Piece::WB => '♝',
-            Piece::WR => '♜',
-            Piece::WQ => '♛',
-            Piece::WK => '♚',
-            Piece::BP => '♙',
-            Piece::BN => '♘',
-            Piece::BB => '♗',
-            Piece::BR => '♖',
-            Piece::BQ => '♕',
-            Piece::BK => '♔',
+            Piece::WP | Piece::BP => '♟',
+            Piece::WN | Piece::BN => '♞',
+            Piece::WB | Piece::BB => '♝',
+            Piece::WR | Piece::BR => '♜',
+            Piece::WQ | Piece::BQ => '♛',
+            Piece::WK | Piece::BK => '♚',
         };
         write!(f, "{}", symbol)
     }

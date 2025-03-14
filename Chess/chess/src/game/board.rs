@@ -80,7 +80,7 @@ impl Board {
                     tokens = 0;
                 }
                 '1'..='8' => {
-                    let empty_pos = token.to_digit(8).unwrap() as u8;
+                    let empty_pos = token.to_digit(10).expect("Not a number") as u8;
                     col += empty_pos;
                     tokens += empty_pos;
                 }
@@ -115,7 +115,7 @@ impl Board {
     }
 
     // NOTE: Optional method draw_with_cursor
-    fn draw(&self) {
+    pub fn draw(&self) {
         print!("\x1B[2J\x1B[1;1H");
         println!("\r  a b c d e f g h\r");
         println!(" ┌────────────────┐\r");
@@ -124,15 +124,18 @@ impl Board {
             print!("{}|", row + 1);
             for col in 0..8 {
                 let square = Square::from_row_col(row, col);
-                let bg_color = if (row + col) % 2 == 0 {
+                let bg_colour = if (row + col) % 2 == 0 {
                     "\x1b[48;2;240;217;181m"
                 } else {
                     "\x1b[48;2;181;136;99m"
                 };
 
                 match self.piece_map[square.index()] {
-                    Some(piece) => print!("{bg_color}{piece} \x1b[0m"),
-                    None => print!("{bg_color}  \x1b[0m"),
+                    Some(piece) => match piece.colour() {
+                        Colour::White => print!("{bg_colour}\x1b[38;2;255;255;255m{piece} \x1b[0m"),
+                        Colour::Black => print!("{bg_colour}\x1b[38;2;0;0;0m{piece} \x1b[0m"),
+                    },
+                    None => print!("{bg_colour}  \x1b[0m"),
                 }
             }
 
