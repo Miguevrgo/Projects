@@ -127,7 +127,7 @@ impl Board {
         println!(" ┌────────────────┐\r");
 
         for row in (0..8).rev() {
-            print!("{}|", row + 1);
+            print!("{}│", row + 1);
             for col in 0..8 {
                 let square = Square::from_row_col(row, col);
                 let bg_colour = if (row + col) % 2 == 0 {
@@ -145,7 +145,7 @@ impl Board {
                 }
             }
 
-            println!("|\r");
+            println!("│\r");
         }
 
         println!(" └────────────────┘\r");
