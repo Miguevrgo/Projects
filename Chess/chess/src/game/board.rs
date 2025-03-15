@@ -1,4 +1,4 @@
-use super::square::Square;
+use super::{moves::MoveKind, square::Square};
 use crate::game::{
     bitboard::BitBoard,
     castle::CastlingRights,
@@ -14,7 +14,7 @@ pub struct Board {
     piece_map: [Option<Piece>; Square::COUNT],
 
     pub side: Colour,
-    pub castling_right: CastlingRights,
+    pub castling_rights: CastlingRights,
     pub en_passant: Option<Square>,
     pub halfmoves: u8,
 }
@@ -26,14 +26,14 @@ impl Board {
             sides: [BitBoard::EMPTY; 2],
             piece_map: [None; Square::COUNT],
             en_passant: None,
-            castling_right: CastlingRights::NONE,
+            castling_rights: CastlingRights::NONE,
             halfmoves: 0,
             side: Colour::White,
         }
     }
 
-    fn piece_at(&self, square: Square) -> Piece {
-        self.piece_map[square.index()].unwrap()
+    pub fn piece_at(&self, square: Square) -> Option<Piece> {
+        self.piece_map[square.index()]
     }
 
     pub fn set_piece(&mut self, piece: Piece, square: Square) {
@@ -45,7 +45,7 @@ impl Board {
     }
 
     pub fn remove_piece(&mut self, square: Square) {
-        let piece = self.piece_at(square);
+        let piece = self.piece_at(square).unwrap();
         let colour = piece.colour() as usize;
 
         self.sides[colour].pop_bit(square);
@@ -54,8 +54,110 @@ impl Board {
     }
 
     pub fn make_move(&mut self, m: Move) {
-        self.halfmoves += 1;
-        unimplemented!();
+        let (src, dest) = (m.get_source(), m.get_dest());
+        let src_piece = self.piece_at(src).unwrap();
+        let move_type = m.get_type();
+
+        if src_piece.is_pawn() | matches!(move_type, MoveKind::Capture) {
+            self.halfmoves = 0
+        } else {
+            self.halfmoves += 1;
+        }
+
+        match move_type {
+            MoveKind::Quiet | MoveKind::DoublePush => {
+                self.remove_piece(src);
+                self.set_piece(src_piece, dest);
+
+                if matches!(move_type, MoveKind::DoublePush) {
+                    let delta = match src_piece.colour() {
+                        Colour::White => -1,
+                        Colour::Black => 1,
+                    };
+                    self.en_passant = src.jump(0, delta);
+                } else {
+                    self.en_passant = None;
+                }
+            }
+            MoveKind::Capture => {
+                self.remove_piece(dest);
+                self.remove_piece(src);
+                self.set_piece(src_piece, dest);
+                self.en_passant = None;
+            }
+            MoveKind::EnPassant => {
+                let captured_pawn_square = dest
+                    .jump(
+                        0,
+                        if src_piece.colour() == Colour::White {
+                            -1
+                        } else {
+                            1
+                        },
+                    )
+                    .unwrap();
+                self.remove_piece(captured_pawn_square);
+                self.remove_piece(src);
+                self.set_piece(src_piece, dest);
+                self.en_passant = None;
+            }
+            MoveKind::Castle => {
+                let is_kingside = dest.col() > src.col();
+                let (rook_src_col, rook_dest_col) = if is_kingside { (7, 5) } else { (0, 3) };
+                let row = src.row();
+                let rook_src = Square::from_row_col(row, rook_src_col);
+                let rook_dest = Square::from_row_col(row, rook_dest_col);
+                let rook_piece = self.piece_at(rook_src).unwrap();
+
+                self.remove_piece(src);
+                self.remove_piece(rook_src);
+                self.set_piece(src_piece, dest);
+                self.set_piece(rook_piece, rook_dest);
+                self.en_passant = None;
+            }
+            MoveKind::KnightPromotion
+            | MoveKind::BishopPromotion
+            | MoveKind::RookPromotion
+            | MoveKind::QueenPromotion => {
+                self.remove_piece(dest);
+                self.remove_piece(src);
+                let promo_piece = match move_type {
+                    MoveKind::KnightPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WN
+                        } else {
+                            Piece::BN
+                        }
+                    }
+                    MoveKind::BishopPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WB
+                        } else {
+                            Piece::BB
+                        }
+                    }
+                    MoveKind::RookPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WR
+                        } else {
+                            Piece::BR
+                        }
+                    }
+                    MoveKind::QueenPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WQ
+                        } else {
+                            Piece::BQ
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+                self.set_piece(promo_piece, dest);
+                self.en_passant = None;
+            }
+        }
+
+        self.side = !self.side;
     }
 
     pub fn default() -> Self {
@@ -108,7 +210,7 @@ impl Board {
             _ => unreachable!(),
         };
 
-        board.castling_right = CastlingRights::from(fen[2]);
+        board.castling_rights = CastlingRights::from(fen[2]);
 
         board.en_passant = match fen[3] {
             "-" => None,

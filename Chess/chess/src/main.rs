@@ -1,11 +1,9 @@
 mod game;
+mod uci;
 
-use crate::game::board::Board;
+use crate::uci::game::Game;
 
 fn main() {
-    let board = Board::default();
-    loop {
-        board.draw();
-        std::thread::sleep(std::time::Duration::from_secs(500));
-    }
+    let mut game = Game::new(300, 3); // 5 minutes + 3 seconds/move
+    game.play();
 }

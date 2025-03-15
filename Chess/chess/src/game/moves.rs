@@ -16,7 +16,7 @@ const TYPE: u16 = 0b1111_0000_0000_0000;
 
 impl Move {
     pub fn new(src: Square, dest: Square, kind: MoveKind) -> Self {
-        Self((src.index() as u16) | (dest.index() as u16) << 6 | (kind as u16) << 12)
+        Self((src.index() as u16) | ((dest.index() as u16) << 6) | ((kind as u16) << 12))
     }
 
     pub fn get_source(self) -> Square {
@@ -25,6 +25,21 @@ impl Move {
 
     pub fn get_dest(self) -> Square {
         Square::new(((self.0 & DST) >> 6) as usize)
+    }
+
+    pub fn get_type(self) -> MoveKind {
+        match (self.0 & TYPE) >> 12 {
+            0b0000 => MoveKind::Quiet,
+            0b0001 => MoveKind::Castle,
+            0b0010 => MoveKind::DoublePush,
+            0b0011 => MoveKind::Capture,
+            0b0100 => MoveKind::EnPassant,
+            0b1000 => MoveKind::KnightPromotion,
+            0b1001 => MoveKind::BishopPromotion,
+            0b1010 => MoveKind::RookPromotion,
+            0b1011 => MoveKind::QueenPromotion,
+            _ => unreachable!(),
+        }
     }
 }
 
