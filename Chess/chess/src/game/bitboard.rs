@@ -5,7 +5,7 @@ use crate::game::square::Square;
 /// A `1` indicates the presence of a piece, and a `0` indicates an empty square.
 ///
 /// This struct is designed for efficient manipulation of chess positions using
-/// bitwise operations, designed so that the LSB correponds to A8 and MSB to H1
+/// bitwise operations, designed so that the LSB correponds to A1 and MSB to H8
 #[derive(PartialEq, Eq, PartialOrd, Clone, Copy, Debug, Default, Hash)]
 pub struct BitBoard(pub u64);
 
@@ -76,11 +76,11 @@ impl BitBoard {
     pub const FULL: Self = Self(0xFFFFFFFFFFFFFFFF);
 
     /// Starting ranks for pawns: White (rank 2) and Black (rank 7).
-    pub const START_RANKS: [Self; 2] = [Self(0x00FF000000000000), Self(0x000000000000FF00)];
+    pub const START_RANKS: [Self; 2] = [Self(0x000000000000FF00), Self(0x00FF000000000000)];
     /// Ranks where en passant can occur: White (rank 5) and Black (rank 4).
-    pub const EP_RANKS: [Self; 2] = [Self(0x00000000FF000000), Self(0x000000FF00000000)];
+    pub const EP_RANKS: [Self; 2] = [Self(0x000000FF00000000), Self(0x00000000FF000000)];
     /// Ranks where promotion can occur: White (rank 7) and Black (rank 2).
-    pub const PROMO_RANKS: [Self; 2] = [Self(0x000000000000FF00), Self(0x00FF000000000000)];
+    pub const PROMO_RANKS: [Self; 2] = [Self(0x00FF000000000000), Self(0x000000000000FF00)];
 
     /// Checks if a specific square contains a piece.
     ///
@@ -134,8 +134,8 @@ impl BitBoard {
     /// A new `BitBoard` shifted forward.
     pub fn forward(self, side: Colour) -> Self {
         match side {
-            Colour::White => Self(self.0 >> 8),
-            Colour::Black => Self(self.0 << 8),
+            Colour::Black => Self(self.0 >> 8),
+            Colour::White => Self(self.0 << 8),
         }
     }
 

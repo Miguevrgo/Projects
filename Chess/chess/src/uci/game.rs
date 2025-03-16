@@ -1,6 +1,6 @@
-use crate::game::board::Board;
 use crate::game::piece::Colour;
 use crate::game::square::Square;
+use crate::game::{board::Board, moves::Move};
 use crate::uci::direction::Direction;
 use std::time::{Duration, Instant};
 
@@ -86,36 +86,29 @@ impl Game {
         }
     }
 
-    /// Toggles selection of the current cursor position.
-    ///
-    /// If the cursor is already selected, it deselects it. Otherwise, it selects the square
-    /// only if it contains a piece.
-    pub fn toggle_selection(&mut self) {
-        if self.selected == Some(self.cursor) {
-            self.selected = None;
-        } else if self.board.piece_at(self.cursor).is_some() {
-            self.selected = Some(self.cursor);
-        }
-    }
-
     /// Attempts to move a piece from the selected square to the cursor position.
     ///
     /// If a piece is moved, the turn switches and the increment is added to the player's time.
     pub fn try_move_piece(&mut self) {
         if let Some(src) = self.selected {
             let dest = self.cursor;
-            if let Some(piece) = self.board.piece_at(src) {
-                self.board.remove_piece(src);
-                self.board.set_piece(piece, dest);
+            let legal_moves = self.board.generate_legal_moves();
+            let move_candidate = Move::new(src, dest, crate::game::moves::MoveKind::RookPromotion);
+            let move_candidate = legal_moves
+                .iter()
+                .find(|m| m.get_source() == src && m.get_dest() == dest);
+
+            if let Some(&m) = move_candidate {
+                self.board.make_move(m);
+                self.update_time();
+
                 self.selected = None;
 
-                if self.board.side == Colour::White {
-                    self.white_time += self.increment;
+                if self.board.side == Colour::Black {
+                    self.white_time = self.white_time.saturating_add(self.increment);
                 } else {
-                    self.black_time += self.increment;
+                    self.black_time = self.black_time.saturating_add(self.increment);
                 }
-
-                self.board.side = !self.board.side;
             }
         }
     }
@@ -131,8 +124,12 @@ impl Game {
             Direction::Select => {
                 if self.selected.is_some() {
                     self.try_move_piece();
+                    self.selected = None;
+                } else if self.board.piece_at(self.cursor).is_some() {
+                    self.selected = Some(self.cursor);
+                } else {
+                    self.selected = None;
                 }
-                self.toggle_selection();
             }
         }
     }
@@ -151,9 +148,9 @@ impl Game {
                 let is_cursor = self.cursor == square && !is_selected;
 
                 let bg_colour = if (row + col) % 2 == 0 {
-                    "\x1b[48;2;240;217;181m" // Light square
-                } else {
                     "\x1b[48;2;181;136;99m" // Dark square
+                } else {
+                    "\x1b[48;2;240;217;181m" // Light square
                 };
 
                 let highlight = if is_selected {
@@ -177,14 +174,16 @@ impl Game {
 
         println!(" └────────────────┘\r");
         println!(
-            "Turn: {} | White Time: {:.1}s | Black Time: {:.1}s | Increment: {}s",
+            "Turn: {} \n\rWhite Time: {:02.0}:{:02.0} | Black Time: {:02.0}:{:02.0} | Increment: {}s",
             if self.board.side == Colour::White {
                 "White"
             } else {
                 "Black"
             },
-            self.white_time.as_secs_f32(),
-            self.black_time.as_secs_f32(),
+            self.white_time.as_secs() / 60,
+            self.white_time.as_secs() % 60,
+            self.black_time.as_secs() / 60,
+            self.black_time.as_secs() % 60,
             self.increment.as_secs()
         );
     }

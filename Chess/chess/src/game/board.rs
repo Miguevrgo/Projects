@@ -2,7 +2,7 @@ use super::{moves::MoveKind, square::Square};
 use crate::game::{
     bitboard::BitBoard,
     castle::CastlingRights,
-    moves::Move,
+    moves::*,
     piece::{Colour, Piece},
 };
 
@@ -30,6 +30,10 @@ impl Board {
             halfmoves: 0,
             side: Colour::White,
         }
+    }
+
+    pub fn default() -> Self {
+        Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
     pub fn piece_at(&self, square: Square) -> Option<Piece> {
@@ -160,8 +164,50 @@ impl Board {
         self.side = !self.side;
     }
 
-    pub fn default() -> Self {
-        Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    pub fn occupied_squares(&self, colour: Colour) -> Vec<Square> {
+        let mut squares = Vec::with_capacity(16);
+        let mut bitboard = self.sides[colour as usize];
+
+        while bitboard != BitBoard::EMPTY {
+            let square = bitboard.lsb();
+            squares.push(square);
+            bitboard = bitboard.pop_bit(square);
+        }
+
+        squares
+    }
+
+    pub fn generate_legal_moves(&self) -> Vec<Move> {
+        let mut moves = Vec::new();
+        let side = self.side;
+
+        for src in self.occupied_squares(side) {
+            let piece = self.piece_at(src).unwrap();
+            let possible_moves = match piece {
+                Piece::WP | Piece::BP => all_pawn_moves(src, piece),
+                Piece::WN | Piece::BN => all_knight_moves(src),
+                Piece::WB | Piece::BB => all_bishop_moves(src),
+                Piece::WR | Piece::BR => all_rook_moves(src),
+                Piece::WQ | Piece::BQ => all_queen_moves(src),
+                Piece::WK | Piece::BK => all_king_moves(src),
+            };
+
+            moves.extend(&possible_moves);
+        }
+
+        //     for m in possible_moves {
+        //         //if self.is_legal_move(m) {
+        //         //TODO:
+        //             let mut new_board = *self;
+        //             new_board.make_move(m);
+        //             //if !new_board.is_in_check(side) {
+        //             //         moves.push(m);
+        //             //     }
+        //         }
+        //     }
+        // }
+
+        moves
     }
 
     pub fn from_fen(state: &str) -> Self {
@@ -223,6 +269,7 @@ impl Board {
     }
 
     // NOTE: Optional method draw_with_cursor
+    #[allow(dead_code)]
     pub fn draw(&self) {
         print!("\x1B[2J\x1B[1;1H");
         println!("\r  a b c d e f g h\r");

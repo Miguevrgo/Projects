@@ -1,5 +1,28 @@
 use crate::game::square::Square;
 
+use super::{
+    bitboard::BitBoard,
+    piece::{Colour, Piece},
+};
+
+#[rustfmt::skip]
+const KNIGHT_OFFSETS: [(i8, i8); 8] = [
+    (2, 1), (2, -1), (-2, 1), (-2, -1),
+    (1, 2), (1, -2), (-1, 2), (-1, -2),
+];
+#[rustfmt::skip]
+const KING_OFFSETS: [(i8, i8); 8] = [
+    (1, 0), (1, 1), (1, -1), (0, 1),
+    (0, -1), (-1, 0), (-1, 1), (-1, -1),
+];
+const BISHOP_DIRECTIONS: [(i8, i8); 4] = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
+const ROOK_DIRECTIONS: [(i8, i8); 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
+#[rustfmt::skip]
+const QUEEN_DIRECTIONS: [(i8, i8); 8] = [
+    (1, 0), (0, 1), (-1, 0), (0, -1),
+    (1, 1), (1, -1), (-1, 1), (-1, -1),
+];
+
 /// A move needs 16 bits to be stored, the information is contained
 /// in the following way:
 ///
@@ -58,4 +81,120 @@ pub enum MoveKind {
     BishopPromotion = 0b1001,
     RookPromotion = 0b1010,
     QueenPromotion = 0b1011,
+}
+
+pub fn all_pawn_moves(src: Square, piece: Piece) -> Vec<Move> {
+    let mut moves = Vec::with_capacity(4);
+    let forward = match piece.colour() {
+        Colour::White => 1,
+        Colour::Black => -1,
+    };
+    let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
+    let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
+
+    if let Some(dest) = src.jump(0, forward) {
+        if promo_rank.get_bit(dest) {
+            moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
+            moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
+            moves.push(Move::new(src, dest, MoveKind::RookPromotion));
+            moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
+        } else {
+            moves.push(Move::new(src, dest, MoveKind::Quiet))
+        }
+    }
+
+    if start_rank.get_bit(src) {
+        if let Some(dest) = src.jump(0, 2 * forward) {
+            moves.push(Move::new(src, dest, MoveKind::DoublePush));
+        }
+    }
+
+    for delta in [(-1, forward), (1, forward)] {
+        if let Some(dest) = src.jump(delta.0, delta.1) {
+            if promo_rank.get_bit(dest) {
+                moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
+                moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
+                moves.push(Move::new(src, dest, MoveKind::RookPromotion));
+                moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
+            } else {
+                moves.push(Move::new(src, dest, MoveKind::Capture));
+                moves.push(Move::new(src, dest, MoveKind::EnPassant));
+            }
+        }
+    }
+
+    moves
+}
+
+pub fn all_knight_moves(src: Square) -> Vec<Move> {
+    let mut moves = Vec::with_capacity(6);
+
+    for &(file_delta, rank_delta) in &KNIGHT_OFFSETS {
+        if let Some(dest) = src.jump(file_delta, rank_delta) {
+            moves.push(Move::new(src, dest, MoveKind::Quiet));
+            moves.push(Move::new(src, dest, MoveKind::Capture));
+        }
+    }
+
+    moves
+}
+
+pub fn all_bishop_moves(src: Square) -> Vec<Move> {
+    let mut moves = Vec::with_capacity(8);
+
+    for &(file_delta, rank_delta) in &BISHOP_DIRECTIONS {
+        let mut dest = src;
+        while let Some(next) = dest.jump(file_delta, rank_delta) {
+            dest = next;
+
+            moves.push(Move::new(src, dest, MoveKind::Quiet));
+            moves.push(Move::new(src, dest, MoveKind::Capture));
+        }
+    }
+
+    moves
+}
+
+pub fn all_rook_moves(src: Square) -> Vec<Move> {
+    let mut moves = Vec::new();
+    for &(file_delta, rank_delta) in &ROOK_DIRECTIONS {
+        let mut dest = src;
+        while let Some(next) = dest.jump(file_delta, rank_delta) {
+            dest = next;
+
+            moves.push(Move::new(src, dest, MoveKind::Quiet));
+            moves.push(Move::new(src, dest, MoveKind::Capture));
+        }
+    }
+    moves
+}
+
+pub fn all_queen_moves(src: Square) -> Vec<Move> {
+    let mut moves = all_bishop_moves(src);
+    moves.extend(all_rook_moves(src));
+    moves
+}
+
+pub fn all_king_moves(src: Square) -> Vec<Move> {
+    let mut moves = Vec::with_capacity(4);
+    for &(file_delta, rank_delta) in &KING_OFFSETS {
+        if let Some(dest) = src.jump(file_delta, rank_delta) {
+            moves.push(Move::new(src, dest, MoveKind::Quiet));
+            moves.push(Move::new(src, dest, MoveKind::Capture));
+        }
+    }
+    if src.col() == 4 && (src.row() == 0 || src.row() == 7) {
+        moves.push(Move::new(
+            src,
+            Square::from_row_col(src.row(), 6),
+            MoveKind::Castle,
+        ));
+        moves.push(Move::new(
+            src,
+            Square::from_row_col(src.row(), 2),
+            MoveKind::Castle,
+        ));
+    }
+
+    moves
 }
