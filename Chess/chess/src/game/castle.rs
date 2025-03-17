@@ -5,13 +5,13 @@
 ///  WK | WQ | BK | BQ  --> only using least significant 8 bits
 ///  08   04   02   01
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Hash)]
-pub struct CastlingRights(u8);
+pub struct CastlingRights(pub u8);
 
 impl CastlingRights {
-    const WK: u8 = 0x08;
-    const WQ: u8 = 0x04;
-    const BK: u8 = 0x02;
-    const BQ: u8 = 0x01;
+    pub const WK: u8 = 0x08;
+    pub const WQ: u8 = 0x04;
+    pub const BK: u8 = 0x02;
+    pub const BQ: u8 = 0x01;
     pub const NONE: CastlingRights = CastlingRights(0);
 
     pub fn from(rights: &str) -> Self {

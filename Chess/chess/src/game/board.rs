@@ -42,9 +42,8 @@ impl Board {
 
     pub fn set_piece(&mut self, piece: Piece, square: Square) {
         let colour = piece.colour() as usize;
-
-        self.sides[colour].set_bit(square);
-        self.pieces[piece.index()].set_bit(square);
+        self.sides[colour] = self.sides[colour].set_bit(square);
+        self.pieces[piece.index()] = self.pieces[piece.index()].set_bit(square);
         self.piece_map[square.index()] = Some(piece);
     }
 
@@ -52,8 +51,8 @@ impl Board {
         let piece = self.piece_at(square).unwrap();
         let colour = piece.colour() as usize;
 
-        self.sides[colour].pop_bit(square);
-        self.pieces[piece as usize].pop_bit(square);
+        self.sides[colour] = self.sides[colour].pop_bit(square);
+        self.pieces[piece.index()] = self.pieces[piece.index()].pop_bit(square);
         self.piece_map[square.index()] = None;
     }
 
@@ -62,7 +61,7 @@ impl Board {
         let src_piece = self.piece_at(src).unwrap();
         let move_type = m.get_type();
 
-        if src_piece.is_pawn() | matches!(move_type, MoveKind::Capture) {
+        if src_piece.is_pawn() || matches!(move_type, MoveKind::Capture) {
             self.halfmoves = 0
         } else {
             self.halfmoves += 1;
@@ -183,7 +182,7 @@ impl Board {
 
         for src in self.occupied_squares(side) {
             let piece = self.piece_at(src).unwrap();
-            let possible_moves = match piece {
+            let pseudo_moves = match piece {
                 Piece::WP | Piece::BP => all_pawn_moves(src, piece),
                 Piece::WN | Piece::BN => all_knight_moves(src),
                 Piece::WB | Piece::BB => all_bishop_moves(src),
@@ -192,22 +191,190 @@ impl Board {
                 Piece::WK | Piece::BK => all_king_moves(src),
             };
 
-            moves.extend(&possible_moves);
+            for m in pseudo_moves {
+                if self.is_pseudo_legal(m) {
+                    let mut new_board = *self;
+                    new_board.make_move(m);
+                    if !new_board.is_in_check(side) {
+                        moves.push(m);
+                    }
+                }
+            }
         }
 
-        //     for m in possible_moves {
-        //         //if self.is_legal_move(m) {
-        //         //TODO:
-        //             let mut new_board = *self;
-        //             new_board.make_move(m);
-        //             //if !new_board.is_in_check(side) {
-        //             //         moves.push(m);
-        //             //     }
-        //         }
-        //     }
-        // }
-
         moves
+    }
+
+    fn is_pseudo_legal(&self, m: Move) -> bool {
+        let src = m.get_source();
+        let dest = m.get_dest();
+        let move_type = m.get_type();
+
+        let piece = match self.piece_at(src) {
+            Some(p) if p.colour() == self.side => p,
+            _ => return false,
+        };
+        let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
+        let opponent = self.sides[!self.side as usize];
+        let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
+        let ep_rank = BitBoard::EP_RANKS[piece.colour() as usize];
+
+        match move_type {
+            MoveKind::Quiet => !occupied.get_bit(dest),
+            MoveKind::Capture => opponent.get_bit(dest),
+            MoveKind::DoublePush => {
+                if !piece.is_pawn() || occupied.get_bit(dest) {
+                    return false;
+                }
+                let mid = src
+                    .jump(
+                        0,
+                        match piece.colour() {
+                            Colour::White => -1,
+                            Colour::Black => 1,
+                        },
+                    )
+                    .unwrap();
+                !occupied.get_bit(mid)
+            }
+            MoveKind::EnPassant => {
+                if !piece.is_pawn() || self.en_passant != Some(dest) || !ep_rank.get_bit(dest) {
+                    return false;
+                }
+                let ep_target = dest
+                    .jump(
+                        0,
+                        match piece.colour() {
+                            Colour::White => -1,
+                            Colour::Black => 1,
+                        },
+                    )
+                    .unwrap();
+                opponent.get_bit(ep_target)
+            }
+            MoveKind::Castle => {
+                if !piece.is_king() || src.col() != 4 || (src.row() != 0 && src.row() != 7) {
+                    return false;
+                }
+                let is_kingside = dest.col() == 6;
+                let rights = self.castling_rights.0;
+                let row = src.row();
+                let (rook_col, mid_cols) = if is_kingside {
+                    (7, vec![5, 6])
+                } else {
+                    (0, vec![1, 2, 3])
+                };
+                let rook_sq = Square::from_row_col(row, rook_col);
+
+                (if is_kingside {
+                    (piece.colour() == Colour::White && (rights & CastlingRights::WK != 0))
+                        || (piece.colour() == Colour::Black && (rights & CastlingRights::BK != 0))
+                } else {
+                    (piece.colour() == Colour::White && (rights & CastlingRights::WQ != 0))
+                        || (piece.colour() == Colour::Black && (rights & CastlingRights::BQ != 0))
+                }) && self.piece_at(rook_sq)
+                    == Some(if piece.colour() == Colour::White {
+                        Piece::WR
+                    } else {
+                        Piece::BR
+                    })
+                    && mid_cols
+                        .iter()
+                        .all(|&col| !occupied.get_bit(Square::from_row_col(row, col)))
+                    && !self.is_in_check(self.side) // Rey no puede estar en jaque
+            }
+            MoveKind::KnightPromotion
+            | MoveKind::BishopPromotion
+            | MoveKind::RookPromotion
+            | MoveKind::QueenPromotion => {
+                piece.is_pawn()
+                    && promo_rank.get_bit(dest)
+                    && (opponent.get_bit(dest) || !occupied.get_bit(dest))
+            }
+        }
+    }
+
+    pub fn king_square(&self, colour: Colour) -> Square {
+        let king_bb = self.pieces[Piece::WK.index()] & self.sides[colour as usize];
+        king_bb.lsb()
+    }
+
+    pub fn is_in_check(&self, colour: Colour) -> bool {
+        let king_sq = self.king_square(colour);
+        let opponent = !colour;
+        let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
+        let opponent_pawns = self.pieces[Piece::WP.index()] & self.sides[opponent as usize];
+        let opponent_knights = self.pieces[Piece::WN.index()] & self.sides[opponent as usize];
+        let opponent_bishops = self.pieces[Piece::WB.index()] & self.sides[opponent as usize];
+        let opponent_rooks = self.pieces[Piece::WR.index()] & self.sides[opponent as usize];
+        let opponent_queens = self.pieces[Piece::WQ.index()] & self.sides[opponent as usize];
+        let opponent_king = self.pieces[Piece::WK.index()] & self.sides[opponent as usize];
+
+        let pawn_attacks = match colour {
+            Colour::White => {
+                (king_sq.to_board() >> 7 & !BitBoard::START_RANKS[Colour::Black as usize])
+                    | (king_sq.to_board() >> 9 & !BitBoard::PROMO_RANKS[Colour::White as usize])
+            }
+            Colour::Black => {
+                (king_sq.to_board() << 7 & !BitBoard::PROMO_RANKS[Colour::White as usize])
+                    | (king_sq.to_board() << 9 & !BitBoard::START_RANKS[Colour::Black as usize])
+            }
+        };
+        if (pawn_attacks & opponent_pawns).0 != 0 {
+            return true;
+        }
+
+        let knight_moves = all_knight_moves(king_sq);
+        for m in knight_moves {
+            if opponent_knights.get_bit(m.get_dest()) {
+                return true;
+            }
+        }
+
+        let bishop_moves = all_bishop_moves(king_sq);
+        let rook_moves = all_rook_moves(king_sq);
+        for m in bishop_moves {
+            let dest = m.get_dest();
+            if (opponent_bishops | opponent_queens).get_bit(dest)
+                && !self.is_blocked(king_sq, dest, occupied)
+            {
+                return true;
+            }
+        }
+        for m in rook_moves {
+            let dest = m.get_dest();
+            if (opponent_rooks | opponent_queens).get_bit(dest)
+                && !self.is_blocked(king_sq, dest, occupied)
+            {
+                return true;
+            }
+        }
+
+        let king_moves = all_king_moves(king_sq);
+        for m in king_moves {
+            if opponent_king.get_bit(m.get_dest()) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    fn is_blocked(&self, from: Square, to: Square, occupied: BitBoard) -> bool {
+        let delta_row = (to.row() as i8 - from.row() as i8).signum();
+        let delta_col = (to.col() as i8 - from.col() as i8).signum();
+
+        let mut current = from;
+        while let Some(next) = current.jump(delta_col, delta_row) {
+            if next == to {
+                return false;
+            }
+            if occupied.get_bit(next) {
+                return true;
+            }
+            current = next;
+        }
+        false
     }
 
     pub fn from_fen(state: &str) -> Self {

@@ -93,7 +93,6 @@ impl Game {
         if let Some(src) = self.selected {
             let dest = self.cursor;
             let legal_moves = self.board.generate_legal_moves();
-            let move_candidate = Move::new(src, dest, crate::game::moves::MoveKind::RookPromotion);
             let move_candidate = legal_moves
                 .iter()
                 .find(|m| m.get_source() == src && m.get_dest() == dest);

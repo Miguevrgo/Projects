@@ -86,8 +86,8 @@ pub enum MoveKind {
 pub fn all_pawn_moves(src: Square, piece: Piece) -> Vec<Move> {
     let mut moves = Vec::with_capacity(4);
     let forward = match piece.colour() {
-        Colour::White => 1,
-        Colour::Black => -1,
+        Colour::White => -1,
+        Colour::Black => 1,
     };
     let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
     let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
