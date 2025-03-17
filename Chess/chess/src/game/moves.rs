@@ -152,10 +152,10 @@ pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
         while let Some(next) = dest.jump(file_delta, rank_delta) {
             dest = next;
             if board.piece_at(dest).is_some() {
+                moves.push(Move::new(src, dest, MoveKind::Capture));
                 break;
             }
             moves.push(Move::new(src, dest, MoveKind::Quiet));
-            moves.push(Move::new(src, dest, MoveKind::Capture));
         }
     }
 
