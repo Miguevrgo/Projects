@@ -183,11 +183,11 @@ impl Board {
         for src in self.occupied_squares(side) {
             let piece = self.piece_at(src).unwrap();
             let pseudo_moves = match piece {
-                Piece::WP | Piece::BP => all_pawn_moves(src, piece),
+                Piece::WP | Piece::BP => all_pawn_moves(src, piece, self),
                 Piece::WN | Piece::BN => all_knight_moves(src),
-                Piece::WB | Piece::BB => all_bishop_moves(src),
+                Piece::WB | Piece::BB => all_bishop_moves(src, self),
                 Piece::WR | Piece::BR => all_rook_moves(src),
-                Piece::WQ | Piece::BQ => all_queen_moves(src),
+                Piece::WQ | Piece::BQ => all_queen_moves(src, self),
                 Piece::WK | Piece::BK => all_king_moves(src),
             };
 
@@ -331,7 +331,7 @@ impl Board {
             }
         }
 
-        let bishop_moves = all_bishop_moves(king_sq);
+        let bishop_moves = all_bishop_moves(king_sq, self);
         let rook_moves = all_rook_moves(king_sq);
         for m in bishop_moves {
             let dest = m.get_dest();

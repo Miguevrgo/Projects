@@ -2,6 +2,7 @@ use crate::game::square::Square;
 
 use super::{
     bitboard::BitBoard,
+    board::Board,
     piece::{Colour, Piece},
 };
 
@@ -83,7 +84,7 @@ pub enum MoveKind {
     QueenPromotion = 0b1011,
 }
 
-pub fn all_pawn_moves(src: Square, piece: Piece) -> Vec<Move> {
+pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
     let mut moves = Vec::with_capacity(4);
     let forward = match piece.colour() {
         Colour::White => -1,
@@ -105,7 +106,11 @@ pub fn all_pawn_moves(src: Square, piece: Piece) -> Vec<Move> {
 
     if start_rank.get_bit(src) {
         if let Some(dest) = src.jump(0, 2 * forward) {
-            moves.push(Move::new(src, dest, MoveKind::DoublePush));
+            if let Some(middle) = src.jump(0, forward) {
+                if board.piece_at(middle).is_none() {
+                    moves.push(Move::new(src, dest, MoveKind::DoublePush));
+                }
+            }
         }
     }
 
@@ -139,14 +144,16 @@ pub fn all_knight_moves(src: Square) -> Vec<Move> {
     moves
 }
 
-pub fn all_bishop_moves(src: Square) -> Vec<Move> {
+pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
     let mut moves = Vec::with_capacity(8);
 
     for &(file_delta, rank_delta) in &BISHOP_DIRECTIONS {
         let mut dest = src;
         while let Some(next) = dest.jump(file_delta, rank_delta) {
             dest = next;
-
+            if board.piece_at(dest).is_some() {
+                break;
+            }
             moves.push(Move::new(src, dest, MoveKind::Quiet));
             moves.push(Move::new(src, dest, MoveKind::Capture));
         }
@@ -169,8 +176,8 @@ pub fn all_rook_moves(src: Square) -> Vec<Move> {
     moves
 }
 
-pub fn all_queen_moves(src: Square) -> Vec<Move> {
-    let mut moves = all_bishop_moves(src);
+pub fn all_queen_moves(src: Square, board: &Board) -> Vec<Move> {
+    let mut moves = all_bishop_moves(src, board);
     moves.extend(all_rook_moves(src));
     moves
 }
