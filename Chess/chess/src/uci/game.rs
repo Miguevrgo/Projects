@@ -1,6 +1,6 @@
+use crate::game::board::Board;
 use crate::game::piece::Colour;
 use crate::game::square::Square;
-use crate::game::{board::Board, moves::Move};
 use crate::uci::direction::Direction;
 use std::time::{Duration, Instant};
 
@@ -17,6 +17,8 @@ pub struct Game {
     black_time: Duration,     // Remaining time for Black
     increment: Duration,      // Time increment added after each move
     last_update: Instant,     // Last time the clock was updated
+    winner: Option<Colour>,   // If game ends and there is no winner it is considered draw
+    end_game: bool,
 }
 
 impl Game {
@@ -43,25 +45,34 @@ impl Game {
             black_time: initial_time,
             increment,
             last_update: Instant::now(),
+            winner: None,
+            end_game: false,
         }
     }
 
     /// Runs the main game loop until time runs out or the game ends.
     pub fn play(&mut self) {
-        while self.white_time > Duration::ZERO && self.black_time > Duration::ZERO {
+        while !self.end_game {
+            if self.black_time <= Duration::ZERO {
+                self.end_game = true;
+                self.winner = Some(Colour::White)
+            } else if self.white_time <= Duration::ZERO {
+                self.end_game = true;
+                self.winner = Some(Colour::Black)
+            }
             self.draw();
             if let Some(direction) = Direction::input_key() {
                 self.process_input(direction);
             } else {
-                std::process::exit(1);
+                break;
             }
         }
         println!(
             "Time's up! Winner: {}",
-            if self.white_time == Duration::ZERO {
-                "Black"
-            } else {
-                "White"
+            match self.winner {
+                Some(Colour::White) => "White",
+                Some(Colour::Black) => "Black",
+                None => "Draw",
             }
         );
     }
@@ -93,14 +104,24 @@ impl Game {
         if let Some(src) = self.selected {
             let dest = self.cursor;
             let legal_moves = self.board.generate_legal_moves();
+
             let move_candidate = legal_moves
                 .iter()
                 .find(|m| m.get_source() == src && m.get_dest() == dest);
 
             if let Some(&m) = move_candidate {
                 self.board.make_move(m);
-                self.update_time();
+                if self.board.generate_legal_moves().is_empty() {
+                    if self.board.is_in_check(self.board.side) {
+                        self.winner = Some(!self.board.side);
+                    }
+                    self.end_game = true;
+                }
+                if self.board.halfmoves >= 100 {
+                    self.end_game = true
+                }
 
+                self.update_time();
                 self.selected = None;
 
                 if self.board.side == Colour::Black {

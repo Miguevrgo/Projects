@@ -72,6 +72,7 @@ impl Board {
                 self.remove_piece(src);
                 self.set_piece(src_piece, dest);
 
+                //TODO: When king or rook moves, update castle
                 if matches!(move_type, MoveKind::DoublePush) {
                     let delta = match src_piece.colour() {
                         Colour::White => -1,
@@ -176,9 +177,8 @@ impl Board {
         squares
     }
 
-    pub fn generate_legal_moves(&self) -> Vec<Move> {
+    fn generate_pseudo_moves(&self, side: Colour) -> Vec<Move> {
         let mut moves = Vec::new();
-        let side = self.side;
 
         for src in self.occupied_squares(side) {
             let piece = self.piece_at(src).unwrap();
@@ -186,18 +186,29 @@ impl Board {
                 Piece::WP | Piece::BP => all_pawn_moves(src, piece, self),
                 Piece::WN | Piece::BN => all_knight_moves(src),
                 Piece::WB | Piece::BB => all_bishop_moves(src, self),
-                Piece::WR | Piece::BR => all_rook_moves(src),
+                Piece::WR | Piece::BR => all_rook_moves(src, self),
                 Piece::WQ | Piece::BQ => all_queen_moves(src, self),
                 Piece::WK | Piece::BK => all_king_moves(src),
             };
 
-            for m in pseudo_moves {
-                if self.is_pseudo_legal(m) {
-                    let mut new_board = *self;
-                    new_board.make_move(m);
-                    if !new_board.is_in_check(side) {
-                        moves.push(m);
-                    }
+            moves.extend(pseudo_moves);
+        }
+
+        moves
+    }
+    pub fn generate_legal_moves(&self) -> Vec<Move> {
+        let mut moves = Vec::new();
+        let side = self.side;
+
+        let pseudo_moves = self.generate_pseudo_moves(side);
+
+        for m in pseudo_moves {
+            if self.is_pseudo_legal(m) {
+                let mut new_board = *self;
+                new_board.make_move(m);
+
+                if !new_board.is_in_check(side) {
+                    moves.push(m);
                 }
             }
         }
@@ -281,7 +292,6 @@ impl Board {
                     && mid_cols
                         .iter()
                         .all(|&col| !occupied.get_bit(Square::from_row_col(row, col)))
-                    && !self.is_in_check(self.side) // Rey no puede estar en jaque
             }
             MoveKind::KnightPromotion
             | MoveKind::BishopPromotion
@@ -294,87 +304,15 @@ impl Board {
         }
     }
 
+    pub fn is_in_check(&self, colour: Colour) -> bool {
+        let king_sq = self.king_square(colour);
+        let opponent_moves = self.generate_pseudo_moves(!colour);
+        opponent_moves.iter().any(|m| m.get_dest() == king_sq)
+    }
+
     pub fn king_square(&self, colour: Colour) -> Square {
         let king_bb = self.pieces[Piece::WK.index()] & self.sides[colour as usize];
         king_bb.lsb()
-    }
-
-    pub fn is_in_check(&self, colour: Colour) -> bool {
-        let king_sq = self.king_square(colour);
-        let opponent = !colour;
-        let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
-        let opponent_pawns = self.pieces[Piece::WP.index()] & self.sides[opponent as usize];
-        let opponent_knights = self.pieces[Piece::WN.index()] & self.sides[opponent as usize];
-        let opponent_bishops = self.pieces[Piece::WB.index()] & self.sides[opponent as usize];
-        let opponent_rooks = self.pieces[Piece::WR.index()] & self.sides[opponent as usize];
-        let opponent_queens = self.pieces[Piece::WQ.index()] & self.sides[opponent as usize];
-        let opponent_king = self.pieces[Piece::WK.index()] & self.sides[opponent as usize];
-
-        let pawn_attacks = match colour {
-            Colour::White => {
-                (king_sq.to_board() >> 7 & !BitBoard::START_RANKS[Colour::Black as usize])
-                    | (king_sq.to_board() >> 9 & !BitBoard::PROMO_RANKS[Colour::White as usize])
-            }
-            Colour::Black => {
-                (king_sq.to_board() << 7 & !BitBoard::PROMO_RANKS[Colour::White as usize])
-                    | (king_sq.to_board() << 9 & !BitBoard::START_RANKS[Colour::Black as usize])
-            }
-        };
-        if (pawn_attacks & opponent_pawns).0 != 0 {
-            return true;
-        }
-
-        let knight_moves = all_knight_moves(king_sq);
-        for m in knight_moves {
-            if opponent_knights.get_bit(m.get_dest()) {
-                return true;
-            }
-        }
-
-        let bishop_moves = all_bishop_moves(king_sq, self);
-        let rook_moves = all_rook_moves(king_sq);
-        for m in bishop_moves {
-            let dest = m.get_dest();
-            if (opponent_bishops | opponent_queens).get_bit(dest)
-                && !self.is_blocked(king_sq, dest, occupied)
-            {
-                return true;
-            }
-        }
-        for m in rook_moves {
-            let dest = m.get_dest();
-            if (opponent_rooks | opponent_queens).get_bit(dest)
-                && !self.is_blocked(king_sq, dest, occupied)
-            {
-                return true;
-            }
-        }
-
-        let king_moves = all_king_moves(king_sq);
-        for m in king_moves {
-            if opponent_king.get_bit(m.get_dest()) {
-                return true;
-            }
-        }
-
-        false
-    }
-
-    fn is_blocked(&self, from: Square, to: Square, occupied: BitBoard) -> bool {
-        let delta_row = (to.row() as i8 - from.row() as i8).signum();
-        let delta_col = (to.col() as i8 - from.col() as i8).signum();
-
-        let mut current = from;
-        while let Some(next) = current.jump(delta_col, delta_row) {
-            if next == to {
-                return false;
-            }
-            if occupied.get_bit(next) {
-                return true;
-            }
-            current = next;
-        }
-        false
     }
 
     pub fn from_fen(state: &str) -> Self {

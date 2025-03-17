@@ -18,11 +18,6 @@ const KING_OFFSETS: [(i8, i8); 8] = [
 ];
 const BISHOP_DIRECTIONS: [(i8, i8); 4] = [(1, 1), (1, -1), (-1, 1), (-1, -1)];
 const ROOK_DIRECTIONS: [(i8, i8); 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
-#[rustfmt::skip]
-const QUEEN_DIRECTIONS: [(i8, i8); 8] = [
-    (1, 0), (0, 1), (-1, 0), (0, -1),
-    (1, 1), (1, -1), (-1, 1), (-1, -1),
-];
 
 /// A move needs 16 bits to be stored, the information is contained
 /// in the following way:
@@ -162,15 +157,17 @@ pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
     moves
 }
 
-pub fn all_rook_moves(src: Square) -> Vec<Move> {
+pub fn all_rook_moves(src: Square, board: &Board) -> Vec<Move> {
     let mut moves = Vec::new();
     for &(file_delta, rank_delta) in &ROOK_DIRECTIONS {
         let mut dest = src;
         while let Some(next) = dest.jump(file_delta, rank_delta) {
             dest = next;
-
+            if board.piece_at(dest).is_some() {
+                moves.push(Move::new(src, dest, MoveKind::Capture));
+                break;
+            }
             moves.push(Move::new(src, dest, MoveKind::Quiet));
-            moves.push(Move::new(src, dest, MoveKind::Capture));
         }
     }
     moves
@@ -178,7 +175,7 @@ pub fn all_rook_moves(src: Square) -> Vec<Move> {
 
 pub fn all_queen_moves(src: Square, board: &Board) -> Vec<Move> {
     let mut moves = all_bishop_moves(src, board);
-    moves.extend(all_rook_moves(src));
+    moves.extend(all_rook_moves(src, board));
     moves
 }
 
