@@ -275,7 +275,7 @@ impl Board {
                         0,
                         match piece.colour() {
                             Colour::White => 1,
-                            Colour::Black => 1,
+                            Colour::Black => -1,
                         },
                     )
                     .expect("Invalid pos for en en_passant");
