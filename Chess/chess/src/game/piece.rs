@@ -1,20 +1,32 @@
-/// Represents a chess piece, with its type encoded in the most significant bits
-/// and its color in the least significant bit (0 for White, 1 for Black).
+/// Represents a chess piece with its type and color.
+///
+/// The piece type is encoded in the most significant bits, while the color is stored in the least
+/// significant bit: `0` for White, `1` for Black. This allows efficient bitwise operations for
+/// piece manipulation.
+///
+/// # Examples
+///
+/// ```
+/// use crate::Piece;
+/// let white_pawn = Piece::WP;
+/// assert_eq!(white_pawn.colour(), Colour::White);
+/// assert!(white_pawn.is_pawn());
+/// ```
 #[repr(u8)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Hash)]
 pub enum Piece {
-    WP = 0,
-    BP = 1,
-    WN = 2,
-    BN = 3,
-    WB = 4,
-    BB = 5,
-    WR = 6,
-    BR = 7,
-    WQ = 8,
-    BQ = 9,
-    WK = 10,
-    BK = 11,
+    WP = 0,  // White Pawn
+    BP = 1,  // Black Pawn
+    WN = 2,  // White Knight
+    BN = 3,  // Black Knight
+    WB = 4,  // White Bishop
+    BB = 5,  // Black Bishop
+    WR = 6,  // White Rook
+    BR = 7,  // Black Rook
+    WQ = 8,  // White Queen
+    BQ = 9,  // Black Queen
+    WK = 10, // White King
+    BK = 11, // Black King
 }
 
 // Mapping of pieces to their FEN characters.
