@@ -139,7 +139,9 @@ impl Board {
             | MoveKind::BishopPromotion
             | MoveKind::RookPromotion
             | MoveKind::QueenPromotion => {
-                self.remove_piece(dest);
+                if self.sides[!self.side as usize].get_bit(dest) {
+                    self.remove_piece(dest);
+                }
                 self.remove_piece(src);
                 let promo_piece = match move_type {
                     MoveKind::KnightPromotion => {

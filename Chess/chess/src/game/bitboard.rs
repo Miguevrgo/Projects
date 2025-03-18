@@ -80,7 +80,7 @@ impl BitBoard {
     /// Ranks where en passant can occur: White (rank 5) and Black (rank 4).
     pub const EP_RANKS: [Self; 2] = [Self(0x000000FF00000000), Self(0x00000000FF000000)];
     /// Ranks where promotion can occur: White (rank 7) and Black (rank 2).
-    pub const PROMO_RANKS: [Self; 2] = [Self(0x00FF000000000000), Self(0x000000000000FF00)];
+    pub const PROMO_RANKS: [Self; 2] = [Self(0xFF00000000000000), Self(0x00000000000000FF)];
 
     /// Checks if a specific square contains a piece.
     ///
@@ -159,5 +159,22 @@ impl BitBoard {
     /// Panics if the bitboard is empty (no bits set).
     pub fn lsb(self) -> Square {
         Square::new(self.0.trailing_zeros() as usize)
+    }
+}
+
+impl std::fmt::Display for BitBoard {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "  a b c d e f g h")?;
+        writeln!(f, " ┌────────────────┐")?;
+        for rank in (0..8).rev() {
+            write!(f, "{}│", rank + 1)?;
+            for file in 0..8 {
+                let index = rank * 8 + file;
+                let bit = (self.0 >> index) & 1;
+                write!(f, "{} ", if bit == 1 { "1" } else { "0" })?;
+            }
+            writeln!(f, "│")?;
+        }
+        writeln!(f, " └────────────────┘")
     }
 }
