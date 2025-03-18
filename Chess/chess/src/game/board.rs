@@ -111,8 +111,8 @@ impl Board {
                     .jump(
                         0,
                         match src_piece.colour() {
-                            Colour::White => 1,
-                            Colour::Black => -1,
+                            Colour::White => -1, // Piece is next to pawn
+                            Colour::Black => 1,
                         },
                     )
                     .expect("Off the board en_passant");
@@ -275,7 +275,7 @@ impl Board {
                         0,
                         match piece.colour() {
                             Colour::White => 1,
-                            Colour::Black => -1,
+                            Colour::Black => 1,
                         },
                     )
                     .expect("Invalid pos for en en_passant");
