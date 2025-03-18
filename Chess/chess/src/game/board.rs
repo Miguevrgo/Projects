@@ -48,7 +48,7 @@ impl Board {
     }
 
     pub fn remove_piece(&mut self, square: Square) {
-        let piece = self.piece_at(square).unwrap();
+        let piece = self.piece_at(square).expect("No piece in position given");
         let colour = piece.colour() as usize;
 
         self.sides[colour] = self.sides[colour].pop_bit(square);
@@ -58,7 +58,7 @@ impl Board {
 
     pub fn make_move(&mut self, m: Move) {
         let (src, dest) = (m.get_source(), m.get_dest());
-        let src_piece = self.piece_at(src).unwrap();
+        let src_piece = self.piece_at(src).expect("Invalid source piece");
         let move_type = m.get_type();
 
         if src_piece.is_pawn() || matches!(move_type, MoveKind::Capture) {
@@ -67,16 +67,33 @@ impl Board {
             self.halfmoves += 1;
         }
 
+        if src_piece.is_king() {
+            if src_piece.colour() == Colour::White {
+                self.castling_rights.0 &= !(CastlingRights::WK | CastlingRights::WQ);
+            } else {
+                self.castling_rights.0 &= !(CastlingRights::BK | CastlingRights::BQ);
+            }
+        }
+
+        if src_piece.is_rook() {
+            match (src_piece.colour(), src.index()) {
+                (Colour::White, 0) => self.castling_rights.0 &= !CastlingRights::WQ, // a1
+                (Colour::White, 7) => self.castling_rights.0 &= !CastlingRights::WK, // h1
+                (Colour::Black, 56) => self.castling_rights.0 &= !CastlingRights::BQ, // a8
+                (Colour::Black, 63) => self.castling_rights.0 &= !CastlingRights::BK, // h8
+                _ => {}
+            }
+        }
+
         match move_type {
             MoveKind::Quiet | MoveKind::DoublePush => {
                 self.remove_piece(src);
                 self.set_piece(src_piece, dest);
 
-                //TODO: When king or rook moves, update castle
                 if matches!(move_type, MoveKind::DoublePush) {
                     let delta = match src_piece.colour() {
-                        Colour::White => -1,
-                        Colour::Black => 1,
+                        Colour::White => 1,
+                        Colour::Black => -1,
                     };
                     self.en_passant = src.jump(0, delta);
                 } else {
@@ -93,13 +110,12 @@ impl Board {
                 let captured_pawn_square = dest
                     .jump(
                         0,
-                        if src_piece.colour() == Colour::White {
-                            -1
-                        } else {
-                            1
+                        match src_piece.colour() {
+                            Colour::White => 1,
+                            Colour::Black => -1,
                         },
                     )
-                    .unwrap();
+                    .expect("Off the board en_passant");
                 self.remove_piece(captured_pawn_square);
                 self.remove_piece(src);
                 self.set_piece(src_piece, dest);
@@ -111,7 +127,7 @@ impl Board {
                 let row = src.row();
                 let rook_src = Square::from_row_col(row, rook_src_col);
                 let rook_dest = Square::from_row_col(row, rook_dest_col);
-                let rook_piece = self.piece_at(rook_src).unwrap();
+                let rook_piece = self.piece_at(rook_src).expect("Expected rook");
 
                 self.remove_piece(src);
                 self.remove_piece(rook_src);
@@ -196,6 +212,7 @@ impl Board {
 
         moves
     }
+
     pub fn generate_legal_moves(&self) -> Vec<Move> {
         let mut moves = Vec::new();
         let side = self.side;
@@ -228,7 +245,6 @@ impl Board {
         let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
         let opponent = self.sides[!self.side as usize];
         let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
-        let ep_rank = BitBoard::EP_RANKS[piece.colour() as usize];
 
         match move_type {
             MoveKind::Quiet => !occupied.get_bit(dest),
@@ -241,26 +257,26 @@ impl Board {
                     .jump(
                         0,
                         match piece.colour() {
-                            Colour::White => -1,
-                            Colour::Black => 1,
+                            Colour::White => 1,
+                            Colour::Black => -1,
                         },
                     )
-                    .unwrap();
+                    .expect("Invalid pos for double push");
                 !occupied.get_bit(mid)
             }
             MoveKind::EnPassant => {
-                if !piece.is_pawn() || self.en_passant != Some(dest) || !ep_rank.get_bit(dest) {
+                if !piece.is_pawn() || self.en_passant != Some(dest) {
                     return false;
                 }
                 let ep_target = dest
                     .jump(
                         0,
                         match piece.colour() {
-                            Colour::White => -1,
-                            Colour::Black => 1,
+                            Colour::White => 1,
+                            Colour::Black => -1,
                         },
                     )
-                    .unwrap();
+                    .expect("Invalid pos for en en_passant");
                 opponent.get_bit(ep_target)
             }
             MoveKind::Castle => {
@@ -373,7 +389,6 @@ impl Board {
         board
     }
 
-    // NOTE: Optional method draw_with_cursor
     #[allow(dead_code)]
     pub fn draw(&self) {
         print!("\x1B[2J\x1B[1;1H");

@@ -4,35 +4,36 @@ use crate::game::square::Square;
 use crate::uci::direction::Direction;
 use std::time::{Duration, Instant};
 
-/// Represents a chess game with interactive cursor and time control.
+/// Represents an interactive chess game with a cursor and time control.
 ///
-/// This struct encapsulates the game state, including the board, cursor, selected square,
-/// time for each player, and pause state. It supports time increments per move.
+/// This struct manages the game state, including the board, cursor position,
+/// selected square, player times, and game outcome. It supports time increments
+/// per move and provides methods for gameplay and rendering.
 #[derive(Clone, Debug)]
 pub struct Game {
-    board: Board,             // The current chess board state
-    cursor: Square,           // Current cursor position
+    board: Board,             // Current state of the chessboard
+    cursor: Square,           // Position of the cursor for piece selection/movement
     selected: Option<Square>, // Currently selected square, if any
     white_time: Duration,     // Remaining time for White
     black_time: Duration,     // Remaining time for Black
-    increment: Duration,      // Time increment added after each move
-    last_update: Instant,     // Last time the clock was updated
-    winner: Option<Colour>,   // If game ends and there is no winner it is considered draw
-    end_game: bool,
+    increment: Duration,      // Time added to a player's clock after each move
+    last_update: Instant,     // Timestamp of the last clock update
+    winner: Option<Colour>,   // Winner of the game, if any; `None` indicates a draw
+    end_game: bool,           // Whether the game has ended
 }
 
 impl Game {
-    /// Creates a new game with initial time and increment per move.
+    /// Creates a new chess game with specified initial time and increment.
     ///
     /// # Arguments
     ///
-    /// * `initial_time_secs` - Initial time for each player in seconds.
-    /// * `increment_secs` - Time increment added after each move in seconds.
+    /// * `initial_time_secs` - Initial time per player in seconds.
+    /// * `increment_secs` - Time increment per move in seconds.
     ///
     /// # Examples
     ///
     /// ```
-    /// let game = Game::new(300, 3); // 5 minutes + 3 seconds/move
+    /// let game = Game::new(600, 5); // 10 minutes + 5 seconds/move
     /// ```
     pub fn new(initial_time_secs: u64, increment_secs: u64) -> Self {
         let initial_time = Duration::from_secs(initial_time_secs);
@@ -50,28 +51,28 @@ impl Game {
         }
     }
 
-    /// Runs the main game loop until time runs out or the game ends.
+    /// Runs the main game loop until the game ends or a player pauses.
     pub fn play(&mut self) {
         while !self.end_game {
             if self.black_time <= Duration::ZERO {
                 self.end_game = true;
-                self.winner = Some(Colour::White)
+                self.winner = Some(Colour::White);
             } else if self.white_time <= Duration::ZERO {
                 self.end_game = true;
-                self.winner = Some(Colour::Black)
+                self.winner = Some(Colour::Black);
             }
             self.draw();
             if let Some(direction) = Direction::input_key() {
                 self.process_input(direction);
             } else {
-                break;
+                break; // Pause or exit
             }
         }
         println!(
-            "Time's up! Winner: {}",
+            "Game over! Result: {}",
             match self.winner {
-                Some(Colour::White) => "White",
-                Some(Colour::Black) => "Black",
+                Some(Colour::White) => "White wins",
+                Some(Colour::Black) => "Black wins",
                 None => "Draw",
             }
         );
@@ -137,8 +138,8 @@ impl Game {
     pub fn process_input(&mut self, direction: Direction) {
         self.update_time();
         match direction {
-            Direction::Up => self.move_cursor(0, -1),
-            Direction::Down => self.move_cursor(0, 1),
+            Direction::Up => self.move_cursor(0, 1),
+            Direction::Down => self.move_cursor(0, -1),
             Direction::Left => self.move_cursor(-1, 0),
             Direction::Right => self.move_cursor(1, 0),
             Direction::Select => {

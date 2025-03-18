@@ -21,10 +21,9 @@ Projects are mainly created with some of the following editors and IDE:
 
 ## Languages
 These are the main languages I use or I want to use:
-* C++20
 * Rust
+* C++20
 * Python
-* Dart (Flutter)
 	
 ## Projects
 * [Spell-Checker](Spell-Checker) ✅
@@ -34,6 +33,7 @@ These are the main languages I use or I want to use:
 * [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ✅
 * [Algori](Algori) ✅
+* [Chess](Chess) ➖
 * [OhMaze](OhMaze) ➖
 * [Oxide Network Engine](ONE) ➖
 * [Oxide-Algori](Oxide-Algori) ❌

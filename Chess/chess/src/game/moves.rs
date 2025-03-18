@@ -66,6 +66,8 @@ impl Move {
 /// Structured as follows:
 ///
 /// 4rd bit: 1 if the move is a promotion, 0 otherwise
+#[repr(u8)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Debug, Hash)]
 pub enum MoveKind {
     Quiet = 0b0000,
     Castle = 0b0001,
@@ -82,8 +84,8 @@ pub enum MoveKind {
 pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
     let mut moves = Vec::with_capacity(4);
     let forward = match piece.colour() {
-        Colour::White => -1,
-        Colour::Black => 1,
+        Colour::White => 1,
+        Colour::Black => -1,
     };
     let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
     let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
@@ -139,10 +141,9 @@ pub fn all_knight_moves(src: Square) -> Vec<Move> {
     moves
 }
 
-pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
+fn sliding_moves(src: Square, board: &Board, directions: &[(i8, i8)]) -> Vec<Move> {
     let mut moves = Vec::with_capacity(8);
-
-    for &(file_delta, rank_delta) in &BISHOP_DIRECTIONS {
+    for &(file_delta, rank_delta) in directions {
         let mut dest = src;
         while let Some(next) = dest.jump(file_delta, rank_delta) {
             dest = next;
@@ -153,30 +154,22 @@ pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
             moves.push(Move::new(src, dest, MoveKind::Quiet));
         }
     }
-
     moves
+}
+
+pub fn all_bishop_moves(src: Square, board: &Board) -> Vec<Move> {
+    sliding_moves(src, board, &BISHOP_DIRECTIONS)
 }
 
 pub fn all_rook_moves(src: Square, board: &Board) -> Vec<Move> {
-    let mut moves = Vec::new();
-    for &(file_delta, rank_delta) in &ROOK_DIRECTIONS {
-        let mut dest = src;
-        while let Some(next) = dest.jump(file_delta, rank_delta) {
-            dest = next;
-            if board.piece_at(dest).is_some() {
-                moves.push(Move::new(src, dest, MoveKind::Capture));
-                break;
-            }
-            moves.push(Move::new(src, dest, MoveKind::Quiet));
-        }
-    }
-    moves
+    sliding_moves(src, board, &ROOK_DIRECTIONS)
 }
 
 pub fn all_queen_moves(src: Square, board: &Board) -> Vec<Move> {
-    let mut moves = all_bishop_moves(src, board);
-    moves.extend(all_rook_moves(src, board));
-    moves
+    sliding_moves(src, board, &BISHOP_DIRECTIONS)
+        .into_iter()
+        .chain(sliding_moves(src, board, &ROOK_DIRECTIONS))
+        .collect()
 }
 
 pub fn all_king_moves(src: Square) -> Vec<Move> {
