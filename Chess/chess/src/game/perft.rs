@@ -259,12 +259,10 @@ mod tests {
 
         if !failures.is_empty() {
             println!("\nFailed Tests:");
-            for (desc, fen, depth, expected, got) in &failures {
+            for (desc, _, _, expected, got) in &failures {
                 println!(
-                    "- {} ({}): depth={}, expected={}, got={}, diff={}",
+                    "- {} expected={}, got={}, diff={}",
                     desc,
-                    fen,
-                    depth,
                     expected,
                     got,
                     (*expected as i64 - *got as i64)

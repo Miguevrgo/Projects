@@ -282,31 +282,59 @@ impl Board {
                 opponent.get_bit(ep_target)
             }
             MoveKind::Castle => {
-                if !piece.is_king() || src.col() != 4 || (src.row() != 0 && src.row() != 7) {
+                if !piece.is_king() || src != self.king_square(self.side) {
                     return false;
                 }
+
+                let (rook_sq, king_pass, king_end) = match (self.side, dest) {
+                    (Colour::White, d) if d == Square::from("g1") => {
+                        (Square::from("h1"), Square::from("f1"), Square::from("g1"))
+                    }
+                    (Colour::White, d) if d == Square::from("c1") => {
+                        (Square::from("a1"), Square::from("d1"), Square::from("c1"))
+                    }
+                    (Colour::Black, d) if d == Square::from("g8") => {
+                        (Square::from("h8"), Square::from("f8"), Square::from("g8"))
+                    }
+                    (Colour::Black, d) if d == Square::from("c8") => {
+                        (Square::from("a8"), Square::from("d8"), Square::from("c8"))
+                    }
+                    _ => return false,
+                };
+
+                let valid_rights = match (self.side, dest) {
+                    (Colour::White, d) if d == Square::from("g1") => {
+                        self.castling_rights.0 & CastlingRights::WK != 0
+                    }
+                    (Colour::White, d) if d == Square::from("c1") => {
+                        self.castling_rights.0 & CastlingRights::WQ != 0
+                    }
+                    (Colour::Black, d) if d == Square::from("g8") => {
+                        self.castling_rights.0 & CastlingRights::BK != 0
+                    }
+                    (Colour::Black, d) if d == Square::from("c8") => {
+                        self.castling_rights.0 & CastlingRights::BQ != 0
+                    }
+                    _ => return false,
+                };
+
                 let is_kingside = dest.col() == 6;
-                let rights = self.castling_rights.0;
                 let row = src.row();
-                let (rook_col, mid_cols) = if is_kingside {
+                let (_, mid_cols) = if is_kingside {
                     (7, vec![5, 6])
                 } else {
                     (0, vec![1, 2, 3])
                 };
-                let rook_sq = Square::from_row_col(row, rook_col);
-
-                (if is_kingside {
-                    (piece.colour() == Colour::White && (rights & CastlingRights::WK != 0))
-                        || (piece.colour() == Colour::Black && (rights & CastlingRights::BK != 0))
-                } else {
-                    (piece.colour() == Colour::White && (rights & CastlingRights::WQ != 0))
-                        || (piece.colour() == Colour::Black && (rights & CastlingRights::BQ != 0))
-                }) && self.piece_at(rook_sq)
-                    == Some(if piece.colour() == Colour::White {
-                        Piece::WR
-                    } else {
-                        Piece::BR
-                    })
+                valid_rights
+                    && !self.is_in_check(self.side)
+                    && !self.is_attacked_by(king_pass, !self.side)
+                    && !self.is_attacked_by(king_end, !self.side)
+                    && self.piece_at(rook_sq)
+                        == Some(if piece.colour() == Colour::White {
+                            Piece::WR
+                        } else {
+                            Piece::BR
+                        })
                     && mid_cols
                         .iter()
                         .all(|&col| !occupied.get_bit(Square::from_row_col(row, col)))
@@ -320,6 +348,11 @@ impl Board {
                     && (opponent.get_bit(dest) || !occupied.get_bit(dest))
             }
         }
+    }
+
+    pub fn is_attacked_by(&self, square: Square, attacker: Colour) -> bool {
+        let opponent_moves = self.generate_pseudo_moves(attacker);
+        opponent_moves.iter().any(|m| m.get_dest() == square)
     }
 
     pub fn is_in_check(&self, colour: Colour) -> bool {
