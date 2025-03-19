@@ -82,7 +82,7 @@ impl BitBoard {
     /// Ranks where promotion can occur: White (rank 7) and Black (rank 2).
     pub const PROMO_RANKS: [Self; 2] = [Self(0xFF00000000000000), Self(0x00000000000000FF)];
     /// Starting positions for both kings
-    pub const KING_START_POS: Self = Self(0x100000000000010);
+    pub const KING_START_POS: Self = Self(0x1000000000000010);
 
     /// Checks if a specific square contains a piece.
     ///

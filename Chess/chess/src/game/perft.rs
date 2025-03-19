@@ -110,13 +110,7 @@ impl Board {
         #[cfg(debug_assertions)]
         {
             for (m, nodes, duration) in &results {
-                println!(
-                    "{}{}: {} nodes in {:.3}s",
-                    m.get_source(),
-                    m.get_dest(),
-                    nodes,
-                    duration
-                );
+                println!("{}{}: {}", m.get_source(), m.get_dest(), nodes);
             }
         }
 
