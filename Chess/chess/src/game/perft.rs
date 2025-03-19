@@ -50,7 +50,6 @@ impl Board {
         const NUM_THREADS: usize = 14;
         let moves_per_thread = moves.len().div_ceil(NUM_THREADS);
 
-        // Canal para resultados por movimiento
         let (tx, rx): (
             Sender<(Move, u64, f64, Vec<u64>)>,
             Receiver<(Move, u64, f64, Vec<u64>)>,
@@ -83,7 +82,6 @@ impl Board {
                     tx_clone
                         .send((m, nodes, duration, thread_level_counts.clone()))
                         .expect("Failed to send result");
-                    // Resetear thread_level_counts para el siguiente movimiento si es necesario
                     thread_level_counts = vec![0u64; depth];
                 }
             });
@@ -95,7 +93,6 @@ impl Board {
         let mut results = Vec::new();
         while let Ok((m, nodes, duration, thread_counts)) = rx.recv() {
             results.push((m, nodes, duration));
-            // Agregar los conteos de este hilo al total
             for (i, &count) in thread_counts.iter().enumerate() {
                 total_level_counts[i] += count;
             }
@@ -105,7 +102,6 @@ impl Board {
             handle.join().expect("Thread panicked");
         }
 
-        // El nivel 0 es el número de movimientos raíz
         total_level_counts[0] = moves.len() as u64;
 
         let total_nodes: u64 = results.iter().map(|(_, nodes, _)| nodes).sum();
@@ -121,7 +117,6 @@ impl Board {
             );
         }
 
-        // Imprimir movimientos por nivel
         println!("\nMoves per level:");
         for (i, &count) in total_level_counts.iter().enumerate() {
             println!("Depth {}: {} moves", i, count);
@@ -142,8 +137,6 @@ impl Board {
         total_nodes
     }
 }
-
-// El módulo de pruebas permanece igual, solo necesitarías ajustar la salida esperada si también quieres verificar los conteos por nivel
 
 #[cfg(test)]
 mod tests {
