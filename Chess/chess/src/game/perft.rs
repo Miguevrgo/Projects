@@ -55,7 +55,7 @@ impl Board {
             Receiver<(Move, u64, f64, Vec<u64>)>,
         ) = channel();
         let mut handles = Vec::new();
-        let mut total_level_counts = vec![0u64; depth]; // Total de movimientos por nivel
+        let mut total_level_counts = vec![0u64; depth];
 
         let start = Instant::now();
 
