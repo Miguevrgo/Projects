@@ -113,7 +113,10 @@ impl Game {
             if let Some(&m) = move_candidate {
                 self.board.make_move(m);
                 if self.board.generate_legal_moves().is_empty() {
-                    if self.board.is_in_check(self.board.side) {
+                    if self
+                        .board
+                        .is_attacked_by(self.board.king_square(self.board.side), !self.board.side)
+                    {
                         self.winner = Some(!self.board.side);
                     }
                     self.end_game = true;

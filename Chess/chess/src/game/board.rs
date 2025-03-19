@@ -301,7 +301,7 @@ impl Board {
                     (0, vec![1, 2, 3])
                 };
                 valid_rights
-                    && !self.is_in_check(self.side)
+                    && !self.is_attacked_by(self.king_square(self.side), !self.side)
                     && !self.is_attacked_by(king_pass, !self.side)
                     && !self.is_attacked_by(king_end, !self.side)
                     && self.piece_at(rook_sq)
@@ -326,10 +326,90 @@ impl Board {
     }
 
     pub fn is_attacked_by(&self, square: Square, attacker: Colour) -> bool {
-        let opponent_moves = self.generate_pseudo_moves(attacker);
-        opponent_moves
-            .iter()
-            .any(|m| m.get_dest() == square && self.is_pseudo_legal(*m))
+        let knight_offsets = [
+            [-2, -1],
+            [-2, 1],
+            [-1, -2],
+            [-1, 2],
+            [1, -2],
+            [1, 2],
+            [2, -1],
+            [2, 1],
+        ];
+        for &[dr, df] in &knight_offsets {
+            if let Some(src) = square.jump(dr, df) {
+                if let Some(piece) = self.piece_at(src) {
+                    if piece.colour() == attacker && piece.is_knight() {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        let king_offsets = [
+            [-1, -1],
+            [-1, 0],
+            [-1, 1],
+            [0, -1],
+            [0, 1],
+            [1, -1],
+            [1, 0],
+            [1, 1],
+        ];
+        for &[dr, df] in &king_offsets {
+            if let Some(src) = square.jump(dr, df) {
+                if let Some(piece) = self.piece_at(src) {
+                    if piece.colour() == attacker && piece.is_king() {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        let pawn_offsets = if attacker == Colour::White {
+            [[-1, -1], [-1, 1]]
+        } else {
+            [[1, -1], [1, 1]]
+        };
+        for &[dr, df] in &pawn_offsets {
+            if let Some(src) = square.jump(dr, df) {
+                if let Some(piece) = self.piece_at(src) {
+                    if piece.colour() == attacker && piece.is_pawn() {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        let rook_directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        for &[dr, df] in &rook_directions {
+            let mut dest = square;
+            while let Some(next) = dest.jump(dr, df) {
+                if let Some(piece) = self.piece_at(next) {
+                    if piece.colour() == attacker && (piece.is_rook() || piece.is_queen()) {
+                        return true;
+                    }
+                    break;
+                }
+                dest = next;
+            }
+        }
+
+        let bishop_directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+        for &[dr, df] in &bishop_directions {
+            let mut dest = square;
+            while let Some(next) = dest.jump(dr, df) {
+                if let Some(piece) = self.piece_at(next) {
+                    if piece.colour() == attacker && (piece.is_bishop() || piece.is_queen()) {
+                        return true;
+                    }
+                    break;
+                }
+                dest = next;
+            }
+        }
+
+        false
     }
 
     pub fn is_in_check(&self, colour: Colour) -> bool {

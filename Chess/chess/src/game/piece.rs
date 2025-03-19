@@ -81,6 +81,10 @@ impl Piece {
         self as usize / 2
     }
 
+    pub fn to_char(self) -> char {
+        PIECE_CHAR[self as usize]
+    }
+
     pub const fn colour(self) -> Colour {
         if self as u8 & 1 == 0 {
             Colour::White

@@ -69,6 +69,23 @@ impl Move {
     }
 }
 
+impl std::fmt::Display for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = format!("{}{}", self.get_source(), self.get_dest());
+        let move_type = self.get_type();
+
+        if move_type.is_promotion() {
+            write!(
+                f,
+                "{}{}",
+                s,
+                move_type.get_promotion(Colour::Black).to_char()
+            )
+        } else {
+            write!(f, "{s}")
+        }
+    }
+}
 /// MoveKind is a 4-bit enum that represents the type of move
 /// Structured as follows:
 ///
@@ -94,6 +111,22 @@ pub enum MoveKind {
     BishopCapPromo = 0b1101,
     RookCapPromo = 0b1110,
     QueenCapPromo = 0b1111,
+}
+
+impl MoveKind {
+    pub const fn is_promotion(self) -> bool {
+        self as usize & 0b0100 != 0
+    }
+
+    pub const fn get_promotion(self, side: Colour) -> Piece {
+        const PROMO_MASK: usize = 0b0011;
+        const PROMO_PIECES: [[Piece; 4]; 2] = [
+            [Piece::WN, Piece::WB, Piece::WR, Piece::WQ],
+            [Piece::BN, Piece::BB, Piece::BR, Piece::BQ],
+        ];
+
+        PROMO_PIECES[side as usize][self as usize & PROMO_MASK]
+    }
 }
 
 pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {

@@ -1,8 +1,6 @@
 Test Summary:
-Passed: 13/16
-Failed: 3/16
+Passed: 15/16
+Failed: 1/16
 
 Failed Tests:
-- Kiwipete expected=193690690, got=195372768, diff=1682078
-- Castle rights expected=1274206, got=1301897, diff=27691
-- Castling prevented expected=1720476, got=2019455, diff=298979
+- Kiwipete expected=193690690, got=193696371, diff=5681

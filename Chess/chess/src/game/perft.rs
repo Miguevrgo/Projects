@@ -8,6 +8,36 @@ use crate::game::moves::Move;
 pub const BULK: bool = true;
 pub const NO_BULK: bool = false;
 
+pub fn perft_with_moves(board: &mut Board, depth: usize) -> u64 {
+    if depth == 0 {
+        return 1;
+    }
+    let moves = board.generate_legal_moves();
+    let mut total = 0;
+    if depth == 1 {
+        for m in &moves {
+            let mut new_board = *board;
+            new_board.make_move(*m);
+            let count = perft_with_moves(&mut new_board, depth - 1);
+            println!("{}: {}", m, count);
+            total += count;
+        }
+    } else {
+        for m in &moves {
+            let mut new_board = *board;
+            new_board.make_move(*m);
+            total += perft_with_moves(&mut new_board, depth - 1);
+        }
+    }
+    total
+}
+
+fn main() {
+    let mut board =
+        Board::from_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    let nodes = perft_with_moves(&mut board, 2);
+    println!("Total nodes at depth 2: {}", nodes);
+}
 impl Board {
     fn perft_driver<const BULK_COUNT: bool>(
         &mut self,
