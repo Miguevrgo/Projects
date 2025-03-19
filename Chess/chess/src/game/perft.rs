@@ -279,7 +279,7 @@ mod tests {
                     desc,
                     expected,
                     got,
-                    (*expected as i64 - *got as i64)
+                    (*got as i64 - *expected as i64)
                 );
             }
             panic!("Some tests failed. See details above.");

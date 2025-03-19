@@ -9,7 +9,7 @@ use crate::game::{
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
     pieces: [BitBoard; 6],
-    sides: [BitBoard; 2],
+    pub sides: [BitBoard; 2],
 
     piece_map: [Option<Piece>; Square::COUNT],
 
@@ -135,23 +135,13 @@ impl Board {
             | MoveKind::BishopPromotion
             | MoveKind::RookPromotion
             | MoveKind::QueenPromotion => {
-                if self.sides[!self.side as usize].get_bit(dest) {
-                    self.remove_piece(dest);
-                }
                 self.remove_piece(src);
                 let promo_piece = match move_type {
-                    MoveKind::KnightPromotion => {
+                    MoveKind::QueenPromotion => {
                         if src_piece.colour() == Colour::White {
-                            Piece::WN
+                            Piece::WQ
                         } else {
-                            Piece::BN
-                        }
-                    }
-                    MoveKind::BishopPromotion => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WB
-                        } else {
-                            Piece::BB
+                            Piece::BQ
                         }
                     }
                     MoveKind::RookPromotion => {
@@ -161,16 +151,64 @@ impl Board {
                             Piece::BR
                         }
                     }
-                    MoveKind::QueenPromotion => {
+                    MoveKind::BishopPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WB
+                        } else {
+                            Piece::BB
+                        }
+                    }
+                    MoveKind::KnightPromotion => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WN
+                        } else {
+                            Piece::BN
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+                self.set_piece(promo_piece, dest);
+                self.en_passant = None;
+            }
+            MoveKind::KnightCapPromo
+            | MoveKind::BishopCapPromo
+            | MoveKind::RookCapPromo
+            | MoveKind::QueenCapPromo => {
+                self.remove_piece(dest);
+                self.remove_piece(src);
+                let promo_piece = match move_type {
+                    MoveKind::QueenCapPromo => {
                         if src_piece.colour() == Colour::White {
                             Piece::WQ
                         } else {
                             Piece::BQ
                         }
                     }
+                    MoveKind::RookCapPromo => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WR
+                        } else {
+                            Piece::BR
+                        }
+                    }
+                    MoveKind::BishopCapPromo => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WB
+                        } else {
+                            Piece::BB
+                        }
+                    }
+                    MoveKind::KnightCapPromo => {
+                        if src_piece.colour() == Colour::White {
+                            Piece::WN
+                        } else {
+                            Piece::BN
+                        }
+                    }
                     _ => unreachable!(),
                 };
                 self.set_piece(promo_piece, dest);
+                self.en_passant = None;
             }
         }
 
@@ -242,39 +280,20 @@ impl Board {
         let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
         let opponent = self.sides[!self.side as usize];
         let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
+        let forward = match piece.colour() {
+            Colour::White => 1,
+            Colour::Black => -1,
+        };
 
         match move_type {
             MoveKind::Quiet => !occupied.get_bit(dest),
             MoveKind::Capture => opponent.get_bit(dest),
             MoveKind::DoublePush => {
-                if !piece.is_pawn() || occupied.get_bit(dest) {
-                    return false;
-                }
-                let mid = src
-                    .jump(
-                        0,
-                        match piece.colour() {
-                            Colour::White => 1,
-                            Colour::Black => -1,
-                        },
-                    )
-                    .expect("Invalid pos for double push");
-                !occupied.get_bit(mid)
+                let middle = src.jump(0, forward).unwrap();
+                !occupied.get_bit(middle) && !occupied.get_bit(dest)
             }
             MoveKind::EnPassant => {
-                if !piece.is_pawn() || self.en_passant != Some(dest) {
-                    return false;
-                }
-                let ep_target = dest
-                    .jump(
-                        0,
-                        match piece.colour() {
-                            Colour::White => -1,
-                            Colour::Black => 1,
-                        },
-                    )
-                    .expect("Invalid pos for en en_passant");
-                opponent.get_bit(ep_target)
+                self.en_passant == Some(dest) && opponent.get_bit(dest.jump(0, -forward).unwrap())
             }
             MoveKind::Castle => {
                 if !piece.is_king() || src != self.king_square(self.side) {
@@ -337,23 +356,27 @@ impl Board {
             MoveKind::KnightPromotion
             | MoveKind::BishopPromotion
             | MoveKind::RookPromotion
-            | MoveKind::QueenPromotion => {
-                piece.is_pawn()
-                    && promo_rank.get_bit(dest)
-                    && (opponent.get_bit(dest) || !occupied.get_bit(dest))
-            }
+            | MoveKind::QueenPromotion => promo_rank.get_bit(dest) && !occupied.get_bit(dest),
+            MoveKind::KnightCapPromo
+            | MoveKind::BishopCapPromo
+            | MoveKind::RookCapPromo
+            | MoveKind::QueenCapPromo => promo_rank.get_bit(dest) && opponent.get_bit(dest),
         }
     }
 
     pub fn is_attacked_by(&self, square: Square, attacker: Colour) -> bool {
         let opponent_moves = self.generate_pseudo_moves(attacker);
-        opponent_moves.iter().any(|m| m.get_dest() == square)
+        opponent_moves
+            .iter()
+            .any(|m| m.get_dest() == square && self.is_pseudo_legal(*m))
     }
 
     pub fn is_in_check(&self, colour: Colour) -> bool {
         let king_sq = self.king_square(colour);
         let opponent_moves = self.generate_pseudo_moves(!colour);
-        opponent_moves.iter().any(|m| m.get_dest() == king_sq)
+        opponent_moves
+            .iter()
+            .any(|m| m.get_dest() == king_sq && self.is_pseudo_legal(*m))
     }
 
     pub fn king_square(&self, colour: Colour) -> Square {

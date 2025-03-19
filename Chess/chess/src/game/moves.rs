@@ -51,12 +51,19 @@ impl Move {
             0b0000 => MoveKind::Quiet,
             0b0001 => MoveKind::Castle,
             0b0010 => MoveKind::DoublePush,
-            0b0011 => MoveKind::Capture,
-            0b0100 => MoveKind::EnPassant,
-            0b1000 => MoveKind::KnightPromotion,
-            0b1001 => MoveKind::BishopPromotion,
-            0b1010 => MoveKind::RookPromotion,
-            0b1011 => MoveKind::QueenPromotion,
+            0b1000 => MoveKind::Capture,
+            0b1001 => MoveKind::EnPassant,
+
+            0b0100 => MoveKind::KnightPromotion,
+            0b0101 => MoveKind::BishopPromotion,
+            0b0110 => MoveKind::RookPromotion,
+            0b0111 => MoveKind::QueenPromotion,
+
+            0b1100 => MoveKind::KnightCapPromo,
+            0b1101 => MoveKind::BishopCapPromo,
+            0b1110 => MoveKind::RookCapPromo,
+            0b1111 => MoveKind::QueenCapPromo,
+
             _ => unreachable!(),
         }
     }
@@ -72,13 +79,21 @@ pub enum MoveKind {
     Quiet = 0b0000,
     Castle = 0b0001,
     DoublePush = 0b0010,
-    Capture = 0b0011,
-    EnPassant = 0b0100,
 
-    KnightPromotion = 0b1000,
-    BishopPromotion = 0b1001,
-    RookPromotion = 0b1010,
-    QueenPromotion = 0b1011,
+    // Promotions have 3rd bit set
+    KnightPromotion = 0b0100,
+    BishopPromotion = 0b0101,
+    RookPromotion = 0b0110,
+    QueenPromotion = 0b0111,
+
+    // Captures have 4th bit set
+    Capture = 0b1000,
+    EnPassant = 0b1001,
+
+    KnightCapPromo = 0b1100,
+    BishopCapPromo = 0b1101,
+    RookCapPromo = 0b1110,
+    QueenCapPromo = 0b1111,
 }
 
 pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
@@ -89,42 +104,49 @@ pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
     };
     let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
     let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
+    let occupied = board.sides[Colour::White as usize] | board.sides[Colour::Black as usize];
+    let opponent = board.sides[!piece.colour() as usize];
 
     if let Some(dest) = src.jump(0, forward) {
-        if promo_rank.get_bit(dest) {
-            moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
-            moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
-            moves.push(Move::new(src, dest, MoveKind::RookPromotion));
-            moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
-        } else {
-            moves.push(Move::new(src, dest, MoveKind::Quiet))
+        if !occupied.get_bit(dest) {
+            if promo_rank.get_bit(dest) {
+                moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
+                moves.push(Move::new(src, dest, MoveKind::RookPromotion));
+                moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
+                moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
+            } else {
+                moves.push(Move::new(src, dest, MoveKind::Quiet));
+            }
         }
     }
 
     if start_rank.get_bit(src) {
-        if let Some(dest) = src.jump(0, 2 * forward) {
-            if let Some(middle) = src.jump(0, forward) {
-                if board.piece_at(middle).is_none() {
-                    moves.push(Move::new(src, dest, MoveKind::DoublePush));
-                }
-            }
-        }
+        moves.push(Move::new(
+            src,
+            src.jump(0, 2 * forward).unwrap(),
+            MoveKind::DoublePush,
+        ));
     }
 
     for delta in [(-1, forward), (1, forward)] {
         if let Some(dest) = src.jump(delta.0, delta.1) {
-            if promo_rank.get_bit(dest) {
-                moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
-                moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
-                moves.push(Move::new(src, dest, MoveKind::RookPromotion));
-                moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
-            } else {
-                moves.push(Move::new(src, dest, MoveKind::Capture));
-                moves.push(Move::new(src, dest, MoveKind::EnPassant));
+            if opponent.get_bit(dest) {
+                if promo_rank.get_bit(dest) {
+                    moves.push(Move::new(src, dest, MoveKind::QueenCapPromo));
+                    moves.push(Move::new(src, dest, MoveKind::RookCapPromo));
+                    moves.push(Move::new(src, dest, MoveKind::BishopCapPromo));
+                    moves.push(Move::new(src, dest, MoveKind::KnightCapPromo));
+                } else {
+                    moves.push(Move::new(src, dest, MoveKind::Capture));
+                }
+            } else if board.en_passant == Some(dest) {
+                let ep_target = dest.jump(0, -forward).expect("Invalid en passant target");
+                if opponent.get_bit(ep_target) {
+                    moves.push(Move::new(src, dest, MoveKind::EnPassant));
+                }
             }
         }
     }
-
     moves
 }
 

@@ -1,16 +1,8 @@
 Test Summary:
-Passed: 5/16
-Failed: 11/16
+Passed: 13/16
+Failed: 3/16
 
 Failed Tests:
-- Startpos expected=119060324, got=119058000, diff=2324
-- Kiwipete expected=193690690, got=193574699, diff=115991
-- Illegal ep move #1 expected=1015133, got=970074, diff=45059
-- Illegal ep move #2 expected=1134888, got=1103323, diff=31565
-- Ep capture checks opponent expected=1440467, got=1416379, diff=24088
-- Promote out of check expected=3821001, got=6448664, diff=-2627663
-- Discovered check expected=1004658, got=1112900, diff=-108242
-- Promote to give check expected=217342, got=547074, diff=-329732
-- Under promote to give check expected=92683, got=173340, diff=-80657
-- Self stalemate expected=2217, got=4876, diff=-2659
-- Stalemate & checkmate #1 expected=567584, got=1753103, diff=-1185519
+- Kiwipete expected=193690690, got=195372768, diff=1682078
+- Castle rights expected=1274206, got=1301897, diff=27691
+- Castling prevented expected=1720476, got=2019455, diff=298979
