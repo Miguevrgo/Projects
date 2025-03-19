@@ -136,6 +136,14 @@ pub enum Colour {
     Black = 1,
 }
 
+impl Colour {
+    const FORWARD: [i8; 2] = [1, -1];
+    #[inline]
+    pub const fn forward(self) -> i8 {
+        Self::FORWARD[self as usize]
+    }
+}
+
 impl std::ops::Not for Colour {
     type Output = Colour;
 

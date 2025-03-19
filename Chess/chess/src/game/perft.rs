@@ -47,7 +47,7 @@ impl Board {
             return 0;
         }
 
-        const NUM_THREADS: usize = 14;
+        const NUM_THREADS: usize = 12;
         let moves_per_thread = moves.len().div_ceil(NUM_THREADS);
 
         let (tx, rx): (

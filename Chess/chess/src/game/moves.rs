@@ -98,10 +98,8 @@ pub enum MoveKind {
 
 pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
     let mut moves = Vec::with_capacity(4);
-    let forward = match piece.colour() {
-        Colour::White => 1,
-        Colour::Black => -1,
-    };
+    let forward = piece.colour().forward();
+
     let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
     let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
     let occupied = board.sides[Colour::White as usize] | board.sides[Colour::Black as usize];
@@ -151,7 +149,7 @@ pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
 }
 
 pub fn all_knight_moves(src: Square) -> Vec<Move> {
-    let mut moves = Vec::with_capacity(6);
+    let mut moves = Vec::with_capacity(8);
 
     for &(file_delta, rank_delta) in &KNIGHT_OFFSETS {
         if let Some(dest) = src.jump(file_delta, rank_delta) {
@@ -202,7 +200,8 @@ pub fn all_king_moves(src: Square) -> Vec<Move> {
             moves.push(Move::new(src, dest, MoveKind::Capture));
         }
     }
-    if src.col() == 4 && (src.row() == 0 || src.row() == 7) {
+
+    if src.to_board() & BitBoard::KING_START_POS != BitBoard::EMPTY {
         moves.push(Move::new(
             src,
             Square::from_row_col(src.row(), 6),

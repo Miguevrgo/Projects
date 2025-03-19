@@ -92,10 +92,7 @@ impl Board {
                 self.set_piece(src_piece, dest);
 
                 if matches!(move_type, MoveKind::DoublePush) {
-                    let delta = match src_piece.colour() {
-                        Colour::White => 1,
-                        Colour::Black => -1,
-                    };
+                    let delta = src_piece.colour().forward();
                     self.en_passant = src.jump(0, delta);
                 }
             }
@@ -106,13 +103,7 @@ impl Board {
             }
             MoveKind::EnPassant => {
                 let captured_pawn_square = dest
-                    .jump(
-                        0,
-                        match src_piece.colour() {
-                            Colour::White => -1, // Piece is next to pawn
-                            Colour::Black => 1,
-                        },
-                    )
+                    .jump(0, -src_piece.colour().forward())
                     .expect("Off the board en_passant");
                 self.remove_piece(captured_pawn_square);
                 self.remove_piece(src);
@@ -137,38 +128,25 @@ impl Board {
             | MoveKind::QueenPromotion => {
                 self.remove_piece(src);
                 let promo_piece = match move_type {
-                    MoveKind::QueenPromotion => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WQ
-                        } else {
-                            Piece::BQ
-                        }
-                    }
-                    MoveKind::RookPromotion => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WR
-                        } else {
-                            Piece::BR
-                        }
-                    }
-                    MoveKind::BishopPromotion => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WB
-                        } else {
-                            Piece::BB
-                        }
-                    }
-                    MoveKind::KnightPromotion => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WN
-                        } else {
-                            Piece::BN
-                        }
-                    }
+                    MoveKind::QueenPromotion => match src_piece.colour() {
+                        Colour::White => Piece::WQ,
+                        Colour::Black => Piece::BQ,
+                    },
+                    MoveKind::RookPromotion => match src_piece.colour() {
+                        Colour::White => Piece::WR,
+                        Colour::Black => Piece::BR,
+                    },
+                    MoveKind::BishopPromotion => match src_piece.colour() {
+                        Colour::White => Piece::WB,
+                        Colour::Black => Piece::BB,
+                    },
+                    MoveKind::KnightPromotion => match src_piece.colour() {
+                        Colour::White => Piece::WN,
+                        Colour::Black => Piece::BN,
+                    },
                     _ => unreachable!(),
                 };
                 self.set_piece(promo_piece, dest);
-                self.en_passant = None;
             }
             MoveKind::KnightCapPromo
             | MoveKind::BishopCapPromo
@@ -177,38 +155,25 @@ impl Board {
                 self.remove_piece(dest);
                 self.remove_piece(src);
                 let promo_piece = match move_type {
-                    MoveKind::QueenCapPromo => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WQ
-                        } else {
-                            Piece::BQ
-                        }
-                    }
-                    MoveKind::RookCapPromo => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WR
-                        } else {
-                            Piece::BR
-                        }
-                    }
-                    MoveKind::BishopCapPromo => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WB
-                        } else {
-                            Piece::BB
-                        }
-                    }
-                    MoveKind::KnightCapPromo => {
-                        if src_piece.colour() == Colour::White {
-                            Piece::WN
-                        } else {
-                            Piece::BN
-                        }
-                    }
+                    MoveKind::QueenCapPromo => match src_piece.colour() {
+                        Colour::White => Piece::WQ,
+                        Colour::Black => Piece::BQ,
+                    },
+                    MoveKind::RookCapPromo => match src_piece.colour() {
+                        Colour::White => Piece::WR,
+                        Colour::Black => Piece::BR,
+                    },
+                    MoveKind::BishopCapPromo => match src_piece.colour() {
+                        Colour::White => Piece::WB,
+                        Colour::Black => Piece::BB,
+                    },
+                    MoveKind::KnightCapPromo => match src_piece.colour() {
+                        Colour::White => Piece::WN,
+                        Colour::Black => Piece::BN,
+                    },
                     _ => unreachable!(),
                 };
                 self.set_piece(promo_piece, dest);
-                self.en_passant = None;
             }
         }
 
@@ -280,10 +245,7 @@ impl Board {
         let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
         let opponent = self.sides[!self.side as usize];
         let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
-        let forward = match piece.colour() {
-            Colour::White => 1,
-            Colour::Black => -1,
-        };
+        let forward = piece.colour().forward();
 
         match move_type {
             MoveKind::Quiet => !occupied.get_bit(dest),
