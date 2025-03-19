@@ -9,12 +9,21 @@ pub const BULK: bool = true;
 pub const NO_BULK: bool = false;
 
 impl Board {
-    fn perft_driver<const BULK_COUNT: bool>(&mut self, depth: usize) -> u64 {
+    fn perft_driver<const BULK_COUNT: bool>(
+        &mut self,
+        depth: usize,
+        level_counts: &mut Vec<u64>,
+    ) -> u64 {
         if depth == 0 {
             return 1;
         }
 
         let moves = self.generate_legal_moves();
+        let current_level = level_counts.len() - depth;
+        if current_level < level_counts.len() {
+            level_counts[current_level] += moves.len() as u64;
+        }
+
         if BULK_COUNT && depth == 1 {
             return moves.len() as u64;
         }
@@ -23,23 +32,11 @@ impl Board {
         for m in moves {
             let mut new_board = *self;
             new_board.make_move(m);
-            nodes += new_board.perft_driver::<BULK_COUNT>(depth - 1);
+            nodes += new_board.perft_driver::<BULK_COUNT>(depth - 1, level_counts);
         }
         nodes
     }
 
-    /// Performs a parallel perft test using 14 threads, without external dependencies.
-    ///
-    /// This function distributes root moves across 14 threads, collects results via channels,
-    /// and prints per-move statistics along with overall performance metrics.
-    ///
-    /// # Arguments
-    ///
-    /// * `depth` - The depth to search.
-    ///
-    /// # Returns
-    ///
-    /// The total number of leaf nodes in the move tree.
     pub fn perft<const BULK_COUNT: bool>(&mut self, depth: usize) -> u64 {
         if depth == 0 {
             return 1;
@@ -51,10 +48,15 @@ impl Board {
         }
 
         const NUM_THREADS: usize = 14;
-        let moves_per_thread = moves.len().div_ceil(NUM_THREADS); // Ceiling division
+        let moves_per_thread = moves.len().div_ceil(NUM_THREADS);
 
-        let (tx, rx): (Sender<(Move, u64, f64)>, Receiver<(Move, u64, f64)>) = channel();
+        // Canal para resultados por movimiento
+        let (tx, rx): (
+            Sender<(Move, u64, f64, Vec<u64>)>,
+            Receiver<(Move, u64, f64, Vec<u64>)>,
+        ) = channel();
         let mut handles = Vec::new();
+        let mut total_level_counts = vec![0u64; depth]; // Total de movimientos por nivel
 
         let start = Instant::now();
 
@@ -70,15 +72,19 @@ impl Board {
             let tx_clone = tx.clone();
 
             let handle = thread::spawn(move || {
+                let mut thread_level_counts = vec![0u64; depth];
                 for m in moves_chunk {
                     let move_start = Instant::now();
                     let mut new_board = board_clone;
                     new_board.make_move(m);
-                    let nodes = new_board.perft_driver::<BULK_COUNT>(depth - 1);
+                    let nodes =
+                        new_board.perft_driver::<BULK_COUNT>(depth - 1, &mut thread_level_counts);
                     let duration = move_start.elapsed().as_secs_f64();
                     tx_clone
-                        .send((m, nodes, duration))
+                        .send((m, nodes, duration, thread_level_counts.clone()))
                         .expect("Failed to send result");
+                    // Resetear thread_level_counts para el siguiente movimiento si es necesario
+                    thread_level_counts = vec![0u64; depth];
                 }
             });
             handles.push(handle);
@@ -87,13 +93,20 @@ impl Board {
         drop(tx);
 
         let mut results = Vec::new();
-        while let Ok(result) = rx.recv() {
-            results.push(result);
+        while let Ok((m, nodes, duration, thread_counts)) = rx.recv() {
+            results.push((m, nodes, duration));
+            // Agregar los conteos de este hilo al total
+            for (i, &count) in thread_counts.iter().enumerate() {
+                total_level_counts[i] += count;
+            }
         }
 
         for handle in handles {
             handle.join().expect("Thread panicked");
         }
+
+        // El nivel 0 es el número de movimientos raíz
+        total_level_counts[0] = moves.len() as u64;
 
         let total_nodes: u64 = results.iter().map(|(_, nodes, _)| nodes).sum();
         let total_duration = start.elapsed();
@@ -106,6 +119,12 @@ impl Board {
                 nodes,
                 duration
             );
+        }
+
+        // Imprimir movimientos por nivel
+        println!("\nMoves per level:");
+        for (i, &count) in total_level_counts.iter().enumerate() {
+            println!("Depth {}: {} moves", i, count);
         }
 
         let nodes_per_sec = if total_duration.as_micros() > 0 {
@@ -123,6 +142,8 @@ impl Board {
         total_nodes
     }
 }
+
+// El módulo de pruebas permanece igual, solo necesitarías ajustar la salida esperada si también quieres verificar los conteos por nivel
 
 #[cfg(test)]
 mod tests {

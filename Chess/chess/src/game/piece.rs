@@ -89,10 +89,6 @@ impl Piece {
         }
     }
 
-    pub const fn opposite_colour(self) -> Self {
-        Piece::ALL[(self as u8 ^ 1) as usize]
-    }
-
     pub const fn is_pawn(self) -> bool {
         self as u8 & 0b1110 == 0b0000
     }

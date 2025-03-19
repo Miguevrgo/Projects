@@ -60,6 +60,7 @@ impl Board {
         let (src, dest) = (m.get_source(), m.get_dest());
         let src_piece = self.piece_at(src).expect("Invalid source piece");
         let move_type = m.get_type();
+        self.en_passant = None;
 
         if src_piece.is_pawn() || matches!(move_type, MoveKind::Capture) {
             self.halfmoves = 0
@@ -96,15 +97,12 @@ impl Board {
                         Colour::Black => -1,
                     };
                     self.en_passant = src.jump(0, delta);
-                } else {
-                    self.en_passant = None;
                 }
             }
             MoveKind::Capture => {
                 self.remove_piece(dest);
                 self.remove_piece(src);
                 self.set_piece(src_piece, dest);
-                self.en_passant = None;
             }
             MoveKind::EnPassant => {
                 let captured_pawn_square = dest
@@ -119,7 +117,6 @@ impl Board {
                 self.remove_piece(captured_pawn_square);
                 self.remove_piece(src);
                 self.set_piece(src_piece, dest);
-                self.en_passant = None;
             }
             MoveKind::Castle => {
                 let is_kingside = dest.col() > src.col();
@@ -133,7 +130,6 @@ impl Board {
                 self.remove_piece(rook_src);
                 self.set_piece(src_piece, dest);
                 self.set_piece(rook_piece, rook_dest);
-                self.en_passant = None;
             }
             MoveKind::KnightPromotion
             | MoveKind::BishopPromotion
@@ -175,7 +171,6 @@ impl Board {
                     _ => unreachable!(),
                 };
                 self.set_piece(promo_piece, dest);
-                self.en_passant = None;
             }
         }
 
@@ -274,8 +269,8 @@ impl Board {
                     .jump(
                         0,
                         match piece.colour() {
-                            Colour::White => 1,
-                            Colour::Black => -1,
+                            Colour::White => -1,
+                            Colour::Black => 1,
                         },
                     )
                     .expect("Invalid pos for en en_passant");
