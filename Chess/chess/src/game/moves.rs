@@ -102,19 +102,16 @@ pub fn all_pawn_moves(src: Square, piece: Piece, board: &Board) -> Vec<Move> {
 
     let start_rank = BitBoard::START_RANKS[piece.colour() as usize];
     let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
-    let occupied = board.sides[Colour::White as usize] | board.sides[Colour::Black as usize];
     let opponent = board.sides[!piece.colour() as usize];
 
     if let Some(dest) = src.jump(0, forward) {
-        if !occupied.get_bit(dest) {
-            if promo_rank.get_bit(dest) {
-                moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
-                moves.push(Move::new(src, dest, MoveKind::RookPromotion));
-                moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
-                moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
-            } else {
-                moves.push(Move::new(src, dest, MoveKind::Quiet));
-            }
+        if promo_rank.get_bit(dest) {
+            moves.push(Move::new(src, dest, MoveKind::QueenPromotion));
+            moves.push(Move::new(src, dest, MoveKind::RookPromotion));
+            moves.push(Move::new(src, dest, MoveKind::BishopPromotion));
+            moves.push(Move::new(src, dest, MoveKind::KnightPromotion));
+        } else {
+            moves.push(Move::new(src, dest, MoveKind::Quiet));
         }
     }
 

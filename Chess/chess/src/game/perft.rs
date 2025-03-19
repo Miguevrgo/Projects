@@ -107,14 +107,17 @@ impl Board {
         let total_nodes: u64 = results.iter().map(|(_, nodes, _)| nodes).sum();
         let total_duration = start.elapsed();
 
-        for (m, nodes, duration) in &results {
-            println!(
-                "{}{}: {} nodes in {:.3}s",
-                m.get_source(),
-                m.get_dest(),
-                nodes,
-                duration
-            );
+        #[cfg(debug_assertions)]
+        {
+            for (m, nodes, duration) in &results {
+                println!(
+                    "{}{}: {} nodes in {:.3}s",
+                    m.get_source(),
+                    m.get_dest(),
+                    nodes,
+                    duration
+                );
+            }
         }
 
         println!("\nMoves per level:");

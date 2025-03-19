@@ -244,7 +244,6 @@ impl Board {
         };
         let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
         let opponent = self.sides[!self.side as usize];
-        let promo_rank = BitBoard::PROMO_RANKS[piece.colour() as usize];
         let forward = piece.colour().forward();
 
         match move_type {
@@ -318,11 +317,11 @@ impl Board {
             MoveKind::KnightPromotion
             | MoveKind::BishopPromotion
             | MoveKind::RookPromotion
-            | MoveKind::QueenPromotion => promo_rank.get_bit(dest) && !occupied.get_bit(dest),
+            | MoveKind::QueenPromotion => !occupied.get_bit(dest),
             MoveKind::KnightCapPromo
             | MoveKind::BishopCapPromo
             | MoveKind::RookCapPromo
-            | MoveKind::QueenCapPromo => promo_rank.get_bit(dest) && opponent.get_bit(dest),
+            | MoveKind::QueenCapPromo => opponent.get_bit(dest),
         }
     }
 
