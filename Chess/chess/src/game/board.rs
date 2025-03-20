@@ -233,7 +233,7 @@ impl Board {
         moves
     }
 
-    fn is_pseudo_legal(&self, m: Move) -> bool {
+    pub fn is_pseudo_legal(&self, m: Move) -> bool {
         let src = m.get_source();
         let dest = m.get_dest();
         let move_type = m.get_type();
@@ -367,9 +367,9 @@ impl Board {
         }
 
         let pawn_offsets = if attacker == Colour::White {
-            [[1, -1], [1, 1]]
-        } else {
             [[-1, -1], [-1, 1]]
+        } else {
+            [[1, -1], [1, 1]]
         };
         for &[dr, df] in &pawn_offsets {
             if let Some(src) = square.jump(dr, df) {
