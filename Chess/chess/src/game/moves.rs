@@ -118,6 +118,10 @@ impl MoveKind {
         self as usize & 0b0100 != 0
     }
 
+    pub const fn is_capture(self) -> bool {
+        self as usize & 0b1000 != 0
+    }
+
     pub const fn get_promotion(self, side: Colour) -> Piece {
         const PROMO_MASK: usize = 0b0011;
         const PROMO_PIECES: [[Piece; 4]; 2] = [

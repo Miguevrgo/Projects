@@ -28,16 +28,28 @@ impl Square {
 
     /// Creates a new square from an algebraic notation string (e.g., "e4").
     ///
-    /// # Panics
-    ///
-    /// Panics if the position string is not a valid chess square (e.g., "z9").
+    /// In debug mode, panics if the position string is not a valid chess square (e.g., "z9" or not exactly 2 characters).
+    /// In release mode, assumes the input is valid and does not perform checks for performance.
     pub fn from(pos: &str) -> Self {
-        Self::new(
-            Self::STR
-                .iter()
-                .position(|&coord| coord == pos)
-                .expect("Invalid algebraic notation"),
-        )
+        #[cfg(debug_assertions)]
+        {
+            if pos.len() != 2 {
+                panic!("Invalid algebraic notation: length must be 2");
+            }
+        }
+
+        let bytes = pos.as_bytes();
+        let col = bytes[0].wrapping_sub(b'a');
+        let row = bytes[1].wrapping_sub(b'1');
+
+        #[cfg(debug_assertions)]
+        {
+            if col > 7 || row > 7 {
+                panic!("Invalid algebraic notation: out of bounds");
+            }
+        }
+
+        Self::new((row * 8 + col) as usize)
     }
 
     /// Creates a new square from a 0-63 index.

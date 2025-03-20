@@ -40,14 +40,14 @@ impl Board {
         self.piece_map[square.index()]
     }
 
-    pub fn set_piece(&mut self, piece: Piece, square: Square) {
+    fn set_piece(&mut self, piece: Piece, square: Square) {
         let colour = piece.colour() as usize;
         self.sides[colour] = self.sides[colour].set_bit(square);
         self.pieces[piece.index()] = self.pieces[piece.index()].set_bit(square);
         self.piece_map[square.index()] = Some(piece);
     }
 
-    pub fn remove_piece(&mut self, square: Square) {
+    fn remove_piece(&mut self, square: Square) {
         let piece = self.piece_at(square).expect("No piece in position given");
         let colour = piece.colour() as usize;
 
@@ -122,57 +122,14 @@ impl Board {
                 self.set_piece(src_piece, dest);
                 self.set_piece(rook_piece, rook_dest);
             }
-            MoveKind::KnightPromotion
-            | MoveKind::BishopPromotion
-            | MoveKind::RookPromotion
-            | MoveKind::QueenPromotion => {
+            _ => {
+                #[cfg(debug_assertions)]
+                assert!(move_type.is_promotion(), "Expected a promotion move");
+                let promo_piece = move_type.get_promotion(src_piece.colour());
                 self.remove_piece(src);
-                let promo_piece = match move_type {
-                    MoveKind::QueenPromotion => match src_piece.colour() {
-                        Colour::White => Piece::WQ,
-                        Colour::Black => Piece::BQ,
-                    },
-                    MoveKind::RookPromotion => match src_piece.colour() {
-                        Colour::White => Piece::WR,
-                        Colour::Black => Piece::BR,
-                    },
-                    MoveKind::BishopPromotion => match src_piece.colour() {
-                        Colour::White => Piece::WB,
-                        Colour::Black => Piece::BB,
-                    },
-                    MoveKind::KnightPromotion => match src_piece.colour() {
-                        Colour::White => Piece::WN,
-                        Colour::Black => Piece::BN,
-                    },
-                    _ => unreachable!(),
-                };
-                self.set_piece(promo_piece, dest);
-            }
-            MoveKind::KnightCapPromo
-            | MoveKind::BishopCapPromo
-            | MoveKind::RookCapPromo
-            | MoveKind::QueenCapPromo => {
-                self.remove_piece(dest);
-                self.remove_piece(src);
-                let promo_piece = match move_type {
-                    MoveKind::QueenCapPromo => match src_piece.colour() {
-                        Colour::White => Piece::WQ,
-                        Colour::Black => Piece::BQ,
-                    },
-                    MoveKind::RookCapPromo => match src_piece.colour() {
-                        Colour::White => Piece::WR,
-                        Colour::Black => Piece::BR,
-                    },
-                    MoveKind::BishopCapPromo => match src_piece.colour() {
-                        Colour::White => Piece::WB,
-                        Colour::Black => Piece::BB,
-                    },
-                    MoveKind::KnightCapPromo => match src_piece.colour() {
-                        Colour::White => Piece::WN,
-                        Colour::Black => Piece::BN,
-                    },
-                    _ => unreachable!(),
-                };
+                if move_type.is_capture() {
+                    self.remove_piece(dest);
+                }
                 self.set_piece(promo_piece, dest);
             }
         }
@@ -180,7 +137,7 @@ impl Board {
         self.side = !self.side;
     }
 
-    pub fn occupied_squares(&self, colour: Colour) -> Vec<Square> {
+    fn occupied_squares(&self, colour: Colour) -> Vec<Square> {
         let mut squares = Vec::with_capacity(16);
         let mut bitboard = self.sides[colour as usize];
 
@@ -233,7 +190,7 @@ impl Board {
         moves
     }
 
-    pub fn is_pseudo_legal(&self, m: Move) -> bool {
+    fn is_pseudo_legal(&self, m: Move) -> bool {
         let src = m.get_source();
         let dest = m.get_dest();
         let move_type = m.get_type();

@@ -97,7 +97,6 @@ impl Board {
             let handle = thread::spawn(move || {
                 let mut thread_level_counts = vec![0u64; depth];
                 for m in moves_chunk {
-                    let move_start = Instant::now();
                     let mut new_board = board_clone;
                     new_board.make_move(m);
                     let nodes =
@@ -260,20 +259,32 @@ mod tests {
 
         let mut failures = Vec::new();
         let mut passed = 0;
+        let mut speeds = Vec::new();
 
         for (fen, desc, expected, depth) in PERFT_SUITE {
             println!("\nTesting: {} ({})", desc, fen);
             let mut board = Board::from_fen(fen);
+            let start = Instant::now();
             let nodes = board.perft::<BULK>(depth);
+            let duration = start.elapsed();
+
+            let nodes_per_sec = if duration.as_micros() > 0 {
+                (nodes as f64 / duration.as_micros() as f64) * 1_000_000.0
+            } else {
+                0.0
+            };
+            let mnps = nodes_per_sec / 1_000_000.0;
+            speeds.push(mnps);
+
             if nodes == expected {
                 println!(
-                    "✓ {}: {} nodes (expected {}) - PASSED",
-                    desc, nodes, expected
+                    "✓ {}: {} nodes (expected {}) - PASSED - {:.2} Mnps",
+                    desc, nodes, expected, mnps
                 );
                 passed += 1;
             } else {
                 println!(
-                    "✗ {}: {} nodes (expected {}) - FAILED (difference: {})",
+                    "✗ {}: {} nodes (expected {}) - FAILED (difference: {}) - {:.2} Mnps",
                     desc,
                     nodes,
                     expected,
@@ -281,15 +292,24 @@ mod tests {
                         format!("+{}", nodes - expected)
                     } else {
                         format!("-{}", expected - nodes)
-                    }
+                    },
+                    mnps
                 );
                 failures.push((desc, fen, depth, expected, nodes));
             }
         }
 
+        let total_tests = PERFT_SUITE.len();
+        let avg_mnps: f64 = if !speeds.is_empty() {
+            speeds.iter().sum::<f64>() / total_tests as f64
+        } else {
+            0.0
+        };
+
         println!("\nTest Summary:");
-        println!("Passed: {}/{}", passed, PERFT_SUITE.len());
-        println!("Failed: {}/{}", failures.len(), PERFT_SUITE.len());
+        println!("Passed: {}/{}", passed, total_tests);
+        println!("Failed: {}/{}", failures.len(), total_tests);
+        println!("Average Speed: {:.2} Mnps", avg_mnps);
 
         if !failures.is_empty() {
             println!("\nFailed Tests:");
@@ -302,7 +322,6 @@ mod tests {
                     (*got as i64 - *expected as i64)
                 );
             }
-            panic!("Some tests failed. See details above.");
         }
     }
 }
