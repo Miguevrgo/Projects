@@ -71,12 +71,12 @@ impl Board {
             return 0;
         }
 
-        const NUM_THREADS: usize = 12;
+        const NUM_THREADS: usize = 16;
         let moves_per_thread = moves.len().div_ceil(NUM_THREADS);
 
         let (tx, rx): (
-            Sender<(Move, u64, f64, Vec<u64>)>,
-            Receiver<(Move, u64, f64, Vec<u64>)>,
+            Sender<(Move, u64, Vec<u64>)>,
+            Receiver<(Move, u64, Vec<u64>)>,
         ) = channel();
         let mut handles = Vec::new();
         let mut total_level_counts = vec![0u64; depth];
@@ -102,9 +102,8 @@ impl Board {
                     new_board.make_move(m);
                     let nodes =
                         new_board.perft_driver::<BULK_COUNT>(depth - 1, &mut thread_level_counts);
-                    let duration = move_start.elapsed().as_secs_f64();
                     tx_clone
-                        .send((m, nodes, duration, thread_level_counts.clone()))
+                        .send((m, nodes, thread_level_counts.clone()))
                         .expect("Failed to send result");
                     thread_level_counts = vec![0u64; depth];
                 }
@@ -115,8 +114,8 @@ impl Board {
         drop(tx);
 
         let mut results = Vec::new();
-        while let Ok((m, nodes, duration, thread_counts)) = rx.recv() {
-            results.push((m, nodes, duration));
+        while let Ok((m, nodes, thread_counts)) = rx.recv() {
+            results.push((m, nodes));
             for (i, &count) in thread_counts.iter().enumerate() {
                 total_level_counts[i] += count;
             }
@@ -128,12 +127,12 @@ impl Board {
 
         total_level_counts[0] = moves.len() as u64;
 
-        let total_nodes: u64 = results.iter().map(|(_, nodes, _)| nodes).sum();
+        let total_nodes: u64 = results.iter().map(|(_, nodes)| nodes).sum();
         let total_duration = start.elapsed();
 
         #[cfg(debug_assertions)]
         {
-            for (m, nodes, duration) in &results {
+            for (m, nodes) in &results {
                 println!("{}{}: {}", m.get_source(), m.get_dest(), nodes);
             }
         }

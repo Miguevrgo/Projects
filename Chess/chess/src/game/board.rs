@@ -224,7 +224,7 @@ impl Board {
                 let mut new_board = *self;
                 new_board.make_move(m);
 
-                if !new_board.is_in_check(side) {
+                if !new_board.is_attacked_by(new_board.king_square(side), !side) {
                     moves.push(m);
                 }
             }
@@ -367,9 +367,9 @@ impl Board {
         }
 
         let pawn_offsets = if attacker == Colour::White {
-            [[-1, -1], [-1, 1]]
+            [[-1, -1], [1, -1]]
         } else {
-            [[1, -1], [1, 1]]
+            [[-1, 1], [1, 1]]
         };
         for &[dr, df] in &pawn_offsets {
             if let Some(src) = square.jump(dr, df) {
@@ -410,14 +410,6 @@ impl Board {
         }
 
         false
-    }
-
-    pub fn is_in_check(&self, colour: Colour) -> bool {
-        let king_sq = self.king_square(colour);
-        let opponent_moves = self.generate_pseudo_moves(!colour);
-        opponent_moves
-            .iter()
-            .any(|m| m.get_dest() == king_sq && self.is_pseudo_legal(*m))
     }
 
     pub fn king_square(&self, colour: Colour) -> Square {

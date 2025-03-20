@@ -1,6 +1,0 @@
-Test Summary:
-Passed: 15/16
-Failed: 1/16
-
-Failed Tests:
-- Kiwipete expected=193690690, got=193696371, diff=5681

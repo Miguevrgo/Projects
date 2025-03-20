@@ -73,11 +73,11 @@ impl Square {
     /// Attempts to move the square by the given file and rank deltas.
     ///
     /// Returns `None` if the resulting position is off the board.
-    /// With LSB = a1, positive `rank_delta` moves up (e.g., a2 to a3),
-    /// and positive `file_delta` moves right (e.g., a2 to b2).
-    pub fn jump(self, file_delta: i8, rank_delta: i8) -> Option<Self> {
-        let file = (self.0 % 8) as i8 + file_delta;
-        let rank = (self.0 / 8) as i8 + rank_delta;
+    /// With LSB = a1, positive `file_delta` moves up (e.g., a2 to a3),
+    /// and positive `rank_delta` moves right (e.g., a2 to b2).
+    pub fn jump(self, rank_delta: i8, file_delta: i8) -> Option<Self> {
+        let file = (self.0 % 8) as i8 + rank_delta;
+        let rank = (self.0 / 8) as i8 + file_delta;
         if (0..8).contains(&file) && (0..8).contains(&rank) {
             Some(Self((rank * 8 + file) as u8))
         } else {
