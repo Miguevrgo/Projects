@@ -32,12 +32,6 @@ pub fn perft_with_moves(board: &mut Board, depth: usize) -> u64 {
     total
 }
 
-fn main() {
-    let mut board =
-        Board::from_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-    let nodes = perft_with_moves(&mut board, 2);
-    println!("Total nodes at depth 2: {}", nodes);
-}
 impl Board {
     fn perft_driver<const BULK_COUNT: bool>(
         &mut self,

@@ -367,9 +367,9 @@ impl Board {
         }
 
         let pawn_offsets = if attacker == Colour::White {
-            [[-1, -1], [-1, 1]]
-        } else {
             [[1, -1], [1, 1]]
+        } else {
+            [[-1, -1], [-1, 1]]
         };
         for &[dr, df] in &pawn_offsets {
             if let Some(src) = square.jump(dr, df) {
