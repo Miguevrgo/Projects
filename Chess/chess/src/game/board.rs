@@ -8,10 +8,10 @@ use crate::game::{
 
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
-    pieces: [BitBoard; 6],
+    pub pieces: [BitBoard; 6],
     pub sides: [BitBoard; 2],
 
-    piece_map: [Option<Piece>; Square::COUNT],
+    pub piece_map: [Option<Piece>; Square::COUNT],
 
     pub side: Colour,
     pub castling_rights: CastlingRights,

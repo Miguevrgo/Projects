@@ -1,7 +1,7 @@
-use crate::game::board::Board;
 use crate::game::piece::Colour;
 use crate::game::square::Square;
 use crate::uci::direction::Direction;
+use crate::{engine::evaluation::evaluate, game::board::Board};
 use std::time::{Duration, Instant};
 
 /// Represents an interactive chess game with a cursor and time control.
@@ -210,5 +210,6 @@ impl Game {
             self.black_time.as_secs() % 60,
             self.increment.as_secs()
         );
+        println!("Eval: {}", evaluate(&self.board));
     }
 }
