@@ -7,6 +7,7 @@ use crate::game::moves::Move;
 
 pub const BULK: bool = true;
 pub const NO_BULK: bool = false;
+pub const NUM_THREADS: usize = 16;
 
 pub fn perft_with_moves(board: &mut Board, depth: usize) -> u64 {
     if depth == 0 {
@@ -71,7 +72,6 @@ impl Board {
             return 0;
         }
 
-        const NUM_THREADS: usize = 16;
         let moves_per_thread = moves.len().div_ceil(NUM_THREADS);
 
         let (tx, rx): (

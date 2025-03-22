@@ -136,7 +136,25 @@ pub fn evaluate(board: &Board) -> i32 {
                 -(material + pst_value)
             };
         }
-        occupied_bb.0 &= occupied_bb.0 - 1;
+        occupied_bb = occupied_bb.pop_bit(occupied_bb.lsb());
+    }
+
+    for m in legal_moves {
+        let mut new_board = *board;
+        new_board.make_move(m);
+        let king_square = new_board.king_square(!board.side);
+        if new_board.is_attacked_by(king_square, board.side) {
+            score += if board.side == Colour::White { 50 } else { -50 };
+        }
+    }
+
+    let white_king = board.king_square(Colour::White);
+    let black_king = board.king_square(Colour::Black);
+    if board.is_attacked_by(white_king, Colour::Black) {
+        score -= 20;
+    }
+    if board.is_attacked_by(black_king, Colour::White) {
+        score += 20;
     }
 
     if board.side == Colour::White {

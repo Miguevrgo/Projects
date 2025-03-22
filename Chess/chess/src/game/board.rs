@@ -33,7 +33,7 @@ impl Board {
     }
 
     pub fn default() -> Self {
-        Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+        Self::from_fen("8/8/3k4/8/5q2/8/8/4K3 w - - 0 1")
     }
 
     pub fn piece_at(&self, square: Square) -> Option<Piece> {

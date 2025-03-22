@@ -1,3 +1,4 @@
+use crate::engine::search::MinimaxEngine;
 use crate::game::piece::Colour;
 use crate::game::square::Square;
 use crate::uci::direction::Direction;
@@ -9,7 +10,7 @@ use std::time::{Duration, Instant};
 /// This struct manages the game state, including the board, cursor position,
 /// selected square, player times, and game outcome. It supports time increments
 /// per move and provides methods for gameplay and rendering.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Game {
     board: Board,             // Current state of the chessboard
     cursor: Square,           // Position of the cursor for piece selection/movement
@@ -20,6 +21,8 @@ pub struct Game {
     last_update: Instant,     // Timestamp of the last clock update
     winner: Option<Colour>,   // Winner of the game, if any; `None` indicates a draw
     end_game: bool,           // Whether the game has ended
+    ai_search: MinimaxEngine, // Engine
+    log: Vec<u64>,
 }
 
 impl Game {
@@ -35,9 +38,15 @@ impl Game {
     /// ```
     /// let game = Game::new(600, 5); // 10 minutes + 5 seconds/move
     /// ```
-    pub fn new(initial_time_secs: u64, increment_secs: u64) -> Self {
+    pub fn new(
+        initial_time_secs: u64,
+        increment_secs: u64,
+        ai_side: Option<Colour>,
+        depth: usize,
+    ) -> Self {
         let initial_time = Duration::from_secs(initial_time_secs);
         let increment = Duration::from_secs(increment_secs);
+        let ai_colour = ai_side.unwrap_or(Colour::Black);
         Game {
             board: Board::default(),
             cursor: Square::from("e2"),
@@ -48,11 +57,12 @@ impl Game {
             last_update: Instant::now(),
             winner: None,
             end_game: false,
+            ai_search: MinimaxEngine::new(depth, ai_colour),
+            log: Vec::new(),
         }
     }
 
-    /// Runs the main game loop until the game ends or a player pauses.
-    pub fn play(&mut self) {
+    pub fn play(&mut self, human_side: Option<Colour>) {
         while !self.end_game {
             if self.black_time <= Duration::ZERO {
                 self.end_game = true;
@@ -62,12 +72,29 @@ impl Game {
                 self.winner = Some(Colour::Black);
             }
             self.draw();
-            if let Some(direction) = Direction::input_key() {
-                self.process_input(direction);
-            } else {
-                break; // Pause or exit
+
+            match human_side {
+                Some(human_colour) => {
+                    if self.board.side == human_colour {
+                        if let Some(direction) = Direction::input_key() {
+                            self.process_input(direction);
+                        } else {
+                            break;
+                        }
+                    } else {
+                        self.engine_move();
+                    }
+                }
+                None => {
+                    if let Some(direction) = Direction::input_key() {
+                        self.process_input(direction);
+                    } else {
+                        break;
+                    }
+                }
             }
         }
+        self.draw();
         println!(
             "Game over! Result: {}",
             match self.winner {
@@ -76,6 +103,33 @@ impl Game {
                 None => "Draw",
             }
         );
+    }
+
+    fn board_hash(&self) -> u64 {
+        let mut hash = 0u64;
+        for row in 0..8 {
+            for col in 0..8 {
+                let square = Square::from_row_col(row, col);
+                if let Some(piece) = self.board.piece_at(square) {
+                    hash ^= (piece as u64) << ((row * 8 + col) % 64);
+                }
+            }
+        }
+        hash ^= self.board.side as u64;
+        hash
+    }
+
+    fn engine_move(&mut self) {
+        let (score, best_move) = self.ai_search.find_best_move(&mut self.board);
+        self.board.make_move(best_move);
+        self.update_time();
+        if self.board.side == Colour::Black {
+            self.white_time = self.white_time.saturating_add(self.increment);
+        } else {
+            self.black_time = self.black_time.saturating_add(self.increment);
+        }
+        self.log.push(self.board_hash());
+        self.check_game_end();
     }
 
     // Updates the time for the current player based on elapsed time since last update
@@ -105,38 +159,51 @@ impl Game {
         if let Some(src) = self.selected {
             let dest = self.cursor;
             let legal_moves = self.board.generate_legal_moves();
-
             let move_candidate = legal_moves
                 .iter()
                 .find(|m| m.get_source() == src && m.get_dest() == dest);
 
             if let Some(&m) = move_candidate {
                 self.board.make_move(m);
-                if self.board.generate_legal_moves().is_empty() {
-                    if self
-                        .board
-                        .is_attacked_by(self.board.king_square(self.board.side), !self.board.side)
-                    {
-                        self.winner = Some(!self.board.side);
-                    }
-                    self.end_game = true;
-                }
-                if self.board.halfmoves >= 100 {
-                    self.end_game = true
-                }
-
                 self.update_time();
-                self.selected = None;
-
                 if self.board.side == Colour::Black {
                     self.white_time = self.white_time.saturating_add(self.increment);
                 } else {
                     self.black_time = self.black_time.saturating_add(self.increment);
                 }
+                self.log.push(self.board_hash());
+                self.check_game_end();
             }
+            self.selected = None;
         }
     }
 
+    fn check_game_end(&mut self) {
+        if self.board.generate_legal_moves().is_empty() {
+            if self
+                .board
+                .is_attacked_by(self.board.king_square(self.board.side), !self.board.side)
+            {
+                self.winner = Some(!self.board.side);
+            }
+            self.end_game = true;
+        }
+        if self.board.halfmoves >= 100 {
+            self.end_game = true;
+        }
+
+        let current_hash = self.board_hash();
+        let mut count = 0;
+        for &past_hash in self.log.iter().rev() {
+            if past_hash == current_hash {
+                count += 1;
+                if count >= 3 {
+                    self.end_game = true;
+                    return;
+                }
+            }
+        }
+    }
     /// Processes a user input direction and updates the game state.
     pub fn process_input(&mut self, direction: Direction) {
         self.update_time();
