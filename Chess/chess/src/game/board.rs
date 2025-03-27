@@ -155,7 +155,7 @@ impl Board {
     }
 
     fn generate_pseudo_moves(&self, side: Colour) -> Vec<Move> {
-        let mut moves = Vec::new();
+        let mut moves = Vec::with_capacity(64);
 
         for src in self.occupied_squares(side) {
             let piece = self.piece_at(src).unwrap();
