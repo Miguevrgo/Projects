@@ -26,7 +26,7 @@ const ROOK_DIRECTIONS: [(i8, i8); 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
 /// bits [6-11]: Destination square (2^6 = 64 possible positions)
 /// bits [12-13]: Promotion piece type (Knight|Rook|Queen|Bishop)
 /// bits [14-15]: If the move is a promotion, an en passant move or castling
-#[derive(PartialEq, Eq, PartialOrd, Clone, Copy, Debug, Default, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Clone, Copy, Debug, Default, Hash, Ord)]
 pub struct Move(pub u16);
 
 const SRC: u16 = 0b0000_0000_0011_1111;

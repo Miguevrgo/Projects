@@ -14,7 +14,57 @@ impl MinimaxEngine {
     }
 
     pub fn find_best_move(&self, board: &mut Board) -> (i32, Move) {
-        (0, Move::default())
+        let moves = board.generate_legal_moves();
+        if moves.is_empty() {
+            return (evaluate(board), Move::default());
+        }
+
+        let mut moves_with_scores: Vec<(Move, i32)> = moves
+            .into_iter()
+            .map(|m| (m, move_score(&m, board)))
+            .collect();
+        moves_with_scores.sort_by_key(|&(_, score)| std::cmp::Reverse(score));
+
+        let mut handles = Vec::new();
+        let mut results = Vec::new();
+
+        for (m, _) in moves_with_scores {
+            let board_clone = *board;
+            let depth = self.depth;
+            let colour = self.colour;
+
+            let handle = thread::spawn(move || {
+                let mut new_board = board_clone;
+                new_board.make_move(m);
+                let eval = -MinimaxEngine::new(depth - 1, colour).alpha_beta(
+                    &new_board,
+                    depth - 1,
+                    i32::MIN,
+                    i32::MAX,
+                    !colour,
+                );
+
+                (eval, m)
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            let result = handle.join().unwrap();
+            results.push(result);
+        }
+
+        if self.colour == Colour::White {
+            results
+                .into_iter()
+                .max_by_key(|&(_, eval)| eval)
+                .unwrap_or((0, Move::default()))
+        } else {
+            results
+                .into_iter()
+                .min_by_key(|&(_, eval)| eval)
+                .unwrap_or((0, Move::default()))
+        }
     }
 
     fn alpha_beta(
@@ -26,7 +76,7 @@ impl MinimaxEngine {
         turn: Colour,
     ) -> i32 {
         if depth == 0 || board.generate_legal_moves().is_empty() {
-            evaluate(board);
+            return evaluate(board);
         }
 
         let mut moves = board.generate_legal_moves();

@@ -1,7 +1,5 @@
 use crate::game::bitboard::BitBoard;
 
-use super::square::Square;
-
 pub const KNIGHT_ATTACKS: [BitBoard; 64] = [
     BitBoard(0x0000000000020400), // a1
     BitBoard(0x0000000000050800), // b1
@@ -156,7 +154,7 @@ fn line_attacks(occ: u64, mask: &SMasks) -> u64 {
     let lower: u64 = mask.lower & occ;
     let upper: u64 = mask.upper & occ;
     let ms1_b = 0x8000000000000000 >> (lower | 1).leading_zeros();
-    let odiff = upper ^ (upper - ms1_b);
+    let odiff = upper ^ upper.wrapping_sub(ms1_b);
     mask.line_ex & odiff
 }
 
@@ -168,7 +166,7 @@ pub fn bishop_attacks(occ: u64, sq: usize) -> BitBoard {
     BitBoard(line_attacks(occ, &MASKS[sq][2]) | line_attacks(occ, &MASKS[sq][3]))
 }
 
-pub const MASKS: [[SMasks; 4]; 64] = [
+const MASKS: [[SMasks; 4]; 64] = [
     [
         SMasks::new(0x0000000000000000, 0x00000000000000fe),
         SMasks::new(0x0000000000000000, 0x0101010101010100),
