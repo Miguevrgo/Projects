@@ -1,5 +1,5 @@
 use super::{
-    constants::{KING_ATTACKS, KNIGHT_ATTACKS},
+    constants::{bishop_attacks, rook_attacks, KING_ATTACKS, KNIGHT_ATTACKS},
     moves::MoveKind,
     square::Square,
 };
@@ -300,6 +300,20 @@ impl Board {
             return true;
         }
 
+        // Rooks
+        let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
+        let rook_attackers = self.pieces[Piece::WR.index()] | self.pieces[Piece::WQ.index()];
+        if rook_attacks(occupied.0, idx) & rook_attackers & enemy_side != BitBoard::EMPTY {
+            return true;
+        }
+
+        // Bishop
+        let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
+        let bishop_attackers = self.pieces[Piece::WB.index()] | self.pieces[Piece::WQ.index()];
+        if bishop_attacks(occupied.0, idx) & bishop_attackers & enemy_side != BitBoard::EMPTY {
+            return true;
+        }
+
         // Pawns
         let pawn_offsets = if attacker == Colour::White {
             [[-1, -1], [1, -1]]
@@ -313,35 +327,6 @@ impl Board {
                         return true;
                     }
                 }
-            }
-        }
-
-        //TODO: Change to Obstruction
-        let rook_directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-        for &[dr, df] in &rook_directions {
-            let mut dest = square;
-            while let Some(next) = dest.jump(dr, df) {
-                if let Some(piece) = self.piece_at(next) {
-                    if piece.colour() == attacker && (piece.is_rook() || piece.is_queen()) {
-                        return true;
-                    }
-                    break;
-                }
-                dest = next;
-            }
-        }
-
-        let bishop_directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-        for &[dr, df] in &bishop_directions {
-            let mut dest = square;
-            while let Some(next) = dest.jump(dr, df) {
-                if let Some(piece) = self.piece_at(next) {
-                    if piece.colour() == attacker && (piece.is_bishop() || piece.is_queen()) {
-                        return true;
-                    }
-                    break;
-                }
-                dest = next;
             }
         }
 
