@@ -1,6 +1,12 @@
 use super::evaluation::evaluate;
+use crate::engine::evaluation::PIECE_VALUES;
+use crate::game::moves::MoveKind;
 use crate::game::{board::Board, moves::Move, piece::Colour};
+use std::sync::mpsc;
 use std::thread;
+
+const INF: i32 = 1000000;
+const MATE: i32 = 100000;
 
 #[derive(Debug)]
 pub struct MinimaxEngine {
@@ -13,7 +19,7 @@ impl MinimaxEngine {
         MinimaxEngine { depth, colour }
     }
 
-    pub fn find_best_move(&self, board: &mut Board) -> (i32, Move) {
+    pub fn find_best_move(&self, board: &Board) -> (i32, Move) {
         let moves = board.generate_legal_moves();
         if moves.is_empty() {
             return (evaluate(board), Move::default());
@@ -21,116 +27,126 @@ impl MinimaxEngine {
 
         let mut moves_with_scores: Vec<(Move, i32)> = moves
             .into_iter()
-            .map(|m| (m, move_score(&m, board)))
+            .map(|m| (m, self.move_score(&m, board)))
             .collect();
         moves_with_scores.sort_by_key(|&(_, score)| std::cmp::Reverse(score));
 
-        let mut handles = Vec::new();
-        let mut results = Vec::new();
+        let (tx, rx) = mpsc::channel();
+        let mut handles = vec![];
 
         for (m, _) in moves_with_scores {
             let board_clone = *board;
+            let tx_clone = tx.clone();
             let depth = self.depth;
             let colour = self.colour;
 
             let handle = thread::spawn(move || {
                 let mut new_board = board_clone;
                 new_board.make_move(m);
-                let eval = -MinimaxEngine::new(depth - 1, colour).alpha_beta(
-                    &new_board,
+                let eval = -MinimaxEngine::new(depth - 1, colour).negamax(
+                    &mut new_board,
                     depth - 1,
-                    i32::MIN,
-                    i32::MAX,
+                    -INF,
+                    INF,
                     !colour,
                 );
-
-                (eval, m)
+                tx_clone.send((eval, m)).unwrap();
             });
             handles.push(handle);
         }
 
+        let mut results = vec![];
+        for _ in 0..handles.len() {
+            results.push(rx.recv().unwrap());
+        }
+
         for handle in handles {
-            let result = handle.join().unwrap();
-            results.push(result);
+            handle.join().unwrap();
         }
 
         if self.colour == Colour::White {
-            results
-                .into_iter()
-                .max_by_key(|&(_, eval)| eval)
-                .unwrap_or((0, Move::default()))
+            results.into_iter().max_by_key(|&(eval, _)| eval)
         } else {
-            results
-                .into_iter()
-                .min_by_key(|&(_, eval)| eval)
-                .unwrap_or((0, Move::default()))
+            results.into_iter().min_by_key(|&(eval, _)| eval)
         }
+        .unwrap_or((0, Move::default()))
     }
 
-    fn alpha_beta(
+    fn negamax(
         &self,
-        board: &Board,
+        board: &mut Board,
         depth: usize,
         mut alpha: i32,
-        mut beta: i32,
+        beta: i32,
         turn: Colour,
     ) -> i32 {
-        if depth == 0 || board.generate_legal_moves().is_empty() {
+        if depth == 0 {
             return evaluate(board);
         }
 
-        let mut moves = board.generate_legal_moves();
-        moves.sort_by_key(|b| std::cmp::Reverse(move_score(b, board)));
-
-        if turn == Colour::White {
-            let mut max_eval = i32::MIN;
-            for m in &moves {
-                let mut new_board = *board;
-                new_board.make_move(*m);
-                let eval = self.alpha_beta(&mut new_board, depth - 1, alpha, beta, Colour::Black);
-                max_eval = max_eval.max(eval);
-                alpha = alpha.max(eval);
-                if beta <= alpha {
-                    break;
-                }
-            }
-            max_eval
-        } else {
-            let mut min_eval = i32::MAX;
-            for m in &moves {
-                let mut new_board = *board;
-                new_board.make_move(*m);
-                let eval = self.alpha_beta(&mut new_board, depth - 1, alpha, beta, Colour::White);
-                min_eval = min_eval.min(eval);
-                beta = beta.min(eval);
-                if beta <= alpha {
-                    break;
-                }
-            }
-            min_eval
+        let moves = board.generate_legal_moves();
+        if moves.is_empty() {
+            let king_square = board.king_square(turn);
+            return if board.is_attacked_by(king_square, !turn) {
+                -MATE + (self.depth - depth) as i32
+            } else {
+                0 // Draw
+            };
         }
-    }
-}
 
-fn move_score(m: &Move, board: &Board) -> i32 {
-    let mut score = match m.get_type() {
-        crate::game::moves::MoveKind::Castle => 300,
-        crate::game::moves::MoveKind::Capture => 500,
-        crate::game::moves::MoveKind::QueenCapPromo => 1200,
-        crate::game::moves::MoveKind::RookCapPromo => 900,
-        crate::game::moves::MoveKind::BishopCapPromo => 600,
-        crate::game::moves::MoveKind::KnightCapPromo => 600,
-        crate::game::moves::MoveKind::QueenPromotion => 1000,
-        crate::game::moves::MoveKind::RookPromotion => 800,
-        crate::game::moves::MoveKind::KnightPromotion => 500,
-        crate::game::moves::MoveKind::BishopPromotion => 500,
-        _ => 0,
-    };
-    let mut new_board = *board;
-    new_board.make_move(*m);
-    if new_board.is_attacked_by(new_board.king_square(!new_board.side), new_board.side) {
-        score += 300;
+        let mut moves_with_scores: Vec<(Move, i32)> = moves
+            .into_iter()
+            .map(|m| (m, self.move_score(&m, board)))
+            .collect();
+        moves_with_scores.sort_by_key(|&(_, score)| std::cmp::Reverse(score));
+
+        let mut max_score = -INF;
+        for (m, _) in moves_with_scores {
+            let mut new_board = *board;
+            new_board.make_move(m);
+            let score = -self.negamax(&mut new_board, depth - 1, -beta, -alpha, !turn);
+
+            if score > max_score {
+                max_score = score;
+            }
+
+            if score > alpha {
+                alpha = score;
+            }
+
+            if alpha >= beta {
+                break; // Beta cutoff
+            }
+        }
+
+        max_score
     }
 
-    score
+    fn move_score(&self, m: &Move, board: &Board) -> i32 {
+        let mut score = 0;
+
+        if m.get_type().is_capture() {
+            let src_piece = board.piece_at(m.get_source()).unwrap();
+            let dest_piece = board.piece_at(m.get_dest());
+
+            if let Some(dest_piece) = dest_piece {
+                score += 10 * PIECE_VALUES[dest_piece.index()] - PIECE_VALUES[src_piece.index()];
+            } else if m.get_type() == MoveKind::EnPassant {
+                score += PIECE_VALUES[0];
+            }
+        }
+
+        if m.get_type().is_promotion() {
+            let promo_piece = m.get_type().get_promotion(board.side);
+            score += PIECE_VALUES[promo_piece.index()];
+        }
+
+        let mut new_board = *board;
+        new_board.make_move(*m);
+        if new_board.is_attacked_by(new_board.king_square(!board.side), board.side) {
+            score += 50;
+        }
+
+        score
+    }
 }
