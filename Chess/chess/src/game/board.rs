@@ -1,4 +1,8 @@
-use super::{moves::MoveKind, square::Square};
+use super::{
+    constants::{KING_ATTACKS, KNIGHT_ATTACKS},
+    moves::MoveKind,
+    square::Square,
+};
 use crate::game::{
     bitboard::BitBoard,
     castle::CastlingRights,
@@ -33,7 +37,7 @@ impl Board {
     }
 
     pub fn default() -> Self {
-        Self::from_fen("8/8/3k4/8/5q2/8/8/4K3 w - - 0 1")
+        Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     }
 
     pub fn piece_at(&self, square: Square) -> Option<Piece> {
@@ -195,10 +199,7 @@ impl Board {
         let dest = m.get_dest();
         let move_type = m.get_type();
 
-        let piece = match self.piece_at(src) {
-            Some(p) if p.colour() == self.side => p,
-            _ => return false,
-        };
+        let piece = self.piece_at(src).unwrap();
         let occupied = self.sides[Colour::White as usize] | self.sides[Colour::Black as usize];
         let opponent = self.sides[!self.side as usize];
         let forward = piece.colour().forward();
@@ -282,47 +283,24 @@ impl Board {
         }
     }
 
+    /// Returns whether the given square is attacked by the given side or not,
+    /// it uses sliding for bishop-queen and pawn, Obstruction difference with Infuehr improvement
+    /// and precalculated bitboards for Knights and Kings
     pub fn is_attacked_by(&self, square: Square, attacker: Colour) -> bool {
-        let knight_offsets = [
-            [-2, -1],
-            [-2, 1],
-            [-1, -2],
-            [-1, 2],
-            [1, -2],
-            [1, 2],
-            [2, -1],
-            [2, 1],
-        ];
-        for &[dr, df] in &knight_offsets {
-            if let Some(src) = square.jump(dr, df) {
-                if let Some(piece) = self.piece_at(src) {
-                    if piece.colour() == attacker && piece.is_knight() {
-                        return true;
-                    }
-                }
-            }
+        let idx = square.index();
+        let enemy_side = self.sides[attacker as usize];
+
+        // Knights
+        if KNIGHT_ATTACKS[idx] & self.pieces[Piece::WN.index()] & enemy_side != BitBoard::EMPTY {
+            return true;
         }
 
-        let king_offsets = [
-            [-1, -1],
-            [-1, 0],
-            [-1, 1],
-            [0, -1],
-            [0, 1],
-            [1, -1],
-            [1, 0],
-            [1, 1],
-        ];
-        for &[dr, df] in &king_offsets {
-            if let Some(src) = square.jump(dr, df) {
-                if let Some(piece) = self.piece_at(src) {
-                    if piece.colour() == attacker && piece.is_king() {
-                        return true;
-                    }
-                }
-            }
+        // Kings
+        if KING_ATTACKS[idx] & self.pieces[Piece::WK.index()] & enemy_side != BitBoard::EMPTY {
+            return true;
         }
 
+        // Pawns
         let pawn_offsets = if attacker == Colour::White {
             [[-1, -1], [1, -1]]
         } else {
@@ -338,6 +316,7 @@ impl Board {
             }
         }
 
+        //TODO: Change to Obstruction
         let rook_directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
         for &[dr, df] in &rook_directions {
             let mut dest = square;

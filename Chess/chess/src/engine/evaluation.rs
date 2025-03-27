@@ -103,7 +103,6 @@ pub fn evaluate(board: &Board) -> i32 {
     let mut score = 0;
 
     let occupied = board.sides[Colour::White as usize] | board.sides[Colour::Black as usize];
-    let game_phase = if occupied.count_bits() < 16 { 1 } else { 0 };
 
     let mut occupied_bb = occupied;
     while occupied_bb != BitBoard::EMPTY {
@@ -118,7 +117,8 @@ pub fn evaluate(board: &Board) -> i32 {
                 Piece::WK | Piece::BK => 5, // King
             };
             let (midgame_value, endgame_value) = PIECE_VALUES[piece_idx];
-            let material = if game_phase == 0 {
+            //TODO
+            let material = if board.halfmoves > 50 {
                 midgame_value
             } else {
                 endgame_value

@@ -1,7 +1,6 @@
 use crate::game::bitboard::BitBoard;
 
 /// Represents a square on a chessboard using a 0-63 index (a1 = 0, h8 = 63).
-/// Represents a square on a chessboard using a 0-63 index (a1 = 0, h8 = 63).
 ///
 /// The square is stored as a `u8` where the least significant bit (LSB) corresponds to a1.
 /// This struct provides methods for converting between algebraic notation (e.g., "e4"),
@@ -53,7 +52,7 @@ impl Square {
     }
 
     /// Creates a new square from a 0-63 index.
-    pub fn new(index: usize) -> Self {
+    pub const fn new(index: usize) -> Self {
         Self(index as u8)
     }
 
