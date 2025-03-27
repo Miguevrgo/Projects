@@ -28,7 +28,7 @@ These are the main languages I use or I want to use:
 ## Projects
 * [Spell-Checker](Spell-Checker) ✅
 * [Tree](Tree) ✅
-* [RidMaze](RidMaze) ✅
+* [RidMaze](Ridmaze) ✅
 * [EzGit](EzGit) ✅
 * [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ✅
