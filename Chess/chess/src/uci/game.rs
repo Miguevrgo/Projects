@@ -120,7 +120,7 @@ impl Game {
     }
 
     fn engine_move(&mut self) {
-        let (score, best_move) = self.ai_search.find_best_move(&mut self.board);
+        let (_, best_move) = self.ai_search.find_best_move(&self.board);
         self.board.make_move(best_move);
         self.update_time();
         if self.board.side == Colour::Black {
@@ -228,7 +228,6 @@ impl Game {
     /// Draws the game board with cursor, selection, and metadata.
     pub fn draw(&self) {
         print!("\x1B[2J\x1B[1;1H");
-        println!("\r  a b c d e f g h\r");
         println!(" ┌────────────────┐\r");
 
         for row in (0..8).rev() {
@@ -264,6 +263,7 @@ impl Game {
         }
 
         println!(" └────────────────┘\r");
+        println!("\r  a b c d e f g h\r");
         println!(
             "Turn: {} \n\rWhite Time: {:02.0}:{:02.0} | Black Time: {:02.0}:{:02.0} | Increment: {}s",
             if self.board.side == Colour::White {

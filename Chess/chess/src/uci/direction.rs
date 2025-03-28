@@ -21,10 +21,10 @@ impl Direction {
             if let Ok(Event::Key(event)) = event::read() {
                 disable_raw_mode().unwrap();
                 match event.code {
-                    KeyCode::Char('h') => return Some(Direction::Left),
-                    KeyCode::Char('j') => return Some(Direction::Down),
-                    KeyCode::Char('k') => return Some(Direction::Up),
-                    KeyCode::Char('l') => return Some(Direction::Right),
+                    KeyCode::Char('h') | KeyCode::Left => return Some(Direction::Left),
+                    KeyCode::Char('j') | KeyCode::Down => return Some(Direction::Down),
+                    KeyCode::Char('k') | KeyCode::Up => return Some(Direction::Up),
+                    KeyCode::Char('l') | KeyCode::Right => return Some(Direction::Right),
                     KeyCode::Enter => return Some(Direction::Select),
                     KeyCode::Esc => return None, // Pause game
                     _ => continue,
