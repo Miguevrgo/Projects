@@ -78,9 +78,7 @@ impl Board {
             } else {
                 self.castling_rights.0 &= !(CastlingRights::BK | CastlingRights::BQ);
             }
-        }
-
-        if src_piece.is_rook() {
+        } else if src_piece.is_rook() {
             match (src_piece.colour(), src.index()) {
                 (Colour::White, 0) => self.castling_rights.0 &= !CastlingRights::WQ, // a1
                 (Colour::White, 7) => self.castling_rights.0 &= !CastlingRights::WK, // h1
@@ -141,34 +139,64 @@ impl Board {
         self.side = !self.side;
     }
 
-    fn occupied_squares(&self, colour: Colour) -> Vec<Square> {
-        let mut squares = Vec::with_capacity(16);
-        let mut bitboard = self.sides[colour as usize];
-
-        while bitboard != BitBoard::EMPTY {
-            let square = bitboard.lsb();
-            squares.push(square);
-            bitboard = bitboard.pop_bit(square);
-        }
-
-        squares
-    }
-
     fn generate_pseudo_moves(&self, side: Colour) -> Vec<Move> {
         let mut moves = Vec::with_capacity(64);
+        let side_idx = side as usize;
 
-        for src in self.occupied_squares(side) {
-            let piece = self.piece_at(src).unwrap();
-            let pseudo_moves = match piece {
-                Piece::WP | Piece::BP => all_pawn_moves(src, piece, self),
-                Piece::WN | Piece::BN => all_knight_moves(src),
-                Piece::WB | Piece::BB => all_bishop_moves(src, self),
-                Piece::WR | Piece::BR => all_rook_moves(src, self),
-                Piece::WQ | Piece::BQ => all_queen_moves(src, self),
-                Piece::WK | Piece::BK => all_king_moves(src),
-            };
+        // Pawn moves
+        let mut pawn_bb = self.pieces[Piece::WP.index()] & self.sides[side_idx];
+        while pawn_bb != BitBoard::EMPTY {
+            let src = pawn_bb.lsb();
+            moves.extend(all_pawn_moves(
+                src,
+                if side == Colour::White {
+                    Piece::WP
+                } else {
+                    Piece::BP
+                },
+                self,
+            ));
+            pawn_bb = pawn_bb.pop_bit(src);
+        }
 
-            moves.extend(pseudo_moves);
+        // Knight moves
+        let mut knight_bb = self.pieces[Piece::WN.index()] & self.sides[side_idx];
+        while knight_bb != BitBoard::EMPTY {
+            let src = knight_bb.lsb();
+            moves.extend(all_knight_moves(src));
+            knight_bb = knight_bb.pop_bit(src);
+        }
+
+        // Bishop moves
+        let mut bishop_bb = self.pieces[Piece::WB.index()] & self.sides[side_idx];
+        while bishop_bb != BitBoard::EMPTY {
+            let src = bishop_bb.lsb();
+            moves.extend(all_bishop_moves(src, self));
+            bishop_bb = bishop_bb.pop_bit(src);
+        }
+
+        // Rook moves
+        let mut rook_bb = self.pieces[Piece::WR.index()] & self.sides[side_idx];
+        while rook_bb != BitBoard::EMPTY {
+            let src = rook_bb.lsb();
+            moves.extend(all_rook_moves(src, self));
+            rook_bb = rook_bb.pop_bit(src);
+        }
+
+        // Queen moves
+        let mut queen_bb = self.pieces[Piece::WQ.index()] & self.sides[side_idx];
+        while queen_bb != BitBoard::EMPTY {
+            let src = queen_bb.lsb();
+            moves.extend(all_queen_moves(src, self));
+            queen_bb = queen_bb.pop_bit(src);
+        }
+
+        // King moves
+        let mut king_bb = self.pieces[Piece::WK.index()] & self.sides[side_idx];
+        while king_bb != BitBoard::EMPTY {
+            let src = king_bb.lsb();
+            moves.extend(all_king_moves(src));
+            king_bb = king_bb.pop_bit(src);
         }
 
         moves
