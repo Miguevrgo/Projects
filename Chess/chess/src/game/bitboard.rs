@@ -84,6 +84,15 @@ impl BitBoard {
     /// Starting positions for both kings
     pub const KING_START_POS: Self = Self(0x1000000000000010);
 
+    /// Intermediate squares for white king-side castle
+    pub const WHITE_KING_CASTLE: Self = Self(0x0000000000000060);
+    /// Intermediate squares for black king-side castle
+    pub const BLACK_KING_CASTLE: Self = Self(0x6000000000000000);
+    /// Intermediate squares for white queen-side castle
+    pub const WHITE_QUEEN_CASTLE: Self = Self(0x000000000000000e);
+    /// Intermediate squares for black queen-side castle
+    pub const BLACK_QUEEN_CASTLE: Self = Self(0x0e00000000000000);
+
     /// Checks if a specific square contains a piece.
     ///
     /// # Arguments

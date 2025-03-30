@@ -215,23 +215,31 @@ impl Board {
                 self.en_passant == Some(dest) && opponent.get_bit(dest.jump(0, -forward).unwrap())
             }
             MoveKind::Castle => {
-                if !piece.is_king() || src != self.king_square(self.side) {
-                    return false;
-                }
-
-                let (rook_sq, king_pass, king_end) = match (self.side, dest) {
-                    (Colour::White, d) if d == Square::from("g1") => {
-                        (Square::from("h1"), Square::from("f1"), Square::from("g1"))
-                    }
-                    (Colour::White, d) if d == Square::from("c1") => {
-                        (Square::from("a1"), Square::from("d1"), Square::from("c1"))
-                    }
-                    (Colour::Black, d) if d == Square::from("g8") => {
-                        (Square::from("h8"), Square::from("f8"), Square::from("g8"))
-                    }
-                    (Colour::Black, d) if d == Square::from("c8") => {
-                        (Square::from("a8"), Square::from("d8"), Square::from("c8"))
-                    }
+                let (rook_sq, king_pass, king_end, inter_squares) = match (self.side, dest) {
+                    (Colour::White, d) if d == Square::from("g1") => (
+                        Square::from("h1"),
+                        Square::from("f1"),
+                        Square::from("g1"),
+                        BitBoard::WHITE_KING_CASTLE,
+                    ),
+                    (Colour::White, d) if d == Square::from("c1") => (
+                        Square::from("a1"),
+                        Square::from("d1"),
+                        Square::from("c1"),
+                        BitBoard::WHITE_QUEEN_CASTLE,
+                    ),
+                    (Colour::Black, d) if d == Square::from("g8") => (
+                        Square::from("h8"),
+                        Square::from("f8"),
+                        Square::from("g8"),
+                        BitBoard::BLACK_KING_CASTLE,
+                    ),
+                    (Colour::Black, d) if d == Square::from("c8") => (
+                        Square::from("a8"),
+                        Square::from("d8"),
+                        Square::from("c8"),
+                        BitBoard::BLACK_QUEEN_CASTLE,
+                    ),
                     _ => return false,
                 };
 
@@ -251,14 +259,8 @@ impl Board {
                     _ => return false,
                 };
 
-                let is_kingside = dest.col() == 6;
-                let row = src.row();
-                let (_, mid_cols) = if is_kingside {
-                    (7, vec![5, 6])
-                } else {
-                    (0, vec![1, 2, 3])
-                };
                 valid_rights
+                    && inter_squares & occupied == BitBoard::EMPTY
                     && !self.is_attacked_by(self.king_square(self.side), !self.side)
                     && !self.is_attacked_by(king_pass, !self.side)
                     && !self.is_attacked_by(king_end, !self.side)
@@ -268,9 +270,6 @@ impl Board {
                         } else {
                             Piece::BR
                         })
-                    && mid_cols
-                        .iter()
-                        .all(|&col| !occupied.get_bit(Square::from_row_col(row, col)))
             }
             MoveKind::KnightPromotion
             | MoveKind::BishopPromotion
