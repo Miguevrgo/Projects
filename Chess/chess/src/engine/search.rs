@@ -43,7 +43,7 @@ impl MinimaxEngine {
             let handle = thread::spawn(move || {
                 let mut new_board = board_clone;
                 new_board.make_move(m);
-                let eval = -MinimaxEngine::new(depth - 1, colour).negamax(
+                let eval = -MinimaxEngine::new(depth - 1, !colour).negamax(
                     &mut new_board,
                     depth - 1,
                     -INF,
@@ -65,9 +65,9 @@ impl MinimaxEngine {
         }
 
         if self.colour == Colour::White {
-            results.into_iter().max_by_key(|&(eval, _)| eval)
-        } else {
             results.into_iter().min_by_key(|&(eval, _)| eval)
+        } else {
+            results.into_iter().max_by_key(|&(eval, _)| eval)
         }
         .unwrap_or((0, Move::default()))
     }

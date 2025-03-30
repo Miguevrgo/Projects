@@ -14,6 +14,7 @@ impl Square {
 
     /// Array of algebraic notations for all squares, ordered from a1 to h8.
     #[rustfmt::skip]
+    #[allow(dead_code)]
     const STR: [&str; Self::COUNT] = [
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
         "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",

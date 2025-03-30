@@ -72,13 +72,9 @@ impl std::ops::BitXorAssign for BitBoard {
 impl BitBoard {
     /// An empty bitboard with no pieces (all bits set to 0).
     pub const EMPTY: Self = Self(0);
-    /// A fully occupied bitboard (all bits set to 1).
-    pub const FULL: Self = Self(0xFFFFFFFFFFFFFFFF);
 
     /// Starting ranks for pawns: White (rank 2) and Black (rank 7).
     pub const START_RANKS: [Self; 2] = [Self(0x000000000000FF00), Self(0x00FF000000000000)];
-    /// Ranks where en passant can occur: White (rank 5) and Black (rank 4).
-    pub const EP_RANKS: [Self; 2] = [Self(0x000000FF00000000), Self(0x00000000FF000000)];
     /// Ranks where promotion can occur: White (rank 7) and Black (rank 2).
     pub const PROMO_RANKS: [Self; 2] = [Self(0xFF00000000000000), Self(0x00000000000000FF)];
     /// Starting positions for both kings

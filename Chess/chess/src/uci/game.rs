@@ -123,11 +123,6 @@ impl Game {
         let (_, best_move) = self.ai_search.find_best_move(&self.board);
         self.board.make_move(best_move);
         self.update_time();
-        if self.board.side == Colour::Black {
-            self.white_time = self.white_time.saturating_add(self.increment);
-        } else {
-            self.black_time = self.black_time.saturating_add(self.increment);
-        }
         self.log.push(self.board_hash());
         self.check_game_end();
     }
@@ -138,8 +133,10 @@ impl Game {
         self.last_update = Instant::now();
         if self.board.side == Colour::White {
             self.white_time = self.white_time.saturating_sub(elapsed);
+            self.black_time = self.black_time.saturating_add(self.increment);
         } else {
             self.black_time = self.black_time.saturating_sub(elapsed);
+            self.white_time = self.white_time.saturating_add(self.increment);
         }
     }
 
@@ -166,11 +163,6 @@ impl Game {
             if let Some(&m) = move_candidate {
                 self.board.make_move(m);
                 self.update_time();
-                if self.board.side == Colour::Black {
-                    self.white_time = self.white_time.saturating_add(self.increment);
-                } else {
-                    self.black_time = self.black_time.saturating_add(self.increment);
-                }
                 self.log.push(self.board_hash());
                 self.check_game_end();
             }
@@ -206,7 +198,6 @@ impl Game {
     }
     /// Processes a user input direction and updates the game state.
     pub fn process_input(&mut self, direction: Direction) {
-        self.update_time();
         match direction {
             Direction::Up => self.move_cursor(0, 1),
             Direction::Down => self.move_cursor(0, -1),
