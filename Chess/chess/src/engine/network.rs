@@ -8,7 +8,7 @@ use std::arch::x86_64::*;
 // Piece: Pawn = 0, Knight = 1, Bishop = 2, Rook = 3, Queen = 4, King = 5
 // Side: White = 0, Black = 1
 const INPUT_SIZE: usize = 768; // USIZE? TODO:
-const HL_SIZE: usize = 1024;
+pub const HL_SIZE: usize = 1024;
 
 const SCALE: i32 = 400;
 const QA: i32 = 255;
@@ -28,13 +28,13 @@ static BUCKETS: [usize; 64] = [
     3, 3, 3, 3, 7, 7, 7, 7,
 ];
 
-static NNUE: Network =
+pub static NNUE: Network =
     unsafe { std::mem::transmute(*include_bytes!("../../resources/nnue-net.bin")) };
 
 #[repr(C)]
 pub struct Network {
-    accumulator_weights: [Accumulator; INPUT_SIZE * NUM_BUCKETS],
-    accumulator_biases: Accumulator,
+    pub accumulator_weights: [Accumulator; INPUT_SIZE * NUM_BUCKETS],
+    pub accumulator_biases: Accumulator,
     output_weights: [Accumulator; 2],
     output_bias: i16,
 }
@@ -103,10 +103,10 @@ impl Network {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(C, align(64))]
 pub struct Accumulator {
-    vals: [i16; HL_SIZE],
+    pub vals: [i16; HL_SIZE],
 }
 
 impl Accumulator {
