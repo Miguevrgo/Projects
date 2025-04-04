@@ -44,11 +44,11 @@ fn fill_features(
     board: &Board,
     white_acc: &mut Accumulator,
     black_acc: &mut Accumulator,
-    wksq: usize,
-    bksq: usize,
+    white_king_sq: usize,
+    black_king_sq: usize,
 ) {
-    let wflip = if wksq % 8 > 3 { 7 } else { 0 };
-    let bflip = if bksq % 8 > 3 { 7 } else { 0 } ^ 56;
+    let wflip = if white_king_sq % 8 > 3 { 7 } else { 0 };
+    let bflip = if black_king_sq % 8 > 3 { 7 } else { 0 } ^ 56;
 
     let occ = board.sides[Colour::White as usize] | board.sides[Colour::Black as usize];
     let mut occupied = occ;
@@ -59,13 +59,13 @@ fn fill_features(
             let side = piece.colour() as usize;
             let pc = piece.index();
 
-            let wbase = Network::get_base_index::<0>(side, pc, wksq) as u16;
-            let bbase = Network::get_base_index::<1>(side, pc, bksq) as u16;
+            let wbase = Network::get_base_index::<0>(side, pc, white_king_sq) as u16;
+            let bbase = Network::get_base_index::<1>(side, pc, black_king_sq) as u16;
             let wfeat = wbase + (sq.index() as u16 ^ wflip);
             let bfeat = bbase + (sq.index() as u16 ^ bflip);
 
-            white_acc.update_multi(&[wfeat], &[]);
-            black_acc.update_multi(&[bfeat], &[]);
+            white_acc.update_multi(&[wfeat]);
+            black_acc.update_multi(&[bfeat]);
         }
         occupied = occupied.pop_bit(sq);
     }

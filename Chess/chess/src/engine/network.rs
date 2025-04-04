@@ -48,23 +48,23 @@ impl Network {
         }
     }
 
-    pub fn get_bucket<const SIDE: usize>(mut ksq: usize) -> usize {
+    pub fn get_bucket<const SIDE: usize>(mut king_sq: usize) -> usize {
         if SIDE == 1 {
-            ksq ^= 0b111000;
+            king_sq ^= 0b111000;
         }
 
-        BUCKETS[ksq]
+        BUCKETS[king_sq]
     }
 
-    pub fn get_base_index<const SIDE: usize>(side: usize, pc: usize, mut ksq: usize) -> usize {
-        if ksq % 8 > 3 {
-            ksq ^= 7;
+    pub fn get_base_index<const SIDE: usize>(side: usize, pc: usize, mut king_sq: usize) -> usize {
+        if king_sq % 8 > 3 {
+            king_sq ^= 7;
         }
 
         if SIDE == 0 {
-            768 * Self::get_bucket::<0>(ksq) + [0, 384][side] + 64 * pc
+            INPUT_SIZE * Self::get_bucket::<0>(king_sq) + [0, 384][side] + 64 * pc
         } else {
-            768 * Self::get_bucket::<1>(ksq) + [384, 0][side] + 64 * pc
+            INPUT_SIZE * Self::get_bucket::<1>(king_sq) + [384, 0][side] + 64 * pc
         }
     }
 }
@@ -76,7 +76,7 @@ pub struct Accumulator {
 }
 
 impl Accumulator {
-    pub fn update_multi(&mut self, adds: &[u16], subs: &[u16]) {
+    pub fn update_multi(&mut self, adds: &[u16]) {
         const REGS: usize = 8;
         const PER: usize = REGS * 16;
 
@@ -94,14 +94,6 @@ impl Accumulator {
 
                 for (j, reg) in regs.iter_mut().enumerate() {
                     *reg += weights.vals[offset + j];
-                }
-            }
-
-            for &sub in subs {
-                let weights = &NNUE.accumulator_weights[usize::from(sub)];
-
-                for (j, reg) in regs.iter_mut().enumerate() {
-                    *reg -= weights.vals[offset + j];
                 }
             }
 
