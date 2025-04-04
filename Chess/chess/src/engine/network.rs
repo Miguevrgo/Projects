@@ -7,7 +7,7 @@ use std::arch::x86_64::*;
 // Square: 0-63
 // Piece: Pawn = 0, Knight = 1, Bishop = 2, Rook = 3, Queen = 4, King = 5
 // Side: White = 0, Black = 1
-const INPUT_SIZE: usize = 768; // USIZE? TODO:
+const INPUT_SIZE: usize = 768;
 pub const HL_SIZE: usize = 1024;
 
 const SCALE: i32 = 400;
@@ -40,99 +40,107 @@ pub struct Network {
 }
 
 impl Network {
-    /// Calculates the feature index for a piece on a square from a given perspective.
-    /// - `perspective`: The side evaluating the position (White or Black).
-    /// - `square`: The square where the piece resides.
-    /// - `piece_type`: The type of piece (Pawn, Knight, etc.).
-    /// - `side`: The color of the piece (White or Black).
-    /// - `king_sq`: The square of the king (for bucketing).
-    pub fn calculate_index(
-        perspective: Colour,
-        square: Square,
-        piece_type: Piece,
-        side: Colour,
-        king_sq: Square,
-    ) -> usize {
-        let sq_idx = if perspective == Colour::Black {
-            square.index() ^ 56 // Mirror square for Black’s perspective
-        } else {
-            square.index()
-        };
-
-        let piece_idx = piece_type.index(); // 0-5 (Pawn to King)
-        let color_idx = side as usize; // 0 (White), 1 (Black)
-        let bucket = Self::get_bucket(king_sq, perspective);
-
-        bucket * INPUT_SIZE + color_idx * 384 + piece_idx * 64 + sq_idx
-    }
-
-    fn get_bucket(ksq: Square, perspective: Colour) -> usize {
-        let ksq_idx = if perspective == Colour::Black {
-            ksq.index() ^ 56 // Mirror king square for Black
-        } else {
-            ksq.index()
-        };
-        BUCKETS[ksq_idx]
-    }
-
-    pub fn update_accumulator(
-        &self,
-        acc: &mut Accumulator,
-        perspective: Colour,
-        square: Square,
-        piece_type: Piece,
-        side: Colour,
-        king_sq: Square,
-        add: bool,
-    ) {
-        let idx = Self::calculate_index(perspective, square, piece_type, side, king_sq);
-        if add {
-            acc.add(&self.accumulator_weights[idx]);
-        } else {
-            acc.sub(&self.accumulator_weights[idx]);
+    pub fn out(boys: &Accumulator, opps: &Accumulator) -> i32 {
+        let weights = &NNUE.output_weights;
+        unsafe {
+            let sum = flatten(boys, &weights[0]) + flatten(opps, &weights[1]);
+            (sum / QA + i32::from(NNUE.output_bias)) * SCALE / QAB
         }
     }
 
-    pub fn evaluate(&self, white_acc: &Accumulator, black_acc: &Accumulator) -> i32 {
-        unsafe {
-            let white_sum = flatten(white_acc, &self.output_weights[0]);
-            let black_sum = flatten(black_acc, &self.output_weights[1]);
-            let sum = white_sum + black_sum;
-            (sum + i32::from(self.output_bias)) * SCALE / QAB
+    pub fn get_bucket<const SIDE: usize>(mut ksq: usize) -> usize {
+        if SIDE == 1 {
+            ksq ^= 0b111000;
+        }
+
+        BUCKETS[ksq]
+    }
+
+    pub fn get_base_index<const SIDE: usize>(side: usize, pc: usize, mut ksq: usize) -> usize {
+        if ksq % 8 > 3 {
+            ksq ^= 7;
+        }
+
+        if SIDE == 0 {
+            768 * Self::get_bucket::<0>(ksq) + [0, 384][side] + 64 * pc
+        } else {
+            768 * Self::get_bucket::<1>(ksq) + [384, 0][side] + 64 * pc
         }
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 #[repr(C, align(64))]
 pub struct Accumulator {
-    pub vals: [i16; HL_SIZE],
+    vals: [i16; HL_SIZE],
 }
 
 impl Accumulator {
-    /// Initializes the accumulator with biases.
-    pub fn init(&mut self, biases: &Accumulator) {
-        self.vals.copy_from_slice(&biases.vals);
-    }
+    pub fn update_multi(&mut self, adds: &[u16], subs: &[u16]) {
+        const REGS: usize = 8;
+        const PER: usize = REGS * 16;
 
-    /// Adds a feature’s weights from another accumulator to this one.
-    pub fn add(&mut self, weights: &Accumulator) {
-        for i in 0..HL_SIZE {
-            self.vals[i] = self.vals[i].saturating_add(weights.vals[i]);
+        let mut regs = [0i16; PER];
+
+        for i in 0..HL_SIZE / PER {
+            let offset = PER * i;
+
+            for (j, reg) in regs.iter_mut().enumerate() {
+                *reg = self.vals[offset + j];
+            }
+
+            for &add in adds {
+                let weights = &NNUE.accumulator_weights[usize::from(add)];
+
+                for (j, reg) in regs.iter_mut().enumerate() {
+                    *reg += weights.vals[offset + j];
+                }
+            }
+
+            for &sub in subs {
+                let weights = &NNUE.accumulator_weights[usize::from(sub)];
+
+                for (j, reg) in regs.iter_mut().enumerate() {
+                    *reg -= weights.vals[offset + j];
+                }
+            }
+
+            for (j, reg) in regs.iter().enumerate() {
+                self.vals[offset + j] = *reg;
+            }
         }
     }
+}
 
-    /// Subtracts a feature’s weights from another accumulator from this one.
-    pub fn sub(&mut self, weights: &Accumulator) {
-        for i in 0..HL_SIZE {
-            self.vals[i] = self.vals[i].saturating_sub(weights.vals[i]);
-        }
+impl Default for Accumulator {
+    fn default() -> Self {
+        NNUE.accumulator_biases
     }
+}
 
-    pub fn default() -> Self {
-        let mut acc = Self { vals: [0; HL_SIZE] };
-        acc.init(&NNUE.accumulator_biases);
-        acc
+pub struct EvalEntry {
+    pub bbs: [u64; 8],
+    pub white: Accumulator,
+    pub black: Accumulator,
+}
+
+pub struct EvalTable {
+    pub table: Box<[[EvalEntry; 2 * NUM_BUCKETS]; 2 * NUM_BUCKETS]>,
+}
+
+impl Default for EvalTable {
+    fn default() -> Self {
+        let mut table: Box<[[EvalEntry; 2 * NUM_BUCKETS]; 2 * NUM_BUCKETS]> =
+            unsafe { boxed_and_zeroed() };
+
+        for row in table.iter_mut() {
+            for entry in row.iter_mut() {
+                entry.white = Accumulator::default();
+                entry.black = Accumulator::default();
+            }
+        }
+
+        Self { table }
     }
 }
 
@@ -174,4 +182,13 @@ unsafe fn horizontal_sum_i32(sum: __m256i) -> i32 {
     let sum_32 = _mm_add_epi32(upper_32, sum_64);
 
     _mm_cvtsi128_si32(sum_32)
+}
+
+pub unsafe fn boxed_and_zeroed<T>() -> Box<T> {
+    let layout = std::alloc::Layout::new::<T>();
+    let ptr = std::alloc::alloc_zeroed(layout);
+    if ptr.is_null() {
+        std::alloc::handle_alloc_error(layout);
+    }
+    Box::from_raw(ptr.cast())
 }
