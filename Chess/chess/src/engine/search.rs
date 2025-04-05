@@ -19,22 +19,21 @@ impl MinimaxEngine {
         MinimaxEngine { depth, colour }
     }
 
-    pub fn find_best_move(&self, board: &Board) -> (i32, Move) {
-        let moves = board.generate_legal_moves();
+    pub fn find_best_move(&mut self, board: &Board) -> Move {
+        let mut moves = board.generate_legal_moves();
         if moves.is_empty() {
-            return (evaluate(board), Move::default());
+            return Move::default();
+        }
+        if board.occupied() <= 10 {
+            self.depth = 8;
         }
 
-        let mut moves_with_scores: Vec<(Move, i32)> = moves
-            .into_iter()
-            .map(|m| (m, self.move_score(&m, board)))
-            .collect();
-        moves_with_scores.sort_by_key(|&(_, score)| std::cmp::Reverse(score));
+        moves.sort_by_key(|m| std::cmp::Reverse(self.move_score(m, board)));
 
         let (tx, rx) = mpsc::channel();
         let mut handles = vec![];
 
-        for (m, _) in moves_with_scores {
+        for m in moves {
             let board_clone = *board;
             let tx_clone = tx.clone();
             let depth = self.depth;
@@ -69,7 +68,8 @@ impl MinimaxEngine {
         } else {
             results.into_iter().max_by_key(|&(eval, _)| eval)
         }
-        .unwrap_or((0, Move::default()))
+        .map(|(_, mv)| mv)
+        .unwrap_or(Move::default())
     }
 
     fn negamax(
@@ -84,7 +84,7 @@ impl MinimaxEngine {
             return evaluate(board);
         }
 
-        let moves = board.generate_legal_moves();
+        let mut moves = board.generate_legal_moves();
         if moves.is_empty() {
             let king_square = board.king_square(turn);
             return if board.is_attacked_by(king_square, !turn) {
@@ -94,14 +94,10 @@ impl MinimaxEngine {
             };
         }
 
-        let mut moves_with_scores: Vec<(Move, i32)> = moves
-            .into_iter()
-            .map(|m| (m, self.move_score(&m, board)))
-            .collect();
-        moves_with_scores.sort_by_key(|&(_, score)| std::cmp::Reverse(score));
+        moves.sort_by_key(|m| std::cmp::Reverse(self.move_score(m, board)));
 
         let mut max_score = -INF;
-        for (m, _) in moves_with_scores {
+        for m in moves {
             let mut new_board = *board;
             new_board.make_move(m);
             let score = -self.negamax(&mut new_board, depth - 1, -beta, -alpha, !turn);

@@ -97,20 +97,8 @@ impl Piece {
         self as u8 & 0b1110 == 0b0000
     }
 
-    pub const fn is_knight(self) -> bool {
-        self as u8 & 0b1110 == 0b0010
-    }
-
-    pub const fn is_bishop(self) -> bool {
-        self as u8 & 0b1110 == 0b0100
-    }
-
     pub const fn is_rook(self) -> bool {
         self as u8 & 0b1110 == 0b0110
-    }
-
-    pub const fn is_queen(self) -> bool {
-        self as u8 & 0b1110 == 0b1000
     }
 
     pub const fn is_king(self) -> bool {

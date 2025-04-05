@@ -60,6 +60,11 @@ impl Board {
         self.piece_map[square.index()] = None;
     }
 
+    pub fn occupied(&self) -> usize {
+        (self.sides[Colour::White as usize] | self.sides[Colour::Black as usize]).count_bits()
+            as usize
+    }
+
     pub fn make_move(&mut self, m: Move) {
         let (src, dest) = (m.get_source(), m.get_dest());
         let src_piece = self.piece_at(src).expect("Invalid source piece");

@@ -120,7 +120,7 @@ impl Game {
     }
 
     fn engine_move(&mut self) {
-        let (_, best_move) = self.ai_search.find_best_move(&self.board);
+        let best_move = self.ai_search.find_best_move(&self.board);
         self.board.make_move(best_move);
         self.update_time();
         self.log.push(self.board_hash());

@@ -20,7 +20,7 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_secs(10));
             }
             MenuOption::StartComputer => {
-                let mut game = Game::new(TIME_FIVE_MIN, 5, Some(Colour::Black), 7);
+                let mut game = Game::new(TIME_FIVE_MIN, 5, Some(Colour::Black), 6);
                 game.play(Some(Colour::White));
                 std::thread::sleep(std::time::Duration::from_secs(10));
             }
