@@ -129,23 +129,6 @@ impl BitBoard {
         Self(self.0 & !(1u64 << square.index()))
     }
 
-    /// Shifts the bitboard forward one rank based on the player's color.
-    /// For White, this shifts up (right shift); for Black, down (left shift).
-    ///
-    /// # Arguments
-    ///
-    /// * `side` - The color determining the direction of the shift.
-    ///
-    /// # Returns
-    ///
-    /// A new `BitBoard` shifted forward.
-    pub fn forward(self, side: Colour) -> Self {
-        match side {
-            Colour::Black => Self(self.0 >> 8),
-            Colour::White => Self(self.0 << 8),
-        }
-    }
-
     /// Counts the number of occupied squares in the bitboard.
     ///
     /// # Returns

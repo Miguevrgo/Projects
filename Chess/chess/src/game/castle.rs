@@ -14,6 +14,10 @@ impl CastlingRights {
     pub const BQ: u8 = 0x01;
     pub const NONE: CastlingRights = CastlingRights(0);
 
+    pub const fn index(self) -> usize {
+        self.0 as usize
+    }
+
     pub fn from(rights: &str) -> Self {
         let mut right = Self::NONE;
 

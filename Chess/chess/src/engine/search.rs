@@ -5,8 +5,8 @@ use crate::game::{board::Board, moves::Move, piece::Colour};
 use std::sync::mpsc;
 use std::thread;
 
-const INF: i32 = 1000000;
-const MATE: i32 = 100000;
+const INF: i32 = 16384;
+const MATE: i32 = 16300;
 
 #[derive(Debug)]
 pub struct MinimaxEngine {
@@ -24,8 +24,12 @@ impl MinimaxEngine {
         if moves.is_empty() {
             return Move::default();
         }
-        if board.occupied() <= 10 {
-            self.depth = 8;
+
+        if board.occupied() <= 16 {
+            self.depth = 7;
+            if board.occupied() <= 10 {
+                self.depth = 8;
+            }
         }
 
         moves.sort_by_key(|m| std::cmp::Reverse(self.move_score(m, board)));
