@@ -2,6 +2,7 @@ use super::{
     constants::{bishop_attacks, rook_attacks, KING_ATTACKS, KNIGHT_ATTACKS},
     moves::MoveKind,
     square::Square,
+    zobrist::ZHash,
 };
 use crate::game::{
     bitboard::BitBoard,
@@ -21,6 +22,7 @@ pub struct Board {
     pub castling_rights: CastlingRights,
     pub en_passant: Option<Square>,
     pub halfmoves: u8,
+    pub hash: ZHash,
 }
 
 impl Board {
@@ -33,6 +35,7 @@ impl Board {
             castling_rights: CastlingRights::NONE,
             halfmoves: 0,
             side: Colour::White,
+            hash: ZHash::NULL,
         }
     }
 
@@ -49,6 +52,7 @@ impl Board {
         self.sides[colour] = self.sides[colour].set_bit(square);
         self.pieces[piece.index()] = self.pieces[piece.index()].set_bit(square);
         self.piece_map[square.index()] = Some(piece);
+        self.hash.hash_piece(piece, square);
     }
 
     fn remove_piece(&mut self, square: Square) {
@@ -58,6 +62,7 @@ impl Board {
         self.sides[colour] = self.sides[colour].pop_bit(square);
         self.pieces[piece.index()] = self.pieces[piece.index()].pop_bit(square);
         self.piece_map[square.index()] = None;
+        self.hash.hash_piece(piece, square);
     }
 
     pub fn occupied(&self) -> usize {
@@ -69,7 +74,12 @@ impl Board {
         let (src, dest) = (m.get_source(), m.get_dest());
         let src_piece = self.piece_at(src).expect("Invalid source piece");
         let move_type = m.get_type();
-        self.en_passant = None;
+        let old_rights = self.castling_rights;
+
+        if let Some(square) = self.en_passant {
+            self.en_passant = None;
+            self.hash.hash_enpassant(square);
+        }
 
         if src_piece.is_pawn() || matches!(move_type, MoveKind::Capture) {
             self.halfmoves = 0
@@ -79,17 +89,27 @@ impl Board {
 
         if src_piece.is_king() {
             if src_piece.colour() == Colour::White {
-                self.castling_rights.0 &= !(CastlingRights::WK | CastlingRights::WQ);
+                let new_rights =
+                    CastlingRights(old_rights.0 & !(CastlingRights::WK | CastlingRights::WQ));
+                self.castling_rights = new_rights;
+                self.hash.swap_castle(old_rights, new_rights);
             } else {
-                self.castling_rights.0 &= !(CastlingRights::BK | CastlingRights::BQ);
+                let new_rights =
+                    CastlingRights(old_rights.0 & !(CastlingRights::BK | CastlingRights::BQ));
+                self.castling_rights = new_rights;
+                self.hash.swap_castle(old_rights, new_rights);
             }
         } else if src_piece.is_rook() {
-            match (src_piece.colour(), src.index()) {
-                (Colour::White, 0) => self.castling_rights.0 &= !CastlingRights::WQ, // a1
-                (Colour::White, 7) => self.castling_rights.0 &= !CastlingRights::WK, // h1
-                (Colour::Black, 56) => self.castling_rights.0 &= !CastlingRights::BQ, // a8
-                (Colour::Black, 63) => self.castling_rights.0 &= !CastlingRights::BK, // h8
-                _ => {}
+            let new_rights = match (src_piece.colour(), src.index()) {
+                (Colour::White, 0) => CastlingRights(old_rights.0 & !CastlingRights::WQ), // a1
+                (Colour::White, 7) => CastlingRights(old_rights.0 & !CastlingRights::WK), // h1
+                (Colour::Black, 56) => CastlingRights(old_rights.0 & !CastlingRights::BQ), // a8
+                (Colour::Black, 63) => CastlingRights(old_rights.0 & !CastlingRights::BK), // h8
+                _ => old_rights,
+            };
+            if new_rights != old_rights {
+                self.castling_rights = new_rights;
+                self.hash.swap_castle(old_rights, new_rights);
             }
         }
 
@@ -101,6 +121,7 @@ impl Board {
                 if matches!(move_type, MoveKind::DoublePush) {
                     let delta = src_piece.colour().forward();
                     self.en_passant = src.jump(0, delta);
+                    self.hash.hash_enpassant(self.en_passant.unwrap());
                 }
             }
             MoveKind::Capture => {
@@ -142,6 +163,9 @@ impl Board {
         }
 
         self.side = !self.side;
+        self.hash.hash_side();
+        #[cfg(debug_assertions)]
+        assert_eq!(self.hash, ZHash::new(self), "Hash mismatch after move");
     }
 
     fn generate_pseudo_moves(&self, side: Colour) -> Vec<Move> {
@@ -365,6 +389,35 @@ impl Board {
         false
     }
 
+    pub fn is_draw(&self) -> bool {
+        if self.halfmoves >= 100 {
+            return true;
+        }
+
+        if self.pieces[Piece::WP.index()]
+            | self.pieces[Piece::WQ.index()]
+            | self.pieces[Piece::WR.index()]
+            == BitBoard::EMPTY
+        {
+            if (self.sides[Colour::White as usize] | self.sides[Colour::Black as usize])
+                .count_bits()
+                <= 3
+            {
+                return true;
+            }
+
+            if self.pieces[Piece::WN.index()] != BitBoard::EMPTY {
+                return false;
+            }
+
+            let bishop_pos = self.pieces[Piece::WB.index()];
+            return bishop_pos & BitBoard::WHITE_SQUARES == bishop_pos
+                || bishop_pos & BitBoard::BLACK_SQUARES == bishop_pos;
+        }
+
+        false
+    }
+
     pub fn king_square(&self, colour: Colour) -> Square {
         let king_bb = self.pieces[Piece::WK.index()] & self.sides[colour as usize];
         king_bb.lsb()
@@ -424,6 +477,7 @@ impl Board {
         };
 
         board.halfmoves = fen[4].parse::<u8>().unwrap();
+        board.hash = ZHash::new(&board);
 
         board
     }

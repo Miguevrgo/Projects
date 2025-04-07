@@ -1,4 +1,3 @@
-use crate::game::piece::Colour;
 use crate::game::square::Square;
 
 /// A 64-bit representation of a chess board, where each bit corresponds to a square.
@@ -88,6 +87,11 @@ impl BitBoard {
     pub const WHITE_QUEEN_CASTLE: Self = Self(0x000000000000000e);
     /// Intermediate squares for black queen-side castle
     pub const BLACK_QUEEN_CASTLE: Self = Self(0x0e00000000000000);
+
+    // White squares
+    pub const WHITE_SQUARES: Self = Self(0x55AA55AA55AA55AA);
+    // Black squares
+    pub const BLACK_SQUARES: Self = Self(0xAA55AA55AA55AA55);
 
     /// Checks if a specific square contains a piece.
     ///
