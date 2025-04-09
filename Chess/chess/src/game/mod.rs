@@ -6,4 +6,5 @@ pub mod moves;
 pub mod perft;
 pub mod piece;
 pub mod square;
+pub mod tt;
 pub mod zobrist;
