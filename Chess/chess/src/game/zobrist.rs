@@ -7,7 +7,7 @@ use super::{
 };
 
 #[derive(Debug, Eq, Clone, Copy, PartialEq, PartialOrd)]
-pub struct ZHash(u64);
+pub struct ZHash(pub u64);
 
 impl ZHash {
     pub const NULL: Self = Self(0);
