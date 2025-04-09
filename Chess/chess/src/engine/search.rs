@@ -8,68 +8,56 @@ use std::thread;
 const INF: i32 = 16384;
 const MATE: i32 = 16300;
 
-#[derive(Debug)]
-pub struct MinimaxEngine {
-    depth: usize,
-    colour: Colour,
-}
-
-impl MinimaxEngine {
-    pub fn new(depth: usize, colour: Colour) -> Self {
-        MinimaxEngine { depth, colour }
+pub fn find_best_move(board: &Board, mut depth: usize) -> Move {
+    let mut moves = board.generate_legal_moves();
+    if moves.is_empty() {
+        return Move::default();
     }
 
-    pub fn find_best_move(&mut self, board: &Board) -> Move {
-        let mut moves = board.generate_legal_moves();
-        if moves.is_empty() {
-            return Move::default();
+    if board.occupied() <= 18 {
+        depth = 7;
+        if board.occupied() <= 12 {
+            depth = 8;
         }
-
-        if board.occupied() <= 16 {
-            self.depth = 7;
-            if board.occupied() <= 10 {
-                self.depth = 8;
-            }
-        }
-
-        moves.sort_by_key(|m| std::cmp::Reverse(move_score(m, board)));
-
-        let (tx, rx) = mpsc::channel();
-        let mut handles = vec![];
-
-        for m in moves {
-            let board_clone = *board;
-            let tx_clone = tx.clone();
-            let depth = self.depth;
-            let colour = self.colour;
-
-            let handle = thread::spawn(move || {
-                let mut new_board = board_clone;
-                new_board.make_move(m);
-                let eval = negamax(&mut new_board, depth - 1, -INF, INF, !colour);
-                tx_clone.send((eval, m)).unwrap();
-            });
-            handles.push(handle);
-        }
-
-        let mut results = vec![];
-        for _ in 0..handles.len() {
-            results.push(rx.recv().unwrap());
-        }
-
-        for handle in handles {
-            handle.join().unwrap();
-        }
-
-        if self.colour == Colour::White {
-            results.into_iter().max_by_key(|&(eval, _)| eval)
-        } else {
-            results.into_iter().min_by_key(|&(eval, _)| eval)
-        }
-        .map(|(_, mv)| mv)
-        .unwrap_or(Move::default())
     }
+
+    moves.sort_by_key(|m| std::cmp::Reverse(move_score(m, board)));
+
+    let (tx, rx) = mpsc::channel();
+    let mut handles = vec![];
+
+    for m in moves {
+        let board_clone = *board;
+        let tx_clone = tx.clone();
+        let colour = board.side;
+
+        let handle = thread::spawn(move || {
+            let mut new_board = board_clone;
+            new_board.make_move(m);
+            let eval = negamax(&mut new_board, depth - 1, -INF, INF, !colour);
+            tx_clone.send((eval, m)).unwrap();
+        });
+        handles.push(handle);
+    }
+
+    let mut results = vec![];
+    for _ in 0..handles.len() {
+        results.push(rx.recv().unwrap());
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    if board.side == Colour::White {
+        results.into_iter().max_by_key(|&(eval, _)| eval)
+    } else {
+        results.into_iter().min_by_key(|&(eval, _)| eval)
+    }
+    .map(|(_, mv)| mv)
+    .unwrap_or(Move::default())
 }
+
 fn negamax(board: &mut Board, depth: usize, mut alpha: i32, beta: i32, turn: Colour) -> i32 {
     if depth == 0 {
         return evaluate(board);

@@ -483,7 +483,7 @@ impl Board {
     }
 
     #[allow(dead_code)]
-    pub fn draw(&self) {
+    pub fn draw_board(&self) {
         print!("\x1B[2J\x1B[1;1H");
         println!("\r  a b c d e f g h\r");
         println!(" ┌────────────────┐\r");
