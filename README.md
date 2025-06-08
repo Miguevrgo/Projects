@@ -33,7 +33,7 @@ These are the main languages I use or I want to use:
 * [Useful C++](Useful-C++) ✅
 * [Oxide Editor](Oxide-Editor) ✅
 * [Algori](Algori) ✅
-* [Chess](Chess) ➖
+* [Chess](Chess) ✅
 * [OhMaze](OhMaze) ➖
 * [Oxide Network Engine](ONE) ➖
 * [Oxide-Algori](Oxide-Algori) ❌
