@@ -24,18 +24,21 @@ These are the main languages I use or I want to use:
 * Rust
 * C++20
 * Python
-	
+
 ## Projects
-* [Spell-Checker](Spell-Checker) ✅
-* [Tree](Tree) ✅
-* [RidMaze](Ridmaze) ✅
-* [EzGit](EzGit) ✅
-* [Useful C++](Useful-C++) ✅
-* [Oxide Editor](Oxide-Editor) ✅
-* [Algori](Algori) ✅
-* [Chess](Chess) ✅
-* [Oxide-Database](Oxide-Database) ✅
-* [OhMaze](OhMaze) ➖
-* [Oxide Network Engine](ONE) ➖
-* [Oxide-Algori](Oxide-Algori) ❌
-* [Marble Sim](Marble-Sim) ➖
+
+| Project | Description | Status |
+|---------|-------------|--------|
+| [Spell-Checker](Spell-Checker) | Simple and efficient spell checker. | ✅ |
+| [Tree](Tree) | Tree structure visualizer. | ✅ |
+| [RidMaze](Ridmaze) | Maze generator and solver. | ✅ |
+| [EzGit](EzGit) | Simplified interface for Git commands. | ✅ |
+| [Useful C++](Useful-C++) | Collection of modern C++ utilities. | ✅ |
+| [Algori](Algori) | Classical algorithm implementations. | ✅ |
+| [Chess](Chess) | Efficient and modular chess engine + GUI. | ✅ |
+| [Oxide Editor](Oxide-Editor) | Lightweight text editor in Rust. | ✅ |
+| [Oxide-Database](Oxide-Database) | Embedded key-value database. | ✅ |
+| [Oxide Network Engine](ONE) | Async networking engine for games. | ➖ |
+| [Oxsync](Oxsync) | File synchronizer across devices. | ➖ |
+| [OhMaze](OhMaze) | Maze exploration game. | ➖ |
+| [Marble Sim](Marble-Sim) | Physics-based marble simulator. | ➖ |
