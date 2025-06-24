@@ -29,8 +29,14 @@ impl Lexer {
     }
 
     fn expected(&self, what: &str) -> ! {
-        eprintln!("\x07Error: Expected :{}", what);
+        eprintln!("\x07Error: Expected: {}", what);
         std::process::exit(1);
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.look().is_some_and(|c| c.is_ascii_whitespace()) {
+            self.get_char();
+        }
     }
 
     fn match_char(&mut self, expected: char) {
@@ -41,13 +47,21 @@ impl Lexer {
     }
 
     fn get_num(&mut self) -> String {
-        match self.look() {
-            Some(c) if c.is_ascii_digit() => {
-                let digit = c.to_string();
+        self.skip_whitespace();
+        let mut num = String::new();
+        while let Some(c) = self.look() {
+            if c.is_ascii_digit() {
+                num.push(c);
                 self.get_char();
-                digit
+            } else {
+                break;
             }
-            _ => self.expected("Digit"),
+        }
+
+        if num.is_empty() {
+            self.expected("Digit");
+        } else {
+            num
         }
     }
 
@@ -61,8 +75,31 @@ impl Lexer {
         println!("\t{}", msg);
     }
 
+    fn factor(&mut self) -> String {
+        self.skip_whitespace();
+        if self.look() == Some('(') {
+            self.match_char('(');
+            let result = self.expression();
+            self.match_char(')');
+
+            result
+        } else {
+            self.get_num()
+        }
+    }
+
     fn term(&mut self) -> String {
-        self.get_num()
+        let mut left = self.factor();
+        loop {
+            self.skip_whitespace();
+            match self.look() {
+                Some('*') => left = self.mul(left),
+                Some('/') => left = self.div(left),
+                _ => break,
+            }
+        }
+
+        left
     }
 
     fn add(&mut self, left: String) -> String {
@@ -81,15 +118,41 @@ impl Lexer {
         result
     }
 
+    fn mul(&mut self, left: String) -> String {
+        self.match_char('*');
+        let right = self.factor();
+        let result = self.fresh_temp();
+        self.emit(&format!("{result} = mul i32 {left}, {right}"));
+        result
+    }
+
+    fn div(&mut self, left: String) -> String {
+        self.match_char('/');
+        let right = self.factor();
+        let result = self.fresh_temp();
+        if right == "0" {
+            self.expected("Non-zero divisor");
+        };
+        self.emit(&format!("{result} = sdiv i32 {left}, {right}"));
+        result
+    }
+
     fn expression(&mut self) -> String {
-        let left = self.term();
-        match self.look() {
-            Some('+') => self.add(left),
-            Some('-') => self.sub(left),
-            Some('_') => self.expected("Operator"),
-            None => left,
-            _ => unreachable!(),
+        let mut left = self.term();
+
+        while let Some(op) = self.look() {
+            match op {
+                '+' => {
+                    left = self.add(left);
+                }
+                '-' => {
+                    left = self.sub(left);
+                }
+                _ => break,
+            }
         }
+
+        left
     }
 }
 
