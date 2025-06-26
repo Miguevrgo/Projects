@@ -46,6 +46,14 @@ impl Lexer {
         }
     }
 
+    fn match_keyword(&mut self, kw: &str) {
+        self.skip_whitespace();
+        if self.input[self.pos..].starts_with(kw) {
+            self.pos += kw.len();
+        } else {
+            self.expected(&format!("keyword `{kw}`"));
+        }
+    }
     fn get_num(&mut self) -> String {
         self.skip_whitespace();
         let mut num = String::new();
@@ -75,16 +83,51 @@ impl Lexer {
         println!("\t{}", msg);
     }
 
-    fn factor(&mut self) -> String {
+    fn get_name(&mut self) -> String {
         self.skip_whitespace();
+        let mut name = String::new();
+        while let Some(c) = self.look() {
+            if c.is_ascii_alphabetic() {
+                name.push(c);
+                self.get_char();
+            } else {
+                break;
+            }
+        }
+
+        if name.is_empty() {
+            self.expected("Identifier")
+        } else {
+            name
+        }
+    }
+
+    fn ident_or_func(&mut self) -> String {
+        let name = self.get_name();
         if self.look() == Some('(') {
             self.match_char('(');
-            let result = self.expression();
             self.match_char(')');
-
-            result
+            self.emit(&format!("call void @{name}()"));
+            "0".to_string()
         } else {
-            self.get_num()
+            let temp = self.fresh_temp();
+            self.emit(&format!("{temp} = load i32, i32* %{name}"));
+            temp
+        }
+    }
+
+    fn factor(&mut self) -> String {
+        self.skip_whitespace();
+        match self.look() {
+            Some('(') => {
+                self.match_char('(');
+                let result = self.expression();
+                self.match_char(')');
+
+                result
+            }
+            Some(c) if c.is_ascii_alphabetic() => self.ident_or_func(),
+            _ => self.get_num(),
         }
     }
 
@@ -154,15 +197,26 @@ impl Lexer {
 
         left
     }
+
+    fn parse_fn(&mut self) {
+        self.match_keyword("fn");
+        let name = self.get_name();
+        self.match_char('(');
+        self.match_char(')');
+        self.skip_whitespace();
+        self.match_char('{');
+
+        println!("define i32 @{name}() {{");
+        println!("entry:");
+
+        let results = self.expression();
+
+        self.emit(&format!("ret i32 {}", results));
+        println!("}}");
+    }
 }
 
 fn main() {
-    println!("define i32 @main() {{");
-    println!("entry:");
-
     let mut lexer = Lexer::new();
-    let result = lexer.expression();
-
-    println!("  ret i32 {}", result);
-    println!("}}");
+    lexer.parse_fn();
 }
