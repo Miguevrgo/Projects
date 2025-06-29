@@ -18,27 +18,42 @@ impl Lexer {
         }
     }
 
+    /// Peeks at the current character without consuming it.
+    ///
+    /// Returns:
+    /// - `Some(char)` if there's input left.
+    /// - `None` if at the end.
     fn look(&self) -> Option<char> {
         self.input[self.pos..].chars().next()
     }
 
+    /// Consumes the current character and advances the position.
     fn get_char(&mut self) {
         if let Some(c) = self.look() {
             self.pos += c.len_utf8();
         }
     }
 
+    /// Prints an error and exits the program.
+    ///
+    /// # Parameters
+    /// - `what`: Description of what was expected.
     fn expected(&self, what: &str) -> ! {
         eprintln!("\x07Error: Expected: {}", what);
         std::process::exit(1);
     }
 
+    /// Skips over any whitespace characters.
     fn skip_whitespace(&mut self) {
         while self.look().is_some_and(|c| c.is_ascii_whitespace()) {
             self.get_char();
         }
     }
 
+    /// Matches and consumes a specific character.
+    ///
+    /// # Parameters
+    /// - `expected`: The character to match.
     fn match_char(&mut self, expected: char) {
         match self.look() {
             Some(c) if c == expected => self.get_char(),
@@ -46,6 +61,10 @@ impl Lexer {
         }
     }
 
+    /// Matches and consumes a specific keyword.
+    ///
+    /// # Parameters
+    /// - `kw`: The keyword string to match.
     fn match_keyword(&mut self, kw: &str) {
         self.skip_whitespace();
         if self.input[self.pos..].starts_with(kw) {
@@ -54,6 +73,10 @@ impl Lexer {
             self.expected(&format!("keyword `{kw}`"));
         }
     }
+
+    /// Parses and returns a numeric literal as a string.
+    ///
+    /// Fails if no digits are found.
     fn get_num(&mut self) -> String {
         self.skip_whitespace();
         let mut num = String::new();
@@ -73,16 +96,24 @@ impl Lexer {
         }
     }
 
+    /// Generates a fresh temporary variable name like `%t0`.
     fn fresh_temp(&mut self) -> String {
         let name = format!("%t{}", self.temp_counter);
         self.temp_counter += 1;
         name
     }
 
+    /// Emits a single line of output (LLVM-like IR).
+    ///
+    /// # Parameters
+    /// - `msg`: The line to emit.
     fn emit(&self, msg: &str) {
         println!("\t{}", msg);
     }
 
+    /// Parses and returns an identifier name.
+    ///
+    /// Fails if no valid identifier is found.
     fn get_name(&mut self) -> String {
         self.skip_whitespace();
         let mut name = String::new();
