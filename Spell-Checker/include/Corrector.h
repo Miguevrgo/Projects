@@ -34,7 +34,7 @@ class Corrector {
   public:
     Corrector() = delete;
     ~Corrector() = default;
-    explicit Corrector(const Dictionary &dictionary) : dictionary(dictionary){};
+    explicit Corrector(const Dictionary &dictionary) : dictionary(dictionary) {};
 
     /**
      * @brief Suggests all the possible corrections of a word where the Levenshtein distance is less

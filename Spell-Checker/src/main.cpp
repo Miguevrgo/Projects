@@ -12,10 +12,12 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <filesystem>
+#include <iostream>
 
 class SpellCheckerWidget : public QWidget {
   public:
-    SpellCheckerWidget() {
+    SpellCheckerWidget(const std::filesystem::path &app_path) {
         QPalette darkPalette;
         darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
         darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -62,11 +64,11 @@ class SpellCheckerWidget : public QWidget {
         mainLayout->addWidget(correctButton);
 
         connect(correctButton, &QPushButton::clicked, [=]() {
-            std::string resourcedir = "../resources";
+            std::filesystem::path resourcedir = app_path / "../resources";
             std::string language =
                 (languageComboBox->currentIndex() == 0) ? "english.txt" : "spanish.txt";
 
-            Dictionary dictionary(resourcedir + "/" + language, language);
+            Dictionary dictionary(resourcedir / language, language);
             Corrector corrector(dictionary);
 
             QString inputText = inputTextEdit->toPlainText();
@@ -95,8 +97,9 @@ class SpellCheckerWidget : public QWidget {
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    std::filesystem::path app_path = std::filesystem::canonical(argv[0]);
 
-    SpellCheckerWidget widget;
+    SpellCheckerWidget widget(app_path.parent_path());
     widget.setWindowTitle("Corrector Ortográfico");
     widget.resize(500, 300);
     widget.show();

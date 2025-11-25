@@ -7,7 +7,6 @@
 #ifndef SPELL_CHECKER_UTILS_H
 #define SPELL_CHECKER_UTILS_H
 
-#include <cmath>
 #include <filesystem>
 #include <map>
 #include <string>

@@ -21,6 +21,7 @@ The spell checker is built with a focus on performance and accuracy. By taking i
 ## Usage
 
 To use it, just clone the repository, go to the project folder, create a build directory, and build it using cmake. You have to install Qt if not already.
+
 ### Debian
 ```
 sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
@@ -29,7 +30,18 @@ cd Projects/Spell-Checker
 mkdir build
 cd build
 cmake ..
-make
+make -j$(nproc)
+```
+
+### Arch Linux
+```
+sudo apt-get install qtbase5
+git clone https://github.com/Miguevrgo/Projects.git
+cd Projects/Spell-Checker
+mkdir build
+cd build
+cmake ..
+make -j$(nproc)
 ```
 
 

@@ -7,6 +7,7 @@
 #include "Corrector.h"
 #include "Utils.h"
 #include <algorithm>
+#include <cmath>
 
 std::vector<std::string>
 Corrector::GetTopSuggestions(const std::multimap<double, std::string> &corrections, int topN) {
