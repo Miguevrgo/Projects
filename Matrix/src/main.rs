@@ -42,12 +42,12 @@ fn run_matrix_loop(stdout: &mut Stdout) -> io::Result<()> {
                     }
 
                     let char = CHARS[rng.random_range(0..CHARS.len())] as char;
-                    current_row[col] += 1;
-
                     if current_row_streak[col] > 0 {
                         write!(stdout, "{}{char}", MoveTo(col as u16, current_row[col]))?;
                         current_row_streak[col] -= 1;
                     }
+
+                    current_row[col] += 1;
                 }
             }
             stdout.flush()?;
