@@ -35,7 +35,19 @@ fn run_matrix_loop(stdout: &mut Stdout) -> io::Result<()> {
                 let ch = CHARS[rng.random_range(0..CHARS.len())] as char;
 
                 if c_row[col] < height {
-                    write!(stdout, "{}{ch}", MoveTo(col as u16, c_row[col]))?;
+                    if c_row[col] > 0 {
+                        let prev_ch = CHARS[rng.random_range(0..CHARS.len())] as char;
+                        write!(
+                            stdout,
+                            "{}\x1b[0;38;5;46m{prev_ch}",
+                            MoveTo(col as u16, c_row[col] - 1)
+                        )?;
+                    }
+                    write!(
+                        stdout,
+                        "{}\x1b[38;5;48m{ch}",
+                        MoveTo(col as u16, c_row[col])
+                    )?;
                 }
 
                 if c_row[col] >= c_row_len[col] {
@@ -56,7 +68,7 @@ fn run_matrix_loop(stdout: &mut Stdout) -> io::Result<()> {
         stdout.flush()?;
         if poll(Duration::from_millis(50))?
             && let Event::Key(k) = crossterm::event::read()?
-            && k.code == KeyCode::Char('c')
+            && (k.code == KeyCode::Char('c') || k.code == KeyCode::Char('q'))
         {
             return Ok(());
         }
