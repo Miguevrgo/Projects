@@ -19,37 +19,41 @@ fn main() -> io::Result<()> {
 }
 
 fn run_matrix_loop(stdout: &mut Stdout) -> io::Result<()> {
-    let (cols, rows) = terminal::size()?;
+    let (width, height) = terminal::size()?;
     let mut c_row = [0; MAX_COLS];
     let mut c_row_len = [0; MAX_COLS];
     let mut rng = rand::rng();
 
     loop {
-        for col in 0..cols as usize {
-            if c_row[col] >= rows - 1 {
-                for row in 0..rows {
-                    write!(stdout, "{} ", MoveTo(col as u16, row))?;
-                }
+        for col in 0..width as usize {
+            if c_row_len[col] == 0 && rng.random_bool(0.05) {
+                c_row_len[col] = rng.random_range(3..(height >> 1) - 1);
                 c_row[col] = 0;
-                c_row_len[col] = 0;
             }
 
-            if c_row[col] != 0 || rng.random_bool(0.05) {
-                if c_row_len[col] == 0 && rng.random_bool(0.1) || c_row[col] == 0 {
-                    c_row_len[col] = rng.random_range(0..(rows >> 2));
+            if c_row_len[col] != 0 {
+                let ch = CHARS[rng.random_range(0..CHARS.len())] as char;
+
+                if c_row[col] < height {
+                    write!(stdout, "{}{ch}", MoveTo(col as u16, c_row[col]))?;
                 }
 
-                let char = CHARS[rng.random_range(0..CHARS.len())] as char;
-                if c_row_len[col] > 0 {
-                    write!(stdout, "{}{char}", MoveTo(col as u16, c_row[col]))?;
-                    c_row_len[col] -= 1;
+                if c_row[col] >= c_row_len[col] {
+                    write!(
+                        stdout,
+                        "{} ",
+                        MoveTo(col as u16, c_row[col] - c_row_len[col])
+                    )?;
                 }
-
                 c_row[col] += 1;
             }
-        }
-        stdout.flush()?;
 
+            if c_row[col] > height + c_row_len[col] {
+                c_row_len[col] = 0;
+            }
+        }
+
+        stdout.flush()?;
         if poll(Duration::from_millis(50))?
             && let Event::Key(k) = crossterm::event::read()?
             && k.code == KeyCode::Char('c')
