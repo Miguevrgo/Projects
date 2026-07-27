@@ -1,5 +1,5 @@
 use crossterm::cursor::MoveTo;
-use crossterm::event::{KeyCode, poll};
+use crossterm::event::{Event, KeyCode, poll};
 use crossterm::terminal::{self, disable_raw_mode, enable_raw_mode};
 use rand::RngExt;
 use std::io::{self, Stdout, Write};
@@ -20,44 +20,41 @@ fn main() -> io::Result<()> {
 
 fn run_matrix_loop(stdout: &mut Stdout) -> io::Result<()> {
     let (cols, rows) = terminal::size()?;
-    let mut current_row = [0; MAX_COLS];
-    let mut current_row_streak = [0; MAX_COLS];
+    let mut c_row = [0; MAX_COLS];
+    let mut c_row_len = [0; MAX_COLS];
     let mut rng = rand::rng();
 
     loop {
-        for _ in 0..rows {
-            for col in 0..cols as usize {
-                if current_row[col] >= rows - 1 {
-                    for row in 0..rows {
-                        write!(stdout, "{} ", MoveTo(col as u16, row))?;
-                    }
-                    current_row[col] = 0;
-                    current_row_streak[col] = 0;
+        for col in 0..cols as usize {
+            if c_row[col] >= rows - 1 {
+                for row in 0..rows {
+                    write!(stdout, "{} ", MoveTo(col as u16, row))?;
+                }
+                c_row[col] = 0;
+                c_row_len[col] = 0;
+            }
+
+            if c_row[col] != 0 || rng.random_bool(0.05) {
+                if c_row_len[col] == 0 && rng.random_bool(0.1) || c_row[col] == 0 {
+                    c_row_len[col] = rng.random_range(0..(rows >> 2));
                 }
 
-                if current_row[col] != 0 || rng.random_bool(0.05) {
-                    if current_row_streak[col] == 0 && rng.random_bool(0.1) || current_row[col] == 0
-                    {
-                        current_row_streak[col] = rng.random_range(0..(rows >> 2));
-                    }
-
-                    let char = CHARS[rng.random_range(0..CHARS.len())] as char;
-                    if current_row_streak[col] > 0 {
-                        write!(stdout, "{}{char}", MoveTo(col as u16, current_row[col]))?;
-                        current_row_streak[col] -= 1;
-                    }
-
-                    current_row[col] += 1;
+                let char = CHARS[rng.random_range(0..CHARS.len())] as char;
+                if c_row_len[col] > 0 {
+                    write!(stdout, "{}{char}", MoveTo(col as u16, c_row[col]))?;
+                    c_row_len[col] -= 1;
                 }
-            }
-            stdout.flush()?;
 
-            if poll(Duration::from_millis(50))?
-                && let crossterm::event::Event::Key(k) = crossterm::event::read()?
-                && k.code == KeyCode::Char('c')
-            {
-                return Ok(());
+                c_row[col] += 1;
             }
+        }
+        stdout.flush()?;
+
+        if poll(Duration::from_millis(50))?
+            && let Event::Key(k) = crossterm::event::read()?
+            && k.code == KeyCode::Char('c')
+        {
+            return Ok(());
         }
     }
 }
