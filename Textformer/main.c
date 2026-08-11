@@ -2,10 +2,12 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <sys/mman.h>
 #include <sys/sendfile.h>
+#include <sys/stat.h>
 
 #define BUFFER_SIZE 1024
+#define MMAP
 
 int main()
 {
@@ -21,16 +23,51 @@ int main()
         fclose(fp);
         return EXIT_FAILURE;
     }
-    char buffer[BUFFER_SIZE];
 
-    // HACK: This is one way to do it, no big RAM and safe, lets
-    // also explore with mmap anc compare efficiency
+#ifndef MMAP
+    // HACK: This is one way to do it, no big RAM and safe
+    char buffer[BUFFER_SIZE];
     while (fgets(buffer, BUFFER_SIZE, fp) != nullptr) {
         for (size_t i = 0; buffer[i] != '\0'; ++i) {
             buffer[i] = (char)tolower((unsigned char)buffer[i]);
         }
         fputs(buffer, tmp_file);
     }
+#else
+    // HACK: This is another way to do it, no big RAM and safe (Faster)
+    struct stat st;
+    fstat(fileno(fp), &st);
+    if (fstat(fileno(fp), &st) == -1) {
+        perror("Fstat failed");
+        fclose(fp);
+        fclose(tmp_file);
+        return EXIT_FAILURE;
+    }
+
+    char* src = (char*)mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fileno(fp), 0);
+    if (src == MAP_FAILED) {
+        perror("Mmap failed");
+        fclose(fp);
+        fclose(tmp_file);
+        return EXIT_FAILURE;
+    }
+
+    char buf[BUFFER_SIZE];
+    size_t out_idx = 0;
+
+    for (off_t i = 0; i < st.st_size; ++i) {
+        buf[out_idx++] = (char)tolower((unsigned char)src[i]);
+        if (out_idx == BUFFER_SIZE) {
+            fwrite(buf, 1, BUFFER_SIZE, tmp_file);
+            out_idx = 0;
+        }
+    }
+
+    if (out_idx > 0) {
+        fwrite(buf, 1, out_idx, tmp_file);
+    }
+    munmap(src, (size_t)st.st_size);
+#endif
 
     long pos = ftell(tmp_file);
     if (pos == -1L) {
