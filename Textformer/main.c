@@ -36,7 +36,6 @@ int main()
 #else
     // HACK: This is another way to do it, no big RAM and safe (Faster)
     struct stat st;
-    fstat(fileno(fp), &st);
     if (fstat(fileno(fp), &st) == -1) {
         perror("Fstat failed");
         fclose(fp);
