@@ -10,6 +10,16 @@
 #define BRICKS_PER_ROW 20
 #define ROWS 10
 #define MAX_SPEED 1
+#define THETA_MAX (PI / 3)
+
+const Color COLORS[6] = {
+    {0xf3, 0x8b, 0xa8, 0xff},  //
+    {0xfa, 0xb3, 0x87, 0xff},  //
+    {0xf9, 0xe2, 0xaf, 0xff},  //
+    {0xa6, 0xe3, 0xa1, 0xff},  //
+    {0x89, 0xb4, 0xfa, 0xff},  //
+    {0xcb, 0xa6, 0xf7, 0xff}   //
+};
 
 typedef struct Player {
     Vector2 pos;
@@ -56,13 +66,13 @@ void InitGame(GameData* const data) {
     data->player.size.x = WIDTH * 0.1;
     data->player.size.y = HEIGHT * 0.01;
     data->player.pos.x = ((float)WIDTH / 2) - (data->player.size.x / 2);
-    data->player.pos.y = HEIGHT - (HEIGHT * 0.1);
+    data->player.pos.y = HEIGHT - (HEIGHT * 0.05);
 
     data->ball.pos.x = (float)WIDTH / 2;
     data->ball.pos.y = data->player.pos.y - ((float)HEIGHT / 4);
     data->ball.radius = 25;
-    data->ball.speed.x = -2;
-    data->ball.speed.y = 0.3F;
+    data->ball.speed.x = -((float)rand() * 5 / RAND_MAX);
+    data->ball.speed.y = 0.5F;
 }
 
 void CloseGame(GameData* const data) { free(data->bricks); }
@@ -77,7 +87,7 @@ void DrawGame(const GameData* const data) {
             if (data->bricks[(row * BRICKS_PER_ROW) + col].active) {  // HACK: Maybe move inactive to end?
                 DrawRectangle((int)data->bricks[(row * BRICKS_PER_ROW) + col].pos.x,
                               (int)data->bricks[(row * BRICKS_PER_ROW) + col].pos.y, (int)data->brick_size.x * 95 / 100,
-                              (int)data->brick_size.y * 95 / 100, BLUE);
+                              (int)data->brick_size.y * 95 / 100, COLORS[row % 6]);
             }
         }
     }
@@ -87,11 +97,12 @@ void DrawGame(const GameData* const data) {
 
     DrawCircle((int)data->ball.pos.x, (int)data->ball.pos.y, data->ball.radius, RED);
 
+    DrawText(TextFormat("Lifes: %i", data->player.lifes), 5, HEIGHT - 20, 20, BLACK);
+
     EndDrawing();
 }
 
 void ResolveCollisions(GameData* const data) {
-    // FIX: Too much speed wrong angles
     if (CheckCollisionCircleRec(data->ball.pos, data->ball.radius,
                                 (Rectangle){
                                     .x = data->player.pos.x,
@@ -99,11 +110,17 @@ void ResolveCollisions(GameData* const data) {
                                     .width = data->player.size.x,
                                     .height = data->player.size.y,
                                 })) {
-        const float FACTOR = fabsf(data->ball.speed.x) <= MAX_SPEED || fabsf(data->ball.speed.y) <= MAX_SPEED ? -3 : -1;
-        data->ball.speed.y *= FACTOR;
-        data->ball.speed.x = (data->ball.pos.x - data->player.pos.x) / (data->player.size.x / 2) * FACTOR;
+        const float T =
+            (data->ball.pos.x - (data->player.pos.x + (data->player.size.x / 2))) / (data->player.size.x / 2);
+        const float THETA = T * THETA_MAX;
+        const float MODULE =
+            sqrtf((data->ball.speed.x * data->ball.speed.x) + (data->ball.speed.y * data->ball.speed.y));
+        data->ball.speed.x = MODULE * sinf(THETA);
+        data->ball.speed.y = -MODULE * cosf(THETA);
     }
 
+    // HACK: This could be optimized (if brick->inactive's) are sent to the end
+    // or even checking collisions only for the bricks which are close to the ball
     for (size_t row = 0; row < ROWS; ++row) {
         for (size_t col = 0; col < BRICKS_PER_ROW; ++col) {
             Brick* brick = &data->bricks[(row * BRICKS_PER_ROW) + col];
@@ -143,7 +160,7 @@ void UpdateGame(GameData* const data) {
     }
 
     if ((int)data->ball.pos.y + data->ball.radius >= HEIGHT) {
-        data->ball.speed.x *= 0.5F;
+        data->ball.speed.x *= -((float)rand() * 5 / RAND_MAX);
         data->ball.speed.y *= 0.5F;
         data->ball.pos.x = (float)WIDTH / 2;
         data->ball.pos.y = data->player.pos.y - ((float)HEIGHT / 4);
