@@ -2,12 +2,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "raylib.h"
 
 #define WIDTH 1920
 #define HEIGHT 1080
 #define BRICKS_PER_ROW 20
+#define PLAYER_SPEED 825
 #define ROWS 10
 #define MAX_SPEED 1
 #define THETA_MAX (PI / 3)
@@ -44,7 +46,18 @@ typedef struct GameData {
     Brick* bricks;
     Player player;
     Ball ball;
+    bool game_over;
 } GameData;
+
+void RestartBall(GameData* const data) {
+    data->ball.pos.x = (float)WIDTH / 2;
+    data->ball.pos.y = data->player.pos.y - ((float)HEIGHT / 4);
+    data->ball.radius = 25;
+
+    const float u = (((float)rand() * 2.0F / RAND_MAX) - 1.0F);
+    data->ball.speed.x = cbrtf(u) * 825.0F;
+    data->ball.speed.y = 100.0F;
+}
 
 void InitGame(GameData* const data) {
     data->brick_size.x = ((float)WIDTH / BRICKS_PER_ROW);
@@ -68,11 +81,9 @@ void InitGame(GameData* const data) {
     data->player.pos.x = ((float)WIDTH / 2) - (data->player.size.x / 2);
     data->player.pos.y = HEIGHT - (HEIGHT * 0.05);
 
-    data->ball.pos.x = (float)WIDTH / 2;
-    data->ball.pos.y = data->player.pos.y - ((float)HEIGHT / 4);
-    data->ball.radius = 25;
-    data->ball.speed.x = -((float)rand() * 5 / RAND_MAX);
-    data->ball.speed.y = 0.5F;
+    RestartBall(data);
+
+    data->game_over = false;
 }
 
 void CloseGame(GameData* const data) { free(data->bricks); }
@@ -97,7 +108,10 @@ void DrawGame(const GameData* const data) {
 
     DrawCircle((int)data->ball.pos.x, (int)data->ball.pos.y, data->ball.radius, RED);
 
-    DrawText(TextFormat("Lifes: %i", data->player.lifes), 5, HEIGHT - 20, 20, BLACK);
+    DrawText(TextFormat("Lifes: %i", data->player.lifes), 10, HEIGHT - 30, 30, BLACK);
+    if (data->game_over) {
+        DrawText("GAME OVER", (WIDTH / 2) - (MeasureText("GAME OVER", 60) / 2), HEIGHT / 2, 60, MAROON);
+    }
 
     EndDrawing();
 }
@@ -140,17 +154,36 @@ void ResolveCollisions(GameData* const data) {
     }
 }
 
+bool BricksLeft(const GameData* const data) {
+    for (size_t i = 0; i < (size_t)ROWS * BRICKS_PER_ROW; ++i) {
+        if (data->bricks[i].active) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void UpdateGame(GameData* const data) {
+    if (data->game_over) {
+        return;
+    }
+
+    const float DT = GetFrameTime();
+
     if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_H) || IsKeyDown(KEY_A)) {
-        data->player.pos.x -= data->player.pos.x >= 5 ? 5 : 0;
+        data->player.pos.x -= PLAYER_SPEED * DT;
+        data->player.pos.x = (data->player.pos.x < 0) ? 0 : data->player.pos.x;
     }
 
     if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_L) || IsKeyDown(KEY_D)) {
-        data->player.pos.x += data->player.pos.x + data->player.size.x <= WIDTH - 5 ? 5 : 0;
+        data->player.pos.x += PLAYER_SPEED * DT;
+        data->player.pos.x =
+            (data->player.pos.x > WIDTH - data->player.size.x) ? WIDTH - data->player.size.x : data->player.pos.x;
     }
 
-    data->ball.pos.x += data->ball.speed.x;
-    data->ball.pos.y += data->ball.speed.y;
+    data->ball.pos.x += data->ball.speed.x * DT;
+    data->ball.pos.y += data->ball.speed.y * DT;
 
     if ((int)data->ball.pos.x + data->ball.radius >= WIDTH || (int)data->ball.pos.x - data->ball.radius <= 0) {
         data->ball.speed.x *= -1;
@@ -160,11 +193,12 @@ void UpdateGame(GameData* const data) {
     }
 
     if ((int)data->ball.pos.y + data->ball.radius >= HEIGHT) {
-        data->ball.speed.x *= -((float)rand() * 5 / RAND_MAX);
-        data->ball.speed.y *= 0.5F;
-        data->ball.pos.x = (float)WIDTH / 2;
-        data->ball.pos.y = data->player.pos.y - ((float)HEIGHT / 4);
+        RestartBall(data);
         data->player.lifes -= 1;
+    }
+
+    if (data->player.lifes == 0 || !BricksLeft(data)) {
+        data->game_over = true;
     }
 
     ResolveCollisions(data);
@@ -173,6 +207,7 @@ void UpdateGame(GameData* const data) {
 int main(void) {
     InitWindow(WIDTH, HEIGHT, "Arkanoid");
     SetTargetFPS(165);
+    srand(time(nullptr));
     GameData data = {};
 
     InitGame(&data);
