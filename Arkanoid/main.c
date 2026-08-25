@@ -36,9 +36,10 @@ typedef struct Ball {
 } Ball;
 
 typedef struct Brick {
-    Vector2 pos;
-    Vector2 size;
-    bool active;
+    uint16_t pos_x;
+    uint16_t pos_y;
+    uint16_t size_x;
+    uint16_t size_y;  // This field also holds active? at the end
 } Brick;
 
 typedef struct GameData {
@@ -68,9 +69,9 @@ void InitGame(GameData* const data) {
         for (size_t col = 0; col < BRICKS_PER_ROW; ++col) {
             data->bricks[(row * BRICKS_PER_ROW) + col] = (Brick){
                 // We draw 0.95 * brick_width so we have to pad (1 - 0.95) / 2 -> so divide by 40
-                .pos = {((float)col * data->brick_size.x) + (data->brick_size.x / 40),
-                        ((float)row * data->brick_size.y) + (data->brick_size.y / 4)},
-                .active = true,
+                .pos_x = (uint16_t)(col * (uint16_t)data->brick_size.x) + (uint16_t)(data->brick_size.x / 40),
+                .pos_y =
+                    ((uint16_t)(row * (uint16_t)data->brick_size.y) + (uint16_t)(data->brick_size.y / 4)) | (1U << 15),
             };
         }
     }
@@ -94,19 +95,20 @@ void DrawGame(const GameData* const data) {
     ClearBackground(RAYWHITE);
 
     for (size_t row = 0; row < ROWS; ++row) {
-        for (size_t col = 0; col < BRICKS_PER_ROW; ++col) {
-            if (data->bricks[(row * BRICKS_PER_ROW) + col].active) {  // HACK: Maybe move inactive to end?
-                DrawRectangle((int)data->bricks[(row * BRICKS_PER_ROW) + col].pos.x,
-                              (int)data->bricks[(row * BRICKS_PER_ROW) + col].pos.y, (int)data->brick_size.x * 95 / 100,
-                              (int)data->brick_size.y * 95 / 100, COLORS[row % 6]);
+        for (size_t col = 0; col < BRICKS_PER_ROW; ++col) {  // HACK: Maybe move inactive to the end?
+            if ((data->bricks[(row * BRICKS_PER_ROW) + col].pos_y & (1U << 15)) != 0) {
+                DrawRectangle(data->bricks[(row * BRICKS_PER_ROW) + col].pos_x,
+                              (uint16_t)(data->bricks[(row * BRICKS_PER_ROW) + col].pos_y & ~(1U << 15)),
+                              (uint16_t)data->brick_size.x * 95 / 100, (uint16_t)data->brick_size.y * 95 / 100,
+                              COLORS[row % 6]);
             }
         }
     }
 
-    DrawRectangle((int)data->player.pos.x, (int)data->player.pos.y, (int)data->player.size.x, (int)data->player.size.y,
-                  BLACK);
+    DrawRectangle((uint16_t)data->player.pos.x, (uint16_t)data->player.pos.y, (uint16_t)data->player.size.x,
+                  (uint16_t)data->player.size.y, BLACK);
 
-    DrawCircle((int)data->ball.pos.x, (int)data->ball.pos.y, data->ball.radius, RED);
+    DrawCircle((uint16_t)data->ball.pos.x, (uint16_t)data->ball.pos.y, data->ball.radius, RED);
 
     DrawText(TextFormat("Lifes: %i", data->player.lifes), 10, HEIGHT - 30, 30, BLACK);
     if (data->game_over) {
@@ -133,20 +135,31 @@ void ResolveCollisions(GameData* const data) {
         data->ball.speed.y = -MODULE * cosf(THETA);
     }
 
-    // HACK: This could be optimized (if brick->inactive's) are sent to the end
-    // or even checking collisions only for the bricks which are close to the ball
-    for (size_t row = 0; row < ROWS; ++row) {
-        for (size_t col = 0; col < BRICKS_PER_ROW; ++col) {
+    const int32_t center_col = (int32_t)(data->ball.pos.x / data->brick_size.x);
+    const int32_t center_row = (int32_t)((data->ball.pos.y - (data->brick_size.y / 4.0F)) / data->brick_size.y);
+
+    for (int32_t dy = -1; dy <= 1; ++dy) {
+        const int32_t row = center_row + dy;
+        if (row < 0 || row >= ROWS) {
+            continue;
+        }
+
+        for (int32_t dx = -1; dx <= 1; ++dx) {
+            const int32_t col = center_col + dx;
+            if (col < 0 || col >= BRICKS_PER_ROW) {
+                continue;
+            }
+
             Brick* brick = &data->bricks[(row * BRICKS_PER_ROW) + col];
-            if (brick->active) {
-                Rectangle rect = {.x = brick->pos.x,
-                                  .y = brick->pos.y,
+            if ((brick->pos_y & (1U << 15)) != 0) {
+                Rectangle rect = {.x = (float)brick->pos_x,
+                                  .y = (float)(brick->pos_y & ~(1U << 15)),
                                   .width = data->brick_size.x * 0.95F,
                                   .height = data->brick_size.y * 0.95F};
 
-                if (CheckCollisionCircleRec(data->ball.pos, data->ball.radius, rect)) {
-                    brick->active = false;
-                    data->ball.speed.y *= -1;
+                if (CheckCollisionCircleRec(data->ball.pos, (float)data->ball.radius, rect)) {
+                    brick->pos_y &= ~(1U << 15);
+                    data->ball.speed.y *= -1.0F;
                     return;
                 }
             }
@@ -156,7 +169,7 @@ void ResolveCollisions(GameData* const data) {
 
 bool BricksLeft(const GameData* const data) {
     for (size_t i = 0; i < (size_t)ROWS * BRICKS_PER_ROW; ++i) {
-        if (data->bricks[i].active) {
+        if ((data->bricks[i].pos_y & (1U << 15)) != 0) {
             return true;
         }
     }
@@ -185,14 +198,15 @@ void UpdateGame(GameData* const data) {
     data->ball.pos.x += data->ball.speed.x * DT;
     data->ball.pos.y += data->ball.speed.y * DT;
 
-    if ((int)data->ball.pos.x + data->ball.radius >= WIDTH || (int)data->ball.pos.x - data->ball.radius <= 0) {
+    if ((uint16_t)data->ball.pos.x + data->ball.radius >= WIDTH ||
+        (uint16_t)data->ball.pos.x - data->ball.radius <= 0) {
         data->ball.speed.x *= -1;
     }
-    if ((int)data->ball.pos.y - data->ball.radius <= 0) {
+    if ((uint16_t)data->ball.pos.y - data->ball.radius <= 0) {
         data->ball.speed.y *= -1;
     }
 
-    if ((int)data->ball.pos.y + data->ball.radius >= HEIGHT) {
+    if ((uint16_t)data->ball.pos.y + data->ball.radius >= HEIGHT) {
         RestartBall(data);
         data->player.lifes -= 1;
     }
