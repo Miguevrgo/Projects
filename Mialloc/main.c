@@ -36,6 +36,18 @@ void* my_malloc(size_t size) {
 
     while (curr) {
         if (curr->free && curr->size >= size) {
+            if (curr->size >= size + sizeof(Block) + 8) {
+                char* payload = (char*)(size + 1);
+                Block* new_block = (Block*)(payload + size);
+
+                new_block->size = curr->size - size - sizeof(Block);
+                new_block->free = true;
+                new_block->next = curr->next;
+
+                curr->next = new_block;
+                curr->size = size;
+            }
+
             curr->free = false;
             return (void*)(curr + 1);
         }
