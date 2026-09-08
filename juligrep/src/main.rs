@@ -68,9 +68,22 @@ fn main() -> io::Result<()> {
         return Err(io::Error::other("Usage: <regex> [path]"));
     }
 
-    visit_dirs(
-        Path::new(&args.get(2).map(String::as_str).unwrap_or(".")),
-        &grep,
-        &Regex::from_str(args.get(1).unwrap()).unwrap(),
-    )
+    let regex = Regex::from_str(args.get(1).unwrap()).unwrap();
+
+    std::thread::scope(|s| {
+        if let Ok(entries) = std::fs::read_dir(args.get(2).map(String::as_str).unwrap_or(".")) {
+            for entry in entries.flatten() {
+                if entry.path().is_dir() && !is_ignored_dir(&entry.path().to_string_lossy()) {
+                    let r = &regex;
+                    s.spawn(move || {
+                        let _ = visit_dirs(&entry.path(), &grep, r);
+                    });
+                } else if entry.path().is_file() {
+                    grep(&entry, &regex);
+                }
+            }
+        }
+    });
+
+    Ok(())
 }
