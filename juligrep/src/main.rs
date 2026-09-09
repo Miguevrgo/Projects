@@ -1,9 +1,8 @@
-use regex::Regex;
+use regex::bytes::Regex;
 use std::{
     fs::DirEntry,
     io::{self},
     path::Path,
-    str::FromStr,
 };
 
 fn is_ignored_dir(name: &str) -> bool {
@@ -11,6 +10,11 @@ fn is_ignored_dir(name: &str) -> bool {
         || name.contains(".git")
         || name.contains("node_modules")
         || name.contains(".cargo")
+        || name.contains(".rustup")
+}
+
+fn is_binary(bytes: &[u8]) -> bool {
+    bytes[..bytes.len().min(1024)].contains(&b'\0')
 }
 
 fn visit_dirs<F: FnMut(&DirEntry, &Regex)>(
@@ -50,12 +54,17 @@ fn visit_dirs<F: FnMut(&DirEntry, &Regex)>(
 }
 
 fn grep(entry: &DirEntry, regex: &Regex) {
-    let Ok(content) = std::fs::read_to_string(entry.path()) else {
+    let Ok(content) = std::fs::read(entry.path()) else {
         return;
     };
 
-    for (line, content) in content.split('\n').enumerate() {
-        if regex.is_match(content) {
+    if is_binary(&content) || !regex.is_match(&content) {
+        return;
+    }
+
+    for (line, line_bytes) in content.split(|&b| b == b'\n').enumerate() {
+        if regex.is_match(line_bytes) {
+            let content = String::from_utf8_lossy(line_bytes);
             println!("\x1b[34m{}", entry.path().display());
             println!("\x1b[31m{line}: \x1b[0m{content}");
         }
@@ -68,7 +77,7 @@ fn main() -> io::Result<()> {
         return Err(io::Error::other("Usage: <regex> [path]"));
     }
 
-    let regex = Regex::from_str(args.get(1).unwrap()).unwrap();
+    let regex = Regex::new(args.get(1).unwrap()).unwrap();
 
     std::thread::scope(|s| {
         if let Ok(entries) = std::fs::read_dir(args.get(2).map(String::as_str).unwrap_or(".")) {
