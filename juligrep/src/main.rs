@@ -42,7 +42,7 @@ fn visit_dirs<F: FnMut(&DirEntry, &Regex)>(
                 }
             };
 
-            if entry.path().is_dir() && !is_ignored_dir(entry.path().as_os_str()) {
+            if entry.path().is_dir() && !is_ignored_dir(&entry.file_name()) {
                 stack.push(entry.path());
             } else if entry.path().is_file() {
                 callback(&entry, regex);
@@ -72,20 +72,20 @@ fn grep(entry: &DirEntry, regex: &Regex) {
 }
 
 fn main() -> io::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 && args.len() != 3 {
-        return Err(io::Error::other("Usage: <regex> [path]"));
-    }
-
-    let regex = Regex::new(args.get(1).unwrap()).unwrap();
+    let mut args = std::env::args().skip(1);
+    let pattern = args
+        .next()
+        .ok_or_else(|| io::Error::other("Usage: <regex> [path]"))?;
+    let root = args.next().unwrap_or_else(|| ".".into());
+    let regex = Regex::new(&pattern).map_err(io::Error::other)?;
 
     std::thread::scope(|s| {
-        if let Ok(entries) = std::fs::read_dir(args.get(2).map(String::as_str).unwrap_or(".")) {
+        if let Ok(entries) = std::fs::read_dir(&root) {
             for entry in entries.flatten() {
-                if entry.path().is_dir() && !is_ignored_dir(entry.path().as_os_str()) {
-                    let r = &regex;
+                if entry.path().is_dir() && !is_ignored_dir(&entry.file_name()) {
+                    let regex = regex.clone();
                     s.spawn(move || {
-                        let _ = visit_dirs(&entry.path(), &grep, r);
+                        let _ = visit_dirs(&entry.path(), &grep, &regex);
                     });
                 } else if entry.path().is_file() {
                     grep(&entry, &regex);
