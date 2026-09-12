@@ -1,16 +1,16 @@
 use regex::bytes::Regex;
 use std::{
+    ffi::OsStr,
     fs::DirEntry,
     io::{self},
     path::Path,
 };
 
-fn is_ignored_dir(name: &str) -> bool {
-    name.contains("target")
-        || name.contains(".git")
-        || name.contains("node_modules")
-        || name.contains(".cargo")
-        || name.contains(".rustup")
+fn is_ignored_dir(name: &OsStr) -> bool {
+    matches!(
+        name.to_str(),
+        Some("target" | ".git" | "node_modules" | ".cargo" | ".rustup")
+    )
 }
 
 fn is_binary(bytes: &[u8]) -> bool {
@@ -42,7 +42,7 @@ fn visit_dirs<F: FnMut(&DirEntry, &Regex)>(
                 }
             };
 
-            if entry.path().is_dir() && !is_ignored_dir(&entry.path().to_string_lossy()) {
+            if entry.path().is_dir() && !is_ignored_dir(entry.path().as_os_str()) {
                 stack.push(entry.path());
             } else if entry.path().is_file() {
                 callback(&entry, regex);
@@ -82,7 +82,7 @@ fn main() -> io::Result<()> {
     std::thread::scope(|s| {
         if let Ok(entries) = std::fs::read_dir(args.get(2).map(String::as_str).unwrap_or(".")) {
             for entry in entries.flatten() {
-                if entry.path().is_dir() && !is_ignored_dir(&entry.path().to_string_lossy()) {
+                if entry.path().is_dir() && !is_ignored_dir(entry.path().as_os_str()) {
                     let r = &regex;
                     s.spawn(move || {
                         let _ = visit_dirs(&entry.path(), &grep, r);
