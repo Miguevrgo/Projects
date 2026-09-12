@@ -77,18 +77,17 @@ fn main() -> io::Result<()> {
         .next()
         .ok_or_else(|| io::Error::other("Usage: <regex> [path]"))?;
     let root = args.next().unwrap_or_else(|| ".".into());
-    let regex = Regex::new(&pattern).map_err(io::Error::other)?;
+    let regex = &Regex::new(&pattern).map_err(io::Error::other)?;
 
     std::thread::scope(|s| {
         if let Ok(entries) = std::fs::read_dir(&root) {
             for entry in entries.flatten() {
                 if entry.path().is_dir() && !is_ignored_dir(&entry.file_name()) {
-                    let regex = regex.clone();
                     s.spawn(move || {
-                        let _ = visit_dirs(&entry.path(), &grep, &regex);
+                        let _ = visit_dirs(&entry.path(), &grep, regex);
                     });
                 } else if entry.path().is_file() {
-                    grep(&entry, &regex);
+                    grep(&entry, regex);
                 }
             }
         }
