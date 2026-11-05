@@ -9,6 +9,7 @@ use std::{
     collections::HashMap,
     io::{StdoutLock, stdout},
     time::{Duration, Instant},
+    vec,
 };
 
 // mem info
@@ -83,6 +84,31 @@ fn disk_info() -> Result<(u64, u64), std::io::Error> {
     Ok((read, write))
 }
 
+// process info
+fn process_info() -> Result<HashMap<u64, Vec<String>>, std::io::Error> {
+    let mut pids = Vec::new();
+
+    for entry in std::fs::read_dir("/proc")? {
+        if let Ok(pid) = entry?.file_name().into_string()
+            && let Ok(n_pid) = pid.parse::<u64>()
+        {
+            pids.push(n_pid)
+        }
+    }
+
+    let mut map = HashMap::new();
+    for pid in pids {
+        let content = std::fs::read_to_string(format!("/proc/{pid}/stat"))?;
+        let vec = content.split_whitespace().collect::<Vec<_>>();
+        map.insert(
+            pid,
+            vec![vec[1][1..vec[1].len() - 1].to_string(), vec[23].to_string()],
+        );
+    }
+
+    Ok(map)
+}
+
 fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
     enable_raw_mode()?;
     execute!(stdout, Hide)?;
@@ -134,17 +160,27 @@ fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
             disk.0.saturating_sub(prev_disk.0) as f64 / 1024.0 / secs,
             disk.1.saturating_sub(prev_disk.1) as f64 / 1024.0 / secs
         );
-        prev_disk = disk;
 
+        let process = process_info()?;
+        execute!(stdout, Clear(ClearType::All))?;
+        for (i, (_, proc)) in process.iter().take(20).clone().enumerate() {
+            let proc_str = format!(
+                "{:<18} | RSS: {}",
+                proc[0].chars().take(16).collect::<String>(),
+                proc[1]
+            );
+            execute!(stdout, MoveTo(45, i as u16), Print(proc_str))?;
+        }
+
+        prev_disk = disk;
         prev_net = net;
         prev = now;
         execute!(
             stdout,
             MoveTo(0, 0),
-            Clear(ClearType::All),
             Print(str),
             Print(net_str),
-            Print(disk_str)
+            Print(disk_str),
         )?;
     }
 
