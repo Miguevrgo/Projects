@@ -2,14 +2,13 @@ use crossterm::{
     cursor::{Hide, MoveTo, Show},
     event::{self},
     execute,
-    style::Print,
+    style::{Print, Stylize},
     terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode},
 };
 use std::{
     collections::HashMap,
     io::{StdoutLock, stdout},
     time::{Duration, Instant},
-    vec,
 };
 
 // mem info
@@ -85,11 +84,11 @@ fn disk_info() -> Result<(u64, u64), std::io::Error> {
 }
 
 // process info
-fn process_info() -> Result<HashMap<u64, Vec<String>>, std::io::Error> {
+fn process_info() -> HashMap<u64, (String, u64, u64)> {
     let mut pids = Vec::new();
 
-    for entry in std::fs::read_dir("/proc")? {
-        if let Ok(pid) = entry?.file_name().into_string()
+    for entry in std::fs::read_dir("/proc").expect("No entries in /proc") {
+        if let Ok(pid) = entry.unwrap().file_name().into_string()
             && let Ok(n_pid) = pid.parse::<u64>()
         {
             pids.push(n_pid)
@@ -98,15 +97,23 @@ fn process_info() -> Result<HashMap<u64, Vec<String>>, std::io::Error> {
 
     let mut map = HashMap::new();
     for pid in pids {
-        let content = std::fs::read_to_string(format!("/proc/{pid}/stat"))?;
-        let vec = content.split_whitespace().collect::<Vec<_>>();
-        map.insert(
-            pid,
-            vec![vec[1][1..vec[1].len() - 1].to_string(), vec[23].to_string()],
-        );
+        if let Ok(content) = std::fs::read_to_string(format!("/proc/{pid}/stat")) {
+            let (Some(open), Some(close)) = (content.find('('), content.rfind(')')) else {
+                continue;
+            };
+            let vec = content[close + 2..].split_whitespace().collect::<Vec<_>>();
+            map.insert(
+                pid,
+                (
+                    content[(open + 1)..close].to_string(),
+                    vec[11].parse::<u64>().unwrap() + vec[12].parse::<u64>().unwrap(),
+                    vec[21].parse::<u64>().unwrap() * 4096,
+                ),
+            );
+        }
     }
 
-    Ok(map)
+    map
 }
 
 fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
@@ -116,6 +123,7 @@ fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
     let mut prev = cpu_info()?;
     let mut prev_net = net_info()?;
     let mut prev_disk = disk_info()?;
+    let mut prev_proc = process_info();
     let mut last = Instant::now();
 
     loop {
@@ -149,8 +157,10 @@ fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
         let secs = last.elapsed().as_secs_f64();
         last = Instant::now();
         let net_str = format!(
-            "In: {:.1} KiB/s | Out: {:.1} KiB/s\r\n",
+            "{} {:.1} KiB/s  {} {:.1} KiB/s\r\n",
+            "↓".cyan().bold(),
             net.0.saturating_sub(prev_net.0) as f64 / 1024.0 / secs,
+            "↑".magenta().bold(),
             net.1.saturating_sub(prev_net.1) as f64 / 1024.0 / secs
         );
 
@@ -161,17 +171,42 @@ fn render_loop(stdout: &mut StdoutLock) -> Result<(), std::io::Error> {
             disk.1.saturating_sub(prev_disk.1) as f64 / 1024.0 / secs
         );
 
-        let process = process_info()?;
+        let procs = process_info();
+        let core_jiffies = (now["cpu"].1 - prev["cpu"].1) as f64 / (now.len() - 1) as f64;
+
+        let mut list = Vec::new();
+        for (pid, (name, ticks, rss)) in &procs {
+            let before = match prev_proc.get(pid) {
+                Some(p) => p.1,
+                None => *ticks,
+            };
+            let cpu = (ticks - before) as f64 / core_jiffies * 100.0;
+            list.push((*pid, name, cpu, *rss));
+        }
+        list.sort_by(|a, b| b.2.total_cmp(&a.2));
+
         execute!(stdout, Clear(ClearType::All))?;
-        for (i, (_, proc)) in process.iter().take(20).clone().enumerate() {
-            let proc_str = format!(
-                "{:<18} | RSS: {}",
-                proc[0].chars().take(16).collect::<String>(),
-                proc[1]
-            );
-            execute!(stdout, MoveTo(45, i as u16), Print(proc_str))?;
+        execute!(
+            stdout,
+            MoveTo(40, 0),
+            Print(
+                format!("{:>7}  {:<16} {:>6}  {:>9}", "PID", "Program", "CPU", "RSS")
+                    .bold()
+                    .underlined()
+            )
+        )?;
+        for (i, (pid, name, cpu, rss)) in list.iter().take(19).enumerate() {
+            execute!(
+                stdout,
+                MoveTo(40, i as u16 + 1),
+                Print(format!("{pid:>7}  ").white().bold()),
+                Print(format!("{:<16} ", name.chars().take(16).collect::<String>()).green()),
+                Print(format!("{cpu:>5.1}%  ").green().bold()),
+                Print(format!("{:>5} MiB", rss >> 20).green().bold()),
+            )?;
         }
 
+        prev_proc = procs;
         prev_disk = disk;
         prev_net = net;
         prev = now;
